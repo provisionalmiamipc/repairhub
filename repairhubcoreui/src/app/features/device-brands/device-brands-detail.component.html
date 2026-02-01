@@ -1,0 +1,57 @@
+<div class="detail-container" *ngIf="deviceBrand">
+  <div class="detail-header">
+    <div>
+      <h1>{{ deviceBrand.name }}</h1>
+      <p>Detalles de la marca de dispositivo</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-edit" (click)="editDeviceBrand()" [attr.aria-label]="'Editar'">
+        <i class="bi bi-pencil-square"></i> Editar
+      </button>
+      <button class="btn-back" (click)="goBack()" [attr.aria-label]="'Volver'">
+        <i class="bi bi-arrow-left"></i> Volver
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <section class="detail-section">
+      <h2>Información General</h2>
+
+      <div class="detail-row">
+        <label>ID:</label>
+        <span>{{ deviceBrand.id }}</span>
+      </div>
+
+      <div class="detail-row">
+        <label>Nombre:</label>
+        <span>{{ deviceBrand.name }}</span>
+      </div>
+
+      <div class="detail-row">
+        <label>Descripción:</label>
+        <span>{{ deviceBrand.description || 'Sin descripción' }}</span>
+      </div>
+    </section>
+
+    <section class="detail-section">
+      <h2>Imagen</h2>
+
+      <div class="image-wrapper" *ngIf="deviceBrand.img; else noImage">
+        <img [src]="deviceBrand.img" alt="Imagen de {{ deviceBrand.name }}" />
+      </div>
+      <ng-template #noImage>
+        <p class="placeholder-text">Sin imagen</p>
+      </ng-template>
+    </section>
+
+    <section class="detail-section">
+      <h2>Información del Sistema</h2>
+
+      <div class="detail-row">
+        <label>Creado:</label>
+        <span>{{ deviceBrand.createdAt | date: 'short' }}</span>
+      </div>
+    </section>
+  </div>
+</div>

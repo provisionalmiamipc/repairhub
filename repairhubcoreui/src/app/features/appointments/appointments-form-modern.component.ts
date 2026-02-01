@@ -1,0 +1,423 @@
+import { Component, signal, computed, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { trigger, transition, style, animate } from '@angular/animations';
+import { Appointments } from '../../shared/models/Appointments';
+import { Devices } from '../../shared/models/Devices';
+import { ServiceTypes } from '../../shared/models/ServiceTypes';
+import { AppointmentsService } from '../../shared/services/appointments.service';
+import { DevicesService } from '../../shared/services/devices.service';
+import { ServiceTypesService } from '../../shared/services/service-types.service';
+import { CentersService } from '../../shared/services/centers.service';
+import { StoresService } from '../../shared/services/stores.service';
+import { Centers } from '../../shared/models/Centers';
+import { Stores } from '../../shared/models/Stores';
+import { AuthService } from '../../shared/services/auth.service';
+
+interface FormState {
+  isLoading: boolean;
+  isSaving: boolean;
+  error: string | null;
+  success: boolean;
+  isEditMode: boolean;
+}
+
+@Component({
+  selector: 'app-appointments-form-modern',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './appointments-form-modern.component.html',
+  styleUrls: ['./appointments-form-modern.component.scss'],
+  animations: [
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('400ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
+    trigger('slideInFrom', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX(-30px)' }),
+        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 1, transform: 'translateX(0)' }))
+      ])
+    ])
+  ]
+})
+export class AppointmentsFormModernComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private appointmentsService = inject(AppointmentsService);
+  private devicesService = inject(DevicesService);
+  private serviceTypesService = inject(ServiceTypesService);
+  private centersService = inject(CentersService);
+  private storesService = inject(StoresService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  readonly formState = signal<FormState>({
+    isLoading: false,
+    isSaving: false,
+    error: null,
+    success: false,
+    isEditMode: false
+  });
+
+  readonly currentAppointmentId = signal<number | null>(null);
+  readonly devices = signal<Devices[]>([]);
+  readonly serviceTypes = signal<ServiceTypes[]>([]);
+  readonly centers = signal<Centers[]>([]);
+  readonly stores = signal<Stores[]>([]);
+  readonly selectedCenterId = signal<number | null>(null);
+  readonly minDate = signal<string>(this.getTodayDate());
+  readonly userType = signal<'employee' | 'user' | null>(this.authService.getUserType());
+
+  appointmentForm!: FormGroup;
+
+  isLoading = computed(() => this.formState().isLoading);
+  isSaving = computed(() => this.formState().isSaving);
+  error = computed(() => this.formState().error);
+  success = computed(() => this.formState().success);
+  isEditMode = computed(() => this.formState().isEditMode);
+  isUserTypeUser = computed(() => this.userType() === 'user');
+  isAppointmentClosed = computed(() => this.appointmentForm?.get('cloused')?.value || this.appointmentForm?.get('canceled')?.value || false);
+
+  steps = [
+    {
+      id: 0,
+      title: 'Información Básica',
+      description: 'Cliente, fecha y hora'
+    },
+    {
+      id: 1,
+      title: 'Dispositivo y Servicio',
+      description: 'Dispositivo, tipo de servicio y duración'
+    },
+    {
+      id: 2,
+      title: 'Notas',
+      description: 'Información adicional y estado'
+    }
+  ];
+
+  currentStep = signal(0);
+
+  ngOnInit(): void {
+    this.initForm();
+    this.initContextDefaults();
+    this.initCenterStoreListeners();
+    this.loadCenters();
+    this.loadStores();
+    this.loadDevices();
+    this.loadServiceTypes();
+    this.checkEditMode();
+  }
+
+  private initForm(): void {
+    this.appointmentForm = this.fb.group({
+      centerId: ['', [Validators.required]],
+      storeId: ['', [Validators.required]],
+      createdById: [''],
+      customer: ['', [Validators.required, Validators.minLength(3)]],
+      date: ['', [Validators.required]],
+      time: ['', [Validators.required]],
+      deviceId: ['', [Validators.required]],
+      serviceTypeId: ['', [Validators.required]],
+      duration: [30, [Validators.required, Validators.min(15), Validators.max(480)]],
+      notes: [''],
+      cloused: [false],
+      canceled: [false]
+    });
+
+    this.applyUserTypeRules();
+  }
+
+  private applyUserTypeRules(): void {
+    const isUser = this.userType() === 'user';
+    const centerControl = this.appointmentForm.get('centerId');
+    const storeControl = this.appointmentForm.get('storeId');
+
+    if (isUser) {
+      centerControl?.setValidators([Validators.required]);
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.enable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
+    } else {
+      centerControl?.clearValidators();
+      storeControl?.clearValidators();
+      centerControl?.updateValueAndValidity({ emitEvent: false });
+      storeControl?.updateValueAndValidity({ emitEvent: false });
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.disable({ emitEvent: false });
+    }
+  }
+
+  private initCenterStoreListeners(): void {
+    this.appointmentForm.get('centerId')?.valueChanges.subscribe(centerId => {
+      const normalized = this.normalizeId(centerId);
+      if (normalized !== null) {
+        this.selectedCenterId.set(normalized);
+        this.appointmentForm.get('storeId')?.reset('');
+      } else {
+        this.selectedCenterId.set(null);
+        this.appointmentForm.get('storeId')?.reset('');
+      }
+    });
+
+    // Escuchar cambios en cloused y canceled para deshabilitar campos
+    this.appointmentForm.get('cloused')?.valueChanges.subscribe(() => {
+      this.updateFieldsEnabledState();
+    });
+
+    this.appointmentForm.get('canceled')?.valueChanges.subscribe(() => {
+      this.updateFieldsEnabledState();
+    });
+  }
+
+  private updateFieldsEnabledState(): void {
+    const isClosed = this.appointmentForm.get('cloused')?.value || this.appointmentForm.get('canceled')?.value;
+    const fieldsToToggle = ['customer', 'date', 'time', 'deviceId', 'serviceTypeId', 'duration', 'notes'];
+
+    fieldsToToggle.forEach(fieldName => {
+      const control = this.appointmentForm.get(fieldName);
+      if (isClosed) {
+        control?.disable({ emitEvent: false });
+      } else {
+        control?.enable({ emitEvent: false });
+      }
+    });
+  }
+
+  private initContextDefaults(): void {
+    const centerId = this.authService.getCenterId();
+    const storeId = this.authService.getStoreId();
+    const createdById = this.authService.getEmployeeId();
+    const userType = this.authService.getUserType();
+
+    if (userType !== 'user') {
+      if (centerId) this.appointmentForm.get('centerId')?.setValue(centerId);
+      if (storeId) this.appointmentForm.get('storeId')?.setValue(storeId);
+      if (createdById) this.appointmentForm.get('createdById')?.setValue(createdById);
+    }
+  }
+
+  private checkEditMode(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.currentAppointmentId.set(parseInt(id, 10));
+      this.formState.update(s => ({ ...s, isEditMode: true, isLoading: true }));
+      this.loadAppointment(parseInt(id, 10));
+    }
+  }
+
+  private loadAppointment(id: number): void {
+    this.appointmentsService.getById(id).subscribe({
+      next: (appointment) => {
+        this.appointmentForm.patchValue(appointment);
+        const normalized = this.normalizeId(appointment.centerId);
+        if (normalized !== null) {
+          this.selectedCenterId.set(normalized);
+        }
+        this.updateFieldsEnabledState();
+        this.formState.update(s => ({ ...s, isLoading: false }));
+      },
+      error: (err) => {
+        this.formState.update(s => ({
+          ...s,
+          isLoading: false,
+          error: err?.error?.message || 'Error cargando la cita'
+        }));
+      }
+    });
+  }
+
+  private loadDevices(): void {
+    this.devicesService.getAll().subscribe({
+      next: (devices) => {
+        this.devices.set(devices || []);
+      },
+      error: (err) => {
+        console.error('Error loading devices:', err);
+      }
+    });
+  }
+
+  private loadCenters(): void {
+    this.centersService.getAll().subscribe({
+      next: (centers) => {
+        this.centers.set(centers || []);
+      },
+      error: (err) => {
+        console.error('Error loading centers:', err);
+      }
+    });
+  }
+
+  private loadStores(): void {
+    this.storesService.getAll().subscribe({
+      next: (stores) => {
+        this.stores.set(stores || []);
+      },
+      error: (err) => {
+        console.error('Error loading stores:', err);
+      }
+    });
+  }
+
+  private loadServiceTypes(): void {
+    this.serviceTypesService.getAll().subscribe({
+      next: (types) => {
+        this.serviceTypes.set(types || []);
+      },
+      error: (err) => {
+        console.error('Error loading service types:', err);
+      }
+    });
+  }
+
+  canProceedToNextStep(): boolean {
+    const step = this.currentStep();
+    const isClosed = this.isAppointmentClosed();
+    
+    // Si la cita está cerrada, permitir navegar sin validar (solo ir al paso anterior)
+    if (isClosed && step > 0) {
+      return true;
+    }
+    
+    switch (step) {
+      case 0:
+        return (this.appointmentForm.get('customer')?.valid ?? false) &&
+               (this.appointmentForm.get('date')?.valid ?? false) &&
+               (this.appointmentForm.get('time')?.valid ?? false);
+      case 1:
+        return (this.appointmentForm.get('deviceId')?.valid ?? false) &&
+               (this.appointmentForm.get('serviceTypeId')?.valid ?? false) &&
+               (this.appointmentForm.get('duration')?.valid ?? false);
+      case 2:
+        return this.appointmentForm.valid ?? false;
+      default:
+        return false;
+    }
+  }
+
+  nextStep(): void {
+    if (this.canProceedToNextStep() && this.currentStep() < this.steps.length - 1) {
+      this.currentStep.update(s => s + 1);
+    }
+  }
+
+  prevStep(): void {
+    if (this.currentStep() > 0) {
+      this.currentStep.update(s => s - 1);
+    }
+  }
+
+  getStepProgress(): number {
+    return ((this.currentStep() + 1) / this.steps.length) * 100;
+  }
+
+  onSubmit(): void {
+    const userType = this.authService.getUserType();
+    if (userType !== 'user') {
+      if (!this.appointmentForm.get('centerId')?.value) {
+        const centerId = this.authService.getCenterId();
+        if (centerId) {
+          this.appointmentForm.get('centerId')?.setValue(centerId);
+        }
+      }
+
+      if (!this.appointmentForm.get('storeId')?.value) {
+        const storeId = this.authService.getStoreId();
+        if (storeId) {
+          this.appointmentForm.get('storeId')?.setValue(storeId);
+        }
+      }
+    }
+
+    if (!this.appointmentForm.get('createdById')?.value) {
+      const createdById = this.authService.getEmployeeId();
+      if (userType !== 'user' && createdById) {
+        this.appointmentForm.get('createdById')?.setValue(createdById);
+      }
+    }
+
+    if (this.appointmentForm.invalid) {
+      this.markFormGroupTouched(this.appointmentForm);
+      return;
+    }
+
+    this.formState.update(s => ({ ...s, isSaving: true, error: null }));
+
+    const appointmentData = this.appointmentForm.value;
+    appointmentData.centerId = this.normalizeId(appointmentData.centerId);
+    appointmentData.storeId = this.normalizeId(appointmentData.storeId);
+    appointmentData.createdById = this.normalizeId(appointmentData.createdById);
+    const request = this.isEditMode()
+      ? this.appointmentsService.update(this.currentAppointmentId()!, appointmentData)
+      : this.appointmentsService.create(appointmentData);
+
+    request.subscribe({
+      next: () => {
+        this.formState.update(s => ({ ...s, isSaving: false, success: true }));
+        setTimeout(() => {
+          this.router.navigate(['/appointments']);
+        }, 1500);
+      },
+      error: (err) => {
+        this.formState.update(s => ({
+          ...s,
+          isSaving: false,
+          error: err?.error?.message || 'Error al guardar la cita'
+        }));
+      }
+    });
+  }
+
+  onCancel(): void {
+    if (confirm('¿Descartar cambios?')) {
+      this.router.navigate(['/appointments']);
+    }
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      formGroup.get(key)?.markAsTouched();
+    });
+  }
+
+  getFieldError(fieldName: string): string | null {
+    const field = this.appointmentForm.get(fieldName);
+    if (!field?.errors || !field?.touched) return null;
+
+    if (field.errors['required']) return 'Este campo es requerido';
+    if (field.errors['minlength']) return `Mínimo ${field.errors['minlength'].requiredLength} caracteres`;
+    if (field.errors['min']) return `Mínimo ${field.errors['min'].min}`;
+    if (field.errors['max']) return `Máximo ${field.errors['max'].max}`;
+    if (field.errors['pattern']) return 'Formato inválido';
+
+    return null;
+  }
+
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.appointmentForm.get(fieldName);
+    return !!(field && field.invalid && field.touched);
+  }
+
+  clearError(): void {
+    this.formState.update(s => ({ ...s, error: null }));
+  }
+
+  private normalizeId(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  private getTodayDate(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+}

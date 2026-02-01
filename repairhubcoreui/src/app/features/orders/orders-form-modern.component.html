@@ -1,0 +1,221 @@
+<div class="form-container">
+  <div class="form-header">
+    <div>
+      <h1>{{ isEditMode() ? '✏️ Editar' : '➕ Crear' }} Orden</h1>
+      <p class="subtitle">Paso {{ currentStep() + 1 }} de 3</p>
+    </div>
+    <button class="btn-secondary" (click)="onCancel()">Cancelar</button>
+  </div>
+
+  <div class="progress-container">
+    <div class="progress-bar" [style.width.%]="getProgressPercentage()"></div>
+    <div class="progress-labels">
+      <span [class.active]="currentStep() >= 0" [class.completed]="currentStep() > 0">
+        <span class="number">{{ currentStep() > 0 ? '✓' : '1' }}</span>
+        Centro/Tienda/Cliente
+      </span>
+      <span [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1">
+        <span class="number">{{ currentStep() > 1 ? '✓' : '2' }}</span>
+        Pago/Usuario
+      </span>
+      <span [class.active]="currentStep() >= 2">
+        <span class="number">3</span>
+        Costos
+      </span>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loader"></div>
+      <p>Cargando datos...</p>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <form [formGroup]="orderForm" class="form-content">
+      @if (currentStep() === 0) {
+        <div class="step-content">
+          <h2>Selecciona Centro, Tienda y Cliente</h2>
+
+          <div class="form-group">
+            <label for="centerId" class="form-label">Centro *</label>
+            <select id="centerId" formControlName="centerId" class="form-control">
+              <option value="">Selecciona un centro</option>
+              <option *ngFor="let center of centers()" [value]="center.id">
+                {{ center.centerName }}
+              </option>
+            </select>
+            @if (getFieldError('centerId')) {
+              <span class="error-message">{{ getFieldError('centerId') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="storeId" class="form-label">Tienda *</label>
+            <select id="storeId" formControlName="storeId" class="form-control" [disabled]="!orderForm.get('centerId')?.value">
+              <option value="">Selecciona una tienda</option>
+              <option *ngFor="let store of filteredStores" [value]="store.id">
+                {{ store.storeName }}
+              </option>
+            </select>
+            @if (!orderForm.get('centerId')?.value) {
+              <span class="helper-text">Primero selecciona un centro</span>
+            }
+            @if (getFieldError('storeId')) {
+              <span class="error-message">{{ getFieldError('storeId') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="customerId" class="form-label">Cliente *</label>
+            <select id="customerId" formControlName="customerId" class="form-control">
+              <option value="">Selecciona un cliente</option>
+              <option *ngFor="let customer of customers()" [value]="customer.id">
+                {{ getCustomerDisplayName(customer) }}
+              </option>
+            </select>
+            @if (getFieldError('customerId')) {
+              <span class="error-message">{{ getFieldError('customerId') }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      @if (currentStep() === 1) {
+        <div class="step-content">
+          <h2>Tipo de Pago y Usuario</h2>
+
+          <div class="form-group">
+            <label for="paymentTypeId" class="form-label">Tipo de Pago *</label>
+            <select id="paymentTypeId" formControlName="paymentTypeId" class="form-control">
+              <option value="">Selecciona un tipo de pago</option>
+              <option *ngFor="let paymentType of paymentTypes()" [value]="paymentType.id">
+                {{ paymentType.type }}
+              </option>
+            </select>
+            @if (getFieldError('paymentTypeId')) {
+              <span class="error-message">{{ getFieldError('paymentTypeId') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="createdById" class="form-label">Creado por (Usuario) *</label>
+            <select id="createdById" formControlName="createdById" class="form-control">
+              <option value="">Selecciona un usuario</option>
+              <option *ngFor="let employee of employees()" [value]="employee.id">
+                {{ employee.firstName }} {{ employee.lastName }}
+              </option>
+            </select>
+            @if (getFieldError('createdById')) {
+              <span class="error-message">{{ getFieldError('createdById') }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      @if (currentStep() === 2) {
+        <div class="step-content">
+          <h2>Costos e Impuestos</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="totalPrice" class="form-label">Precio Total *</label>
+              <input type="number" id="totalPrice" formControlName="totalPrice" class="form-control" placeholder="0" min="0">
+              @if (getFieldError('totalPrice')) {
+                <span class="error-message">{{ getFieldError('totalPrice') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="totalCost" class="form-label">Costo Total *</label>
+              <input type="number" id="totalCost" formControlName="totalCost" class="form-control" placeholder="0" min="0">
+              @if (getFieldError('totalCost')) {
+                <span class="error-message">{{ getFieldError('totalCost') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tax" class="form-label">Impuesto</label>
+              <input type="number" id="tax" formControlName="tax" class="form-control" placeholder="0" min="0">
+            </div>
+
+            <div class="form-group">
+              <label for="advancePayment" class="form-label">Anticipo</label>
+              <input type="number" id="advancePayment" formControlName="advancePayment" class="form-control" placeholder="0" min="0">
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label for="note" class="form-label">Notas (JSON)</label>
+            <textarea id="note" formControlName="note" class="form-control" rows="3" placeholder='{"observaciones": "Texto"}' style="font-family: monospace; font-size: 12px;"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group checkbox">
+              <input type="checkbox" id="cloused" formControlName="cloused">
+              <label for="cloused">Cerrada</label>
+            </div>
+
+            <div class="form-group checkbox">
+              <input type="checkbox" id="canceled" formControlName="canceled">
+              <label for="canceled">Cancelada</label>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (error()) {
+        <div class="alert alert-error">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      @if (success()) {
+        <div class="alert alert-success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>¡Guardado exitosamente! Redirigiendo...</span>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          Cancelar
+        </button>
+
+        @if (currentStep() > 0) {
+          <button type="button" class="btn-secondary" (click)="prevStep()" [disabled]="isSaving()">
+            ← Anterior
+          </button>
+        }
+
+        @if (currentStep() < 2) {
+          <button type="button" class="btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep() || isSaving()">
+            Siguiente →
+          </button>
+        }
+
+        @if (currentStep() === 2) {
+          <button type="submit" class="btn-success" [disabled]="!orderForm.valid || isSaving()" (click)="onSubmit()">
+            @if (isSaving()) {
+              <span class="spinner"></span>
+              Guardando...
+            }
+            @if (!isSaving()) {
+              {{ isEditMode() ? '✏️ Actualizar' : '💾 Crear' }} Orden
+            }
+          </button>
+        }
+      </div>
+    </form>
+  }
+</div>

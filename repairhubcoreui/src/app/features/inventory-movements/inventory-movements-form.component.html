@@ -1,0 +1,25 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <label>Cantidad:
+    <input type="number" formControlName="quantity" />
+  </label>
+  <div *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Cantidad requerida</div>
+
+  <label>Tipo de movimiento:
+    <select formControlName="movementType">
+      <option value="Incoming">Entrada</option>
+      <option value="Outgoing">Salida</option>
+    </select>
+  </label>
+  <div *ngIf="form.get('movementType')?.invalid && form.get('movementType')?.touched">Tipo requerido</div>
+
+  <label>Descripción:
+    <input type="text" formControlName="description" />
+  </label>
+
+  <label>Fecha:
+    <input type="date" formControlName="createdAt" />
+  </label>
+  <div *ngIf="form.get('createdAt')?.invalid && form.get('createdAt')?.touched">Fecha requerida</div>
+
+  <button type="submit" [disabled]="form.invalid">Guardar</button>
+</form>

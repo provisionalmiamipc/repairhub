@@ -1,0 +1,30 @@
+<h2>Notificaciones</h2>
+<div *ngIf="loading">Cargando...</div>
+<table *ngIf="!loading">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Título</th>
+      <th>Mensaje</th>
+      <th>Tipo</th>
+      <th>Prioridad</th>
+      <th>Estado</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let n of notifications">
+      <td>{{ n.id }}</td>
+      <td>{{ n.title }}</td>
+      <td>{{ n.message }}</td>
+      <td>{{ n.type }}</td>
+      <td>{{ n.priority }}</td>
+      <td>{{ n.status }}</td>
+      <td>
+  <a [routerLink]="['/notifications', n.id]">Ver</a> |
+  <a [routerLink]="['/notifications', n.id, 'edit']">Editar</a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<a [routerLink]="['/notifications', 'new']">Crear nueva notificación</a>

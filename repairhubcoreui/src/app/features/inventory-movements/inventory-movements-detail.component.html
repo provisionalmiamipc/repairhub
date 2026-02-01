@@ -1,0 +1,12 @@
+<div *ngIf="movement">
+  <h2>Detalle de Movimiento de Inventario</h2>
+  <div><strong>ID:</strong> {{ movement.id }}</div>
+  <div><strong>Cantidad:</strong> {{ movement.quantity }}</div>
+  <div><strong>Tipo:</strong> {{ movement.movementType }}</div>
+  <div><strong>Descripción:</strong> {{ movement.description }}</div>
+  <div><strong>Fecha:</strong> {{ movement.createdAt | date:'shortDate' }}</div>
+  <div *ngIf="movement.center"><strong>Centro:</strong> {{ movement.center.centerName }}</div>
+  <div *ngIf="movement.store"><strong>Tienda:</strong> {{ movement.store.storeName }}</div>
+  <div *ngIf="movement.item"><strong>Item:</strong> {{ movement.item.id }}</div>
+  <div *ngIf="movement.createdBy"><strong>Creado por:</strong> {{ movement.createdBy.firstName }}</div>
+</div>

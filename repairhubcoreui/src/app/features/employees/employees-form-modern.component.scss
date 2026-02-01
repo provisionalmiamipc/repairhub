@@ -1,0 +1,635 @@
+@use '../../../scss/_modern-design-system.scss' as *;
+@use 'sass:map';
+
+@function map-get($map-value, $key) {
+  @return map.get($map-value, $key);
+}
+
+// ============================================
+// 🎨 EMPLOYEES FORM MODERN STYLES
+// ============================================
+
+.form-container {
+  min-height: 100vh;
+  padding: map-get($spacing, 'xl') map-get($spacing, '2xl');
+  background: linear-gradient(135deg, $dark-bg-primary 0%, lighten($dark-bg-primary, 2%) 100%);
+
+  @media (max-width: 1024px) {
+    padding: map-get($spacing, 'lg') map-get($spacing, 'lg');
+  }
+
+  @media (max-width: 640px) {
+    padding: map-get($spacing, 'md') map-get($spacing, 'md');
+  }
+}
+
+// ============================================
+// 📑 FORM HEADER
+// ============================================
+
+.form-header {
+  margin-bottom: map-get($spacing, '2xl');
+  text-align: center;
+}
+
+.header-content {
+  h1 {
+    margin: 0 0 map-get($spacing, 'md') 0;
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $dark-text-primary;
+    letter-spacing: -0.5px;
+  }
+
+  .subtitle {
+    margin: 0;
+    font-size: $font-size-lg;
+    color: $dark-text-secondary;
+    font-weight: $font-weight-normal;
+  }
+}
+
+// ============================================
+// ✅ SUCCESS MESSAGE
+// ============================================
+
+.success-message {
+  @include glass-card;
+  padding: map-get($spacing, 'md') map-get($spacing, 'lg');
+  @include flex-center;
+  gap: map-get($spacing, 'md');
+  background: linear-gradient(135deg, rgba($success, 0.1), rgba($success, 0.05));
+  border-color: rgba($success, 0.3);
+  margin-bottom: map-get($spacing, 'xl');
+
+  .success-icon {
+    font-size: 1.5rem;
+    color: $success;
+    font-weight: $font-weight-bold;
+  }
+
+  color: $success;
+  font-weight: $font-weight-semibold;
+}
+
+// ============================================
+// ❌ ERROR MESSAGE
+// ============================================
+
+.error-message {
+  @include glass-card;
+  padding: map-get($spacing, 'md') map-get($spacing, 'lg');
+  @include flex-center;
+  gap: map-get($spacing, 'md');
+  background: linear-gradient(135deg, rgba($danger, 0.1), rgba($danger, 0.05));
+  border-color: rgba($danger, 0.3);
+  margin-bottom: map-get($spacing, 'xl');
+
+  .error-icon {
+    font-size: 1.5rem;
+    color: $danger;
+    font-weight: $font-weight-bold;
+  }
+
+  color: $danger;
+  font-weight: $font-weight-semibold;
+}
+
+// ============================================
+// 📍 PROGRESS INDICATOR
+// ============================================
+
+.progress-section {
+  @include glass-card;
+  padding: map-get($spacing, 'lg') map-get($spacing, 'xl');
+  margin-bottom: map-get($spacing, 'xl');
+}
+
+.steps-indicator {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: map-get($spacing, 'lg');
+  margin-bottom: map-get($spacing, 'lg');
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: map-get($spacing, 'md');
+  }
+}
+
+.step-btn {
+  @include button-reset;
+  @include flex-col;
+  align-items: center;
+  gap: map-get($spacing, 'md');
+  padding: map-get($spacing, 'md');
+  border-radius: $radius-lg;
+  background: transparent;
+  border: 2px solid rgba(71, 85, 105, 0.3);
+  color: $dark-text-secondary;
+  @include smooth-transition;
+  @include focus-ring;
+  cursor: pointer;
+  position: relative;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(71, 85, 105, 0.5);
+    background: rgba(30, 41, 59, 0.3);
+  }
+
+  &.active {
+    border-color: $primary;
+    background: rgba($primary, 0.1);
+    color: $primary;
+
+    .step-icon,
+    .step-number {
+      color: $primary;
+    }
+  }
+
+  &.completed {
+    border-color: $success;
+    background: rgba($success, 0.1);
+    color: $success;
+
+    .step-icon {
+      color: $success;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.step-number,
+.step-icon {
+  font-weight: $font-weight-bold;
+  font-size: $font-size-xl;
+  width: 2.5rem;
+  height: 2.5rem;
+  @include flex-center;
+  border-radius: $radius-full;
+  background: rgba(71, 85, 105, 0.2);
+  @include smooth-transition;
+}
+
+.step-btn.active .step-number,
+.step-btn.active .step-icon {
+  background: rgba($primary, 0.2);
+}
+
+.step-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(71, 85, 105, 0.2);
+  border-radius: $radius-full;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $primary, $primary-light);
+  @include smooth-transition;
+  border-radius: $radius-full;
+}
+
+// ============================================
+// 📋 FORM
+// ============================================
+
+.modern-form {
+  @include glass-card;
+  padding: map-get($spacing, '2xl');
+
+  @media (max-width: 640px) {
+    padding: map-get($spacing, 'lg');
+  }
+}
+
+.form-step {
+  @include flex-col;
+  gap: map-get($spacing, 'xl');
+
+  &.edit-mode {
+    gap: map-get($spacing, '2xl');
+  }
+}
+
+.step-title {
+  @include flex-center;
+  gap: map-get($spacing, 'md');
+  text-align: center;
+  justify-content: center;
+  margin-bottom: map-get($spacing, 'lg');
+
+  .step-icon {
+    font-size: 2rem;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: $font-size-2xl;
+    color: $dark-text-primary;
+  }
+}
+
+// ============================================
+// 🎯 FORM GRID
+// ============================================
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: map-get($spacing, 'lg');
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: map-get($spacing, '2xl');
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-section {
+  @include flex-col;
+  gap: map-get($spacing, 'lg');
+  padding: map-get($spacing, 'lg');
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(71, 85, 105, 0.2);
+  border-radius: $radius-lg;
+}
+
+.section-title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $dark-text-primary;
+}
+
+.form-group {
+  @include flex-col;
+  gap: map-get($spacing, 'sm');
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+
+  &.half {
+    grid-column: span 1;
+
+    @media (max-width: 768px) {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+// ============================================
+// 📝 FORM LABELS & INPUTS
+// ============================================
+
+.form-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $dark-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: map-get($spacing, 'xs');
+
+  .required {
+    color: $danger;
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 0.75rem map-get($spacing, 'md');
+  background: rgba(30, 41, 59, 0.6);
+  border: 1.5px solid rgba(71, 85, 105, 0.4);
+  border-radius: $radius-lg;
+  color: $dark-text-primary;
+  font-size: $font-size-base;
+  font-family: inherit;
+  @include smooth-transition;
+  @include focus-ring;
+
+  &::placeholder {
+    color: $dark-text-tertiary;
+  }
+
+  &:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(71, 85, 105, 0.6);
+  }
+
+  &:focus {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &.is-valid {
+    border-color: $success;
+    background: rgba($success, 0.03);
+  }
+
+  &.is-error {
+    border-color: $danger;
+    background: rgba($danger, 0.03);
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($danger, 0.1);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.form-input.with-icon {
+  padding-left: 2.5rem;
+}
+
+.input-icon-left {
+  position: absolute;
+  left: map-get($spacing, 'md');
+  color: $dark-text-tertiary;
+  pointer-events: none;
+  font-size: 1.25rem;
+}
+
+.input-icon {
+  position: absolute;
+  right: map-get($spacing, 'md');
+  font-size: 1rem;
+  pointer-events: none;
+
+  &.success {
+    color: $success;
+  }
+
+  &.error {
+    color: $danger;
+  }
+}
+
+// ============================================
+// ❗ ERROR & HELP TEXT
+// ============================================
+
+.error-text {
+  font-size: $font-size-sm;
+  color: $danger;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  gap: map-get($spacing, 'xs');
+
+  &::before {
+    content: '⚠️';
+  }
+}
+
+.help-text {
+  font-size: $font-size-sm;
+  color: $dark-text-tertiary;
+  font-style: italic;
+}
+
+// ============================================
+// 🔘 RADIO BUTTONS
+// ============================================
+
+.radio-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: map-get($spacing, 'md');
+}
+
+.radio-label {
+  @include flex-center;
+  gap: map-get($spacing, 'md');
+  cursor: pointer;
+  @include smooth-transition;
+  padding: map-get($spacing, 'md');
+  border-radius: $radius-lg;
+  border: 1.5px solid rgba(71, 85, 105, 0.3);
+  @include smooth-transition;
+
+  &:hover {
+    border-color: rgba(71, 85, 105, 0.5);
+    background: rgba(30, 41, 59, 0.3);
+  }
+}
+
+.radio-input {
+  display: none;
+
+  &:checked + .radio-custom {
+    border-color: $primary;
+    background: rgba($primary, 0.1);
+  }
+}
+
+.radio-custom {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(71, 85, 105, 0.5);
+  border-radius: 50%;
+  @include flex-center;
+  @include smooth-transition;
+  flex-shrink: 0;
+}
+
+.radio-inner {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: $primary;
+  border-radius: 50%;
+}
+
+.radio-text {
+  font-weight: $font-weight-medium;
+  color: $dark-text-primary;
+}
+
+// ============================================
+// ☑️ CHECKBOXES
+// ============================================
+
+.checkbox-label {
+  @include flex-center;
+  gap: map-get($spacing, 'md');
+  cursor: pointer;
+  padding: map-get($spacing, 'md');
+  border-radius: $radius-lg;
+  border: 1.5px solid rgba(71, 85, 105, 0.3);
+  @include smooth-transition;
+
+  &:hover {
+    border-color: rgba(71, 85, 105, 0.5);
+    background: rgba(30, 41, 59, 0.3);
+  }
+}
+
+.checkbox-input {
+  display: none;
+
+  &:checked + .checkbox-custom {
+    border-color: $primary;
+    background: rgba($primary, 0.15);
+  }
+}
+
+.checkbox-custom {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(71, 85, 105, 0.5);
+  border-radius: $radius-sm;
+  @include flex-center;
+  @include smooth-transition;
+  flex-shrink: 0;
+}
+
+.checkbox-inner {
+  color: $primary;
+  font-weight: $font-weight-bold;
+  font-size: 0.875rem;
+}
+
+.checkbox-text {
+  font-weight: $font-weight-medium;
+  color: $dark-text-primary;
+}
+
+// ============================================
+// 🔘 BUTTONS
+// ============================================
+
+.form-actions {
+  @include flex-between;
+  gap: map-get($spacing, 'lg');
+  padding-top: map-get($spacing, 'lg');
+  border-top: 1px solid rgba(71, 85, 105, 0.2);
+  margin-top: map-get($spacing, 'xl');
+
+  @media (max-width: 640px) {
+    flex-direction: column-reverse;
+  }
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-submit {
+  @include button-reset;
+  padding: 0.75rem map-get($spacing, 'lg');
+  border-radius: $radius-lg;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  @include flex-center;
+  gap: map-get($spacing, 'sm');
+  @include smooth-transition;
+  @include focus-ring;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  min-height: 2.75rem;
+  flex: 1;
+
+  @media (max-width: 640px) {
+    flex: 1;
+    width: 100%;
+  }
+
+  .btn-icon {
+    font-size: $font-size-lg;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, $primary, $primary-dark);
+  color: white;
+  box-shadow: 0 4px 12px rgba($primary, 0.3);
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba($primary, 0.4);
+    transform: translateY(-2px);
+  }
+}
+
+.btn-secondary {
+  background: rgba(30, 41, 59, 0.8);
+  color: $dark-text-primary;
+  border-color: rgba(71, 85, 105, 0.4);
+
+  &:hover:not(:disabled) {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(71, 85, 105, 0.6);
+  }
+}
+
+// ============================================
+// 🎬 ANIMATIONS
+// ============================================
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

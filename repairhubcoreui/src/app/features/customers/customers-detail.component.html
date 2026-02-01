@@ -1,0 +1,107 @@
+<div class="container-fluid" style="margin-bottom: 60px">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      <!-- Customer Card -->
+      <div class="card shadow-sm">
+        <div class="card-header text-white">
+          <h4 class="card-title mb-0">Customer Information</h4>
+        </div>
+        <div class="card-body">
+          <!-- Personal Information -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h6 class="section-title text-primary mb-3">Personal Information</h6>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Customer Code:</label>
+              <p class="text-muted">{{ customer?.customerCode || 'N/A' }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Full Name:</label>
+              <p class="text-muted">{{ customer?.firstName }} {{ customer?.lastName }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Email:</label>
+              <p class="text-muted">{{ customer?.email || 'N/A' }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Phone:</label>
+              <p class="text-muted">{{ customer?.phone || 'N/A' }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Gender:</label>
+              <p class="text-muted">{{ customer?.gender || 'N/A' }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">City:</label>
+              <p class="text-muted">{{ customer?.city || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <!-- Business Information -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h6 class="section-title text-primary mb-3">Business Information</h6>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold">Center ID:</label>
+              <p class="text-muted">{{ customer?.center?.centerName|| 'N/A' }}</p>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold">Store:</label>
+              <p class="text-muted">{{ customer?.store?.storeName|| 'N/A' }}</p>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold">B2B Customer:
+              <span class="badge" [ngClass]="customer?.b2b ? 'bg-success' : 'bg-secondary'">
+                {{ customer?.b2b ? 'Yes' : 'No' }}
+              </span></label>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Discount:
+              <span class="badge bg-info">  {{ customer?.discount || 0 }}%</span></label>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h6 class="section-title text-primary mb-3">Additional Information</h6>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold">Extra Information:</label>
+              <p class="text-muted">{{ customer?.extraInfo || 'No additional information provided' }}</p>
+            </div>
+          </div>
+
+          <!-- Timestamps -->
+          <div class="row">
+            <div class="col-12">
+              <h6 class="section-title text-primary mb-3">Timestamps</h6>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Created At:</label>
+              <p class="text-muted">{{ customer?.createdAt | date:'medium' }}</p>
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label fw-bold">Updated At:</label>
+              <p class="text-muted">{{ customer?.updatedAt | date:'medium' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer with Buttons -->
+        <div class="card-footer ">
+          <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary" (click)="close()">
+              Close
+            </button>
+            <button class="btn btn-primary" (click)="editCustomer()">
+              Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

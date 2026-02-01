@@ -1,0 +1,115 @@
+<ng-container *ngIf="isModal; else pageContent">
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Buscar Cliente</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Buscar por nombre, apellido, email, teléfono o código" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
+              <button class="btn btn-outline-secondary" disabled type="button" (click)="onSearchChange()"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+
+          <div *ngIf="isLoading" class="text-center my-3">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+          </div>
+
+          <div *ngIf="!isLoading">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let c of filtered" (dblclick)="onSelect(c)">
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.customerCode }}</td>
+                    <td>{{ c.firstName }} {{ c.lastName }}</td>
+                    <td>{{ c.phone }}</td>
+                    <td>{{ c.email }}</td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-primary" type="button" (click)="onSelect(c)">Seleccionar</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div *ngIf="filtered.length===0" class="text-center text-muted">No se encontraron clientes</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="onCancel()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
+</ng-container>
+
+<ng-template #pageContent>
+  <div class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Buscar Cliente</h5>
+            <button class="btn btn-sm btn-secondary" (click)="onCancel()">Cerrar</button>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="Buscar por nombre, apellido, email, teléfono o código" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
+                <button class="btn btn-outline-secondary" type="button" (click)="onSearchChange()">Buscar</button>
+              </div>
+            </div>
+
+            <div *ngIf="isLoading" class="text-center my-3">
+              <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+            </div>
+
+            <div *ngIf="!isLoading">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Código</th>
+                      <th>Nombre</th>
+                      <th>Teléfono</th>
+                      <th>Email</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let c of filtered" (dblclick)="onSelect(c)">
+                      <td>{{ c.id }}</td>
+                      <td>{{ c.customerCode }}</td>
+                      <td>{{ c.firstName }} {{ c.lastName }}</td>
+                      <td>{{ c.phone }}</td>
+                      <td>{{ c.email }}</td>
+                      <td class="text-end">
+                        <button class="btn btn-sm btn-primary" type="button" (click)="onSelect(c)">Seleccionar</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div *ngIf="filtered.length===0" class="text-center text-muted">No se encontraron clientes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

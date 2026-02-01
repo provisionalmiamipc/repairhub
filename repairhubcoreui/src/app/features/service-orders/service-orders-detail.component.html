@@ -1,0 +1,189 @@
+<div class="container-fluid" *ngIf="serviceOrder">
+  <div class="row">
+    <div class="col-12 col-lg-10 mx-auto">
+      <!-- Order Details Card -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="card-title mb-0">
+            <i class="bi bi-file-text me-2"></i>Order Details: {{ serviceOrder.orderCode }}
+          </h4>
+          <div>
+            <span class="badge bg-secondary me-2" *ngIf="serviceOrder.cloused">
+              <i class="bi bi-check-circle"></i> Closed
+            </span>
+            <span class="badge bg-danger me-2" *ngIf="serviceOrder.canceled">
+              <i class="bi bi-x-circle"></i> Canceled
+            </span>
+            <span class="badge bg-warning" *ngIf="serviceOrder.lock">
+              <i class="bi bi-lock-fill"></i> Locked
+            </span>
+            <span class="badge bg-success" *ngIf="!serviceOrder.lock && !serviceOrder.canceled && !serviceOrder.cloused">
+              <i class="bi bi-unlock"></i> Active
+            </span>
+          </div>
+        </div>
+        
+        <div class="card-body">
+          <!-- Order Basic Information -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-primary mb-3">
+                <i class="bi bi-info-circle"></i> Basic Information
+              </h5>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Order Code:</strong>
+              <div class="mb-0">{{ serviceOrder.orderCode }}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Center ID:</strong>
+              <div class="mb-0">{{ serviceOrder.center?.centerName }}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Store ID:</strong>
+              <div class="mb-0">{{ serviceOrder.store?.storeName }}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Customer ID:</strong>
+              <div class="mb-0">{{ serviceOrder.customer?.firstName + ' ' + serviceOrder.customer?.lastName }}</div>
+            </div>
+          </div>
+
+          <!-- Device Information -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-primary mb-3">
+                <i class="bi bi-laptop"></i> Device Information
+              </h5>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Device ID:</strong>
+              <div class="mb-0">{{ serviceOrder.device?.name }}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Brand ID:</strong>
+              <div class="mb-0">{{ serviceOrder.deviceBrand?.name }}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Model:</strong>
+              <div class="">{{ serviceOrder.model }}</div>
+            </div>
+            <div class="col-md-3 mb-2">
+              <strong>Serial:</strong>
+              <div class="mb-0">{{ serviceOrder.serial || 'N/A' }}</div>
+            </div>
+            <div class="col-12 mb-2">
+              <strong>Defective Part:</strong>
+              <div class="mb-0">{{ serviceOrder.defectivePart }}</div>
+            </div>
+          </div>
+
+          <!-- Financial Details -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-primary mb-3">
+                <i class="bi bi-currency-dollar"></i> Financial Details
+              </h5>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Price:</strong>
+              <div class="mb-0">${{ serviceOrder.price | number:'1.2-2' }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Repair Cost:</strong>
+              <div class="mb-0">${{ serviceOrder.repairCost | number:'1.2-2' }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Cost Discount:</strong>
+              <div class="mb-0">${{ serviceOrder.costdiscount | number:'1.2-2' }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Tax:</strong>
+              <div class="mb-0">${{ serviceOrder.tax | number:'1.2-2' }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Advance Payment:</strong>
+              <div class="mb-0">${{ serviceOrder.advancePayment | number:'1.2-2' }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Total Cost:</strong>
+              <div class="mb-0 fw-bold fs-5 text-success">${{ serviceOrder.totalCost | number:'1.2-2' }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Payment Type:</strong>
+              <div class="mb-0">{{ serviceOrder.paymentType?.type }}</div>
+            </div>
+          </div>
+
+          <!-- Assignment & Status -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="text-primary mb-3">
+                <i class="bi bi-people"></i> Assignment & Status
+              </h5>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Assigned Technician:</strong>
+              <div class="mb-0">{{ serviceOrder.assignedTech?.firstName || 'Not assigned' }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Created By:</strong>
+              <div class="mb-0">{{ serviceOrder.employee?.firstName }}</div>
+            </div>
+            <div class="col-md-4 mb-2">
+              <strong>Lock Status:</strong>
+              <div class="mb-0">
+                <span [class.text-success]="!serviceOrder.lock" [class.text-warning]="serviceOrder.lock">
+                  {{ serviceOrder.lock ? 'Locked' : 'Unlocked' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="row mb-4" *ngIf="serviceOrder.noteReception">
+            <div class="col-12">
+              <h5 class="text-primary mb-3">
+                <i class="bi bi-chat-text"></i> Reception Notes
+              </h5>
+              <div class="border rounded p-3">
+                {{ serviceOrder.noteReception }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Timestamps -->
+          <div class="row">
+            <div class="col-12">
+              <h5 class="text-primary mb-3">
+                <i class="bi bi-clock"></i> Timestamps
+              </h5>
+            </div>
+            <div class="col-md-6 mb-2">
+              <strong>Created At:</strong>
+              <div class="mb-0">{{ serviceOrder.createdAt | date:'medium' }}</div>
+            </div>
+            <div class="col-md-6 mb-2">
+              <strong>Updated At:</strong>
+              <div class="mb-0">{{ serviceOrder.updatedAt | date:'medium' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer with Actions -->
+        <div class="card-footer d-flex justify-content-between align-items-center">
+          <button type="button" class="btn btn-outline-secondary" (click)="back.emit()">
+            <i class="bi bi-arrow-left"></i> Close
+          </button>
+          <div>            
+            <button type="button" class="btn btn-primary" 
+                    (click)="edit.emit()" 
+                    [disabled]="serviceOrder.canceled || serviceOrder.cloused || serviceOrder.lock">
+              <i class="bi bi-pencil"></i> Edit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

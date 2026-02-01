@@ -1,0 +1,24 @@
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Activo</th>
+      <th>Creación</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let t of itemTypes">
+      <td>{{ t.id }}</td>
+      <td>{{ t.name }}</td>
+      <td>{{ t.isActive ? 'Sí' : 'No' }}</td>
+      <td>{{ t.createdAt | date:'shortDate' }}</td>
+      <td>
+        <button (click)="select.emit(t)">Ver</button>
+        <button (click)="edit.emit(t)">Editar</button>
+        <button (click)="delete.emit(t)">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

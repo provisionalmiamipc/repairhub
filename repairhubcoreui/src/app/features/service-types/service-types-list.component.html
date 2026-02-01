@@ -1,0 +1,77 @@
+<div class="service-types-container">
+  <!-- Header Section -->
+  <div class="list-header">
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Tipos de Servicio</h1>
+        <p class="page-subtitle">Administra los tipos de servicio disponibles</p>
+      </div>
+      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'Nuevo tipo de servicio'">
+        <span class="btn-icon"><i class="bi bi-plus"></i></span>
+        Nuevo Tipo
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-box">
+      <span class="search-icon"><i class="bi bi-search"></i></span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por nombre..."
+        (input)="onSearchChange($any($event).target.value)"
+        [attr.aria-label]="'Buscar tipos de servicio'"
+      />
+    </div>
+  </div>
+
+  <!-- Service Types Grid -->
+  <div class="service-types-grid">
+    @if (filteredServiceTypes().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+      <h3>No hay tipos de servicio</h3>
+      <p>Crea tu primer tipo de servicio para comenzar</p>
+      <button class="btn-empty" (click)="onNew()">Crear Tipo</button>
+    </div>
+    } @else {
+    @for (serviceType of filteredServiceTypes(); track serviceType.id) {
+    <div class="service-type-card">
+      <!-- Card Header -->
+      <div class="card-header">
+        <h2 class="card-title">{{ serviceType.name }}</h2>
+        <div class="card-actions">
+          <button class="btn-icon-action" (click)="edit.emit(serviceType)" [attr.aria-label]="'Editar ' + serviceType.name">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <!--button class="btn-icon-action delete" (click)="delete.emit(serviceType)" [attr.aria-label]="'Eliminar ' + serviceType.name">
+            <i class="bi bi-trash"></i>
+          </button -->
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="card-body">
+        <div class="info-row">
+          <span class="label">Nombre:</span>
+          <span class="value">{{ serviceType.name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Creado:</span>
+          <span class="value">{{ serviceType.createdAt | date:'short' }}</span>
+        </div>
+      </div>
+
+      <!-- Card Footer -->
+      <div class="card-footer">
+        <button class="btn-view" (click)="select.emit(serviceType)">
+          <i class="bi bi-eye"></i> Ver Detalles
+        </button>
+      </div>
+    </div>
+    }
+    }
+  </div>
+</div>

@@ -1,0 +1,14 @@
+<div *ngIf="ordersItem">
+  <h2>Item de Orden #{{ ordersItem.id }}</h2>
+  <p><strong>Cantidad:</strong> {{ ordersItem.quantity }}</p>
+  <p><strong>Costo:</strong> {{ ordersItem.cost }}</p>
+  <p><strong>Precio:</strong> {{ ordersItem.price }}</p>
+  <p><strong>Descuento:</strong> {{ ordersItem.discount }}</p>
+  <p><strong>Imagen:</strong> <img *ngIf="ordersItem.image" [src]="ordersItem.image" alt="Imagen" style="max-width:100px;max-height:100px;" /></p>
+  <p><strong>Enlace:</strong> <a [href]="ordersItem.link" target="_blank">{{ ordersItem.link }}</a></p>
+  <p><strong>Condición:</strong> {{ ordersItem.condition }}</p>
+  <p><strong>Recibido:</strong> {{ ordersItem.received ? 'Sí' : 'No' }}</p>
+  <p><strong>Nota:</strong> {{ ordersItem.note }}</p>
+  <p><strong>Creado:</strong> {{ ordersItem.createdAt | date:'short' }}</p>
+  <p><strong>Actualizado:</strong> {{ ordersItem.updatedAt | date:'short' }}</p>
+</div>

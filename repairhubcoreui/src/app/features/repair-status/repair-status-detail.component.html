@@ -1,0 +1,10 @@
+<div *ngIf="repairStatus">
+  <h2>Detalle de Estado de Reparación</h2>
+  <div><strong>ID:</strong> {{ repairStatus.id }}</div>
+  <div><strong>Estado:</strong> {{ repairStatus.status }}</div>
+  <div><strong>Fecha de creación:</strong> {{ repairStatus.createdAt | date:'shortDate' }}</div>
+  <div *ngIf="repairStatus.center"><strong>Centro:</strong> {{ repairStatus.center.centerName }}</div>
+  <div *ngIf="repairStatus.store"><strong>Tienda:</strong> {{ repairStatus.store.storeName }}</div>
+  <div *ngIf="repairStatus.employee"><strong>Creado por:</strong> {{ repairStatus.employee.firstName }}</div>
+  <div *ngIf="repairStatus.serviceOrder"><strong>Orden de Servicio:</strong> {{ repairStatus.serviceOrder.id }}</div>
+</div>

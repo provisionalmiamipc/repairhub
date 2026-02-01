@@ -1,0 +1,22 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>Diagnóstico</th>
+      <th>Enviar Email</th>
+      <th>Fecha de creación</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let soDiagnostic of soDiagnostics">
+      <td>{{ soDiagnostic.diagnostic }}</td>
+      <td>{{ soDiagnostic.sendEmail ? 'Sí' : 'No' }}</td>
+      <td>{{ soDiagnostic.createdAt | date }}</td>
+      <td>
+        <button (click)="select.emit(soDiagnostic)">Ver</button>
+        <button (click)="edit.emit(soDiagnostic)">Editar</button>
+        <button (click)="delete.emit(soDiagnostic)">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

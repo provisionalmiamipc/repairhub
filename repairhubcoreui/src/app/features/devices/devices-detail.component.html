@@ -1,0 +1,60 @@
+<div class="detail-container" *ngIf="device">
+  <div class="detail-header">
+    <div>
+      <h1>{{ device.name }}</h1>
+      <p>Detalles del dispositivo</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-edit" (click)="editDevice()" [attr.aria-label]="'Editar'">
+        <i class="bi bi-pencil-square"></i> Editar
+      </button>
+      <button class="btn-back" (click)="goBack()" [attr.aria-label]="'Volver'">
+        <i class="bi bi-arrow-left"></i> Volver
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <section class="detail-section">
+      <h2>Información General</h2>
+
+      <div class="detail-row">
+        <label>ID:</label>
+        <span>{{ device.id }}</span>
+      </div>
+
+      <div class="detail-row">
+        <label>Nombre:</label>
+        <span>{{ device.name }}</span>
+      </div>
+
+      <div class="detail-row">
+        <label>Descripción:</label>
+        <span>{{ device.description || 'Sin descripción' }}</span>
+      </div>
+    </section>
+
+    <section class="detail-section">
+      <h2>Información Relacionada</h2>
+
+      <div class="detail-row" *ngIf="device.center">
+        <label>Centro:</label>
+        <span>{{ device.center.centerName }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="device.store">
+        <label>Tienda:</label>
+        <span>{{ device.store.storeName }}</span>
+      </div>
+    </section>
+
+    <section class="detail-section">
+      <h2>Información del Sistema</h2>
+
+      <div class="detail-row">
+        <label>Fecha de creación:</label>
+        <span>{{ device.createdAt | date: 'short' }}</span>
+      </div>
+    </section>
+  </div>
+</div>

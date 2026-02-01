@@ -1,0 +1,26 @@
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Orden de Servicio ID</th>
+      <th>Cantidad</th>
+      <th>Precio</th>
+      <th>Creación</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let s of soItems">
+      <td>{{ s.id }}</td>
+      <td>{{ s.serviceOrderId }}</td>
+      <td>{{ s.quantity }}</td>
+      <td>{{ s.price }}</td>
+      <td>{{ s.createdAt | date:'shortDate' }}</td>
+      <td>
+        <button (click)="select.emit(s)">Ver</button>
+        <button (click)="edit.emit(s)">Editar</button>
+        <button (click)="delete.emit(s)">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

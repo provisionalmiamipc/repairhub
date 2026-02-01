@@ -1,0 +1,20 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>Nota</th>
+      <th>Fecha de creación</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let soNotes of soNotesList">
+      <td>{{ soNotes.note }}</td>
+      <td>{{ soNotes.createdAt | date }}</td>
+      <td>
+        <button (click)="select.emit(soNotes)">Ver</button>
+        <button (click)="edit.emit(soNotes)">Editar</button>
+        <button (click)="delete.emit(soNotes)">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

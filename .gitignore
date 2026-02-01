@@ -1,0 +1,89 @@
+# Dependencies
+node_modules/
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# Production/Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Angular specific
+repairhubcoreui/.angular/
+repairhubcoreui/angular.json.bak
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.iml
+*.sublime-workspace
+*.sublime-project
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+test/coverage
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# NestJS specific
+dist/
+node_modules/
+.nestjs_debug
+.prettierignore
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Docker volumes and data
+data/
+postgres_data/
+
+# Cache directories
+.cache/
+.eslintcache
+.stylelintcache
+
+# Miscellaneous
+/out-tsc
+/bazel-out
+
+# Angular CLI cache
+/.angular/cache
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+
+# Debugging
+debug.log

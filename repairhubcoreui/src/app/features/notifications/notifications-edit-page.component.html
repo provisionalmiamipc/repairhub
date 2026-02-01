@@ -1,0 +1,40 @@
+<h2 *ngIf="isEdit">Editar Notificación</h2>
+<h2 *ngIf="!isEdit">Crear Notificación</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <label>Título: <input formControlName="title" /></label><br />
+  <label>Mensaje: <textarea formControlName="message"></textarea></label><br />
+  <label>Tipo:
+    <select formControlName="type">
+      <option value="system">System</option>
+      <option value="alert">Alert</option>
+      <option value="reminder">Reminder</option>
+      <option value="announcement">Announcement</option>
+      <option value="task">Task</option>
+    </select>
+  </label><br />
+  <label>Prioridad:
+    <select formControlName="priority">
+      <option value="low">Baja</option>
+      <option value="medium">Media</option>
+      <option value="high">Alta</option>
+      <option value="urgent">Urgente</option>
+    </select>
+  </label><br />
+  <label>Estado:
+    <select formControlName="status">
+      <option value="unread">No leída</option>
+      <option value="read">Leída</option>
+      <option value="archived">Archivada</option>
+      <option value="deleted">Eliminada</option>
+    </select>
+  </label><br />
+  <label>Broadcast: <input type="checkbox" formControlName="isBroadcast" /></label><br />
+  <label>URL de acción: <input formControlName="actionUrl" /></label><br />
+  <label>Icono: <input formControlName="icon" /></label><br />
+  <label>Expira en: <input type="date" formControlName="expiresAt" /></label><br />
+  <label>Metadata (JSON): <textarea formControlName="metadata" rows="2"></textarea></label><br />
+  <div *ngIf="form.get('metadata')?.invalid && form.get('metadata')?.touched" style="color:red">Debe ser un JSON válido.</div>
+  <button type="submit" [disabled]="loading">{{ isEdit ? 'Actualizar' : 'Crear' }}</button>
+  <a routerLink="/notifications">Cancelar</a>
+</form>
+<div *ngIf="loading">Guardando...</div>

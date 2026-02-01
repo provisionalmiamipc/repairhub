@@ -1,0 +1,28 @@
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Total Costo</th>
+      <th>Total Precio</th>
+      <th>Total Descuento</th>
+      <th>Cerrada</th>
+      <th>Cancelada</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let s of sales">
+      <td>{{ s.id }}</td>
+      <td>{{ s.totalCost }}</td>
+      <td>{{ s.totalPrice }}</td>
+      <td>{{ s.totalDiscount }}</td>
+      <td>{{ s.cloused ? 'Sí' : 'No' }}</td>
+      <td>{{ s.canceled ? 'Sí' : 'No' }}</td>
+      <td>
+        <button (click)="select.emit(s)">Ver</button>
+        <button (click)="edit.emit(s)">Editar</button>
+        <button (click)="delete.emit(s)">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

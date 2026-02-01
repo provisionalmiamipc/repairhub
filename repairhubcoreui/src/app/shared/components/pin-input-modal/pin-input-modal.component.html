@@ -1,0 +1,96 @@
+<div class="pin-modal-overlay" *ngIf="isOpen">
+  <div class="pin-modal-container">
+    <!-- Header -->
+    <div class="pin-modal-header">
+      <h2 class="pin-modal-title">Verificación de PIN Requerida</h2>
+      <button 
+        class="pin-modal-close" 
+        (click)="onCancel()"
+        type="button"
+        [disabled]="isLoading"
+        aria-label="Cerrar">
+        ✕
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="pin-modal-body">
+      <!-- Welcome message -->
+      <p class="pin-modal-welcome">
+        Hola, <strong>{{ employeeName }}</strong>
+      </p>
+
+      <!-- Description -->
+      <p class="pin-modal-description">
+        Por favor ingresa tu PIN de seguridad de {{ pinForm.get('pin')?.value?.length || 4 }} dígitos para completar el login.
+      </p>
+
+      <!-- PIN Form -->
+      <form [formGroup]="pinForm" (ngSubmit)="onSubmit()">
+        <!-- PIN Input -->
+        <div class="pin-form-group">
+          <label for="pin-input" class="pin-label">PIN de Seguridad:</label>
+          <input
+            id="pin-input"
+            type="password"
+            class="pin-input"
+            formControlName="pin"
+            placeholder="Ingresa tu PIN"
+            (input)="onPinInput($event)"
+            [disabled]="isLoading || pinForm.disabled"
+            maxlength="6"
+            autocomplete="off"
+            [attr.aria-label]="'PIN de ' + pinForm.get('pin')?.value?.length || 0 + ' dígitos'" />
+          
+          <!-- PIN Error Message -->
+          <span class="pin-error" *ngIf="getPinError()">
+            {{ getPinError() }}
+          </span>
+        </div>
+
+        <!-- Server Error Message -->
+        <div class="pin-error-alert" *ngIf="errorMessage">
+          <span class="pin-error-icon"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i></span>
+          <span class="pin-error-text">{{ errorMessage }}</span>
+        </div>
+
+        <!-- Attempt Counter -->
+        <div class="pin-attempt-counter" *ngIf="attemptCount > 0">
+          Intento {{ attemptCount }} de {{ maxAttempts }}
+        </div>
+
+        <!-- Buttons -->
+        <div class="pin-modal-actions">
+          <button
+            type="button"
+            class="pin-btn pin-btn-cancel"
+            (click)="onCancel()"
+            [disabled]="isLoading || pinForm.disabled"
+            >
+            Cancelar
+          </button>
+          
+          <button
+            type="submit"
+            class="pin-btn pin-btn-primary"
+            [disabled]="!pinForm.valid || isLoading || pinForm.disabled"
+            [class.loading]="isLoading"
+            >
+            <span *ngIf="!isLoading">Verificar PIN</span>
+            <span *ngIf="isLoading">Verificando...</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Help Text -->
+      <div class="pin-help-text">
+        <p>💡 Tu PIN es personal y confidencial. No lo compartas con nadie.</p>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="pin-loading-overlay" *ngIf="isLoading">
+      <div class="pin-spinner"></div>
+    </div>
+  </div>
+</div>

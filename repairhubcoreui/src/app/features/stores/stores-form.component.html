@@ -1,0 +1,76 @@
+<form class="row g-3" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <c-col [xs]="12">
+    <label cLabel for="storeName">Name</label>
+    <input cFormControl id="storeName" placeholder="Store Name" formControlName="storeName"/>
+    <span *ngIf="form.get('storeName')?.invalid && form.get('storeName')?.touched">Required</span>
+  </c-col>
+  <c-col [md]="6">
+    <label cLabel for="inputCenter">Center</label>
+    <select cFormControl id="inputCenter" formControlName="centerId" aria-label="Default select example" cSelect>
+      <option [ngValue]="null">-- Select Center --</option>
+      <option *ngFor="let c of centers" [ngValue]="c.id">{{ c.centerName }}</option>
+    </select>
+    <div *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">Required</div>
+  </c-col>
+  <c-col [md]="3">
+    <label cLabel for="inputEmail">Email</label>
+    <input cFormControl id="inputEmail" type="email" formControlName="email"/>
+  </c-col>
+  <c-col [md]="3">
+    <label cLabel for="inputPhoneNumber">Phone Number</label>
+    <input cFormControl id="inputPhoneNumber" type="tel" formControlName="phoneNumber" />
+  </c-col>
+  <c-col [xs]="12">
+    <label cLabel for="inputAddress" >Address</label>
+    <input cFormControl id="inputAddress" placeholder="1234 Main St, Apartment, studio, or floor" type="text" formControlName="address" />
+    <div *ngIf="form.get('address')?.invalid && form.get('address')?.touched">Required</div>
+  </c-col>
+  <c-col [xs]="8">
+    <label cLabel for="inputWeb">Web</label>
+    <input cFormControl id="inputWeb" placeholder="www.example.com" type="url" formControlName="webSite"/>
+  </c-col>
+  <c-col [xs]="4">
+    <label cLabel for="inputLogo">Logo</label>
+    <input cFormControl id="inputLogo" placeholder="Select..." type="url" formControlName="logo"/>
+  </c-col>
+  <c-col [md]="3">
+    <label cLabel for="inputCountry">Country</label>
+    <input cFormControl id="inputCountry" formControlName="country" />
+    <div *ngIf="form.get('country')?.invalid && form.get('country')?.touched">Required</div>
+  </c-col>
+  <c-col [md]="3">
+    <label cLabel for="inputCity">City</label>
+    <input cFormControl id="inputCity" type="text" formControlName="city"/>
+    <div *ngIf="form.get('city')?.invalid && form.get('city')?.touched">Required</div>
+  </c-col>
+  <c-col [md]="3">
+    <label cLabel for="inputState">State</label>
+    <input cFormControl id="inputState" type="text" formControlName="state"/>
+    <div *ngIf="form.get('state')?.invalid && form.get('state')?.touched">Required</div>
+  </c-col>
+ <!--<ng-container ></ng-container> <c-col [md]="4">
+    <label cLabel for="inputState">State</label>
+    <select cSelect id="inputState">
+      <option>Choose...</option>
+      <option>...</option>
+    </select>
+  </c-col>-->
+  <c-col [md]="3">
+    <label cLabel for="inputZip">Zip Code</label>
+    <input cFormControl id="inputZip" formControlName="zipCode" type="text" />
+    <div *ngIf="form.get('zipCode')?.invalid && form.get('zipCode')?.touched">Required</div>
+  </c-col>  
+   
+  
+  <!--<c-col [xs]="12">
+    <button cButton type="submit" [disabled]="form.invalid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save" viewBox="0 0 16 16">
+  <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/>
+</svg>
+Save</button>
+  </c-col> -->
+  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+  <button cButton type="submit" color="primary" class="me-md-2" [disabled]="form.invalid" >Save</button>
+  <button cButton type="button" color="danger"  [routerLink]="['/stores']" >Cancel</button>
+</div>
+</form>

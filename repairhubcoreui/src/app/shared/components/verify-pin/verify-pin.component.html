@@ -1,0 +1,35 @@
+
+<div class="pin-container">
+  <div class="card">
+    <div class="lock-icon"><i class="bi bi-lock-fill" aria-hidden="true"></i></div>
+    <h2>Session Locked</h2>
+    <p>For security reasons, please enter your 4-digit PIN to continue.</p>
+    
+    <div class="pin-input-container">
+      <input
+        type="text"
+        [(ngModel)]="pin"
+        (input)="onPinInput($event)"
+        maxlength="4"
+        placeholder="0000"
+        class="pin-input"
+        [class.error]="errorMessage"
+        autofocus>
+    </div>
+
+    <button 
+      (click)="verifyPin()"
+      [disabled]="pin.length !== 4 || isLoading"
+      class="btn-primary">
+      {{ isLoading ? 'Verifying...' : 'Unlock Session' }}
+    </button>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <div class="security-notice">
+      <small>For security, your session automatically locks after period of inactivity.</small>
+    </div>
+  </div>
+</div>

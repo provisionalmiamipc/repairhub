@@ -1,0 +1,235 @@
+<div class="form-container">
+  <div class="form-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="cancel()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver
+      </button>
+      <h1>{{ formState().isEditMode ? '✏️ Editar Venta' : '💰 Nueva Venta' }}</h1>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+    </div>
+  </div>
+
+  @if (formState().success) {
+    <div class="alert alert-success">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span>Venta {{ formState().isEditMode ? 'actualizada' : 'creada' }} exitosamente</span>
+    </div>
+  }
+
+  @if (formState().error) {
+    <div class="alert alert-error">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ formState().error }}</span>
+    </div>
+  }
+
+  <div class="stepper">
+    <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
+      <div class="step-circle">1</div>
+      <span class="step-label">Centro y Cliente</span>
+    </div>
+    <div class="step-line" [class.completed]="currentStep() > 0"></div>
+    <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
+      <div class="step-circle">2</div>
+      <span class="step-label">Pago y Usuario</span>
+    </div>
+    <div class="step-line" [class.completed]="currentStep() > 1"></div>
+    <div class="step" [class.active]="currentStep() === 2" [class.completed]="currentStep() > 2">
+      <div class="step-circle">3</div>
+      <span class="step-label">Costos y Estado</span>
+    </div>
+  </div>
+
+  <form [formGroup]="saleForm" (ngSubmit)="onSubmit()">
+    @if (currentStep() === 0) {
+      <div class="step-content">
+        <h3>Centro, Tienda y Cliente</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Centro *</label>
+            <select formControlName="centerId" [class.invalid]="isFieldInvalid('centerId')">
+              <option [value]="null">Seleccione un centro</option>
+              @for (center of centers(); track center.id) {
+                <option [value]="center.id">{{ center.centerName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('centerId')) {
+              <div class="error-message">{{ getFieldError('centerId') }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Tienda *</label>
+            <select formControlName="storeId" [class.invalid]="isFieldInvalid('storeId')" [disabled]="!saleForm.get('centerId')?.value">
+              <option [value]="null">Seleccione una tienda</option>
+              @for (store of filteredStores(); track store.id) {
+                <option [value]="store.id">{{ store.storeName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('storeId')) {
+              <div class="error-message">{{ getFieldError('storeId') }}</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Cliente *</label>
+          <select formControlName="customerId" [class.invalid]="isFieldInvalid('customerId')">
+            <option [value]="null">Seleccione un cliente</option>
+            @for (customer of customers(); track customer.id) {
+              <option [value]="customer.id">{{ getCustomerFullName(customer) }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('customerId')) {
+            <div class="error-message">{{ getFieldError('customerId') }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (currentStep() === 1) {
+      <div class="step-content">
+        <h3>Pago y Usuario</h3>
+        
+        <div class="form-group">
+          <label>Tipo de Pago *</label>
+          <select formControlName="paymentTypeId" [class.invalid]="isFieldInvalid('paymentTypeId')">
+            <option [value]="null">Seleccione un tipo de pago</option>
+            @for (paymentType of paymentTypes(); track paymentType.id) {
+              <option [value]="paymentType.id">{{ paymentType.type }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('paymentTypeId')) {
+            <div class="error-message">{{ getFieldError('paymentTypeId') }}</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Creado Por *</label>
+          <select formControlName="createdById" [class.invalid]="isFieldInvalid('createdById')">
+            <option [value]="null">Seleccione un empleado</option>
+            @for (employee of employees(); track employee.id) {
+              <option [value]="employee.id">{{ getEmployeeFullName(employee) }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('createdById')) {
+            <div class="error-message">{{ getFieldError('createdById') }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (currentStep() === 2) {
+      <div class="step-content">
+        <h3>Costos, Descuento y Estado</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Costo Total *</label>
+            <input 
+              type="text" 
+              formControlName="totalCost" 
+              placeholder="0.00"
+              [class.invalid]="isFieldInvalid('totalCost')"
+            />
+            @if (isFieldInvalid('totalCost')) {
+              <div class="error-message">{{ getFieldError('totalCost') }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Precio Total *</label>
+            <input 
+              type="number" 
+              formControlName="totalPrice" 
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              [class.invalid]="isFieldInvalid('totalPrice')"
+            />
+            @if (isFieldInvalid('totalPrice')) {
+              <div class="error-message">{{ getFieldError('totalPrice') }}</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Descuento Total *</label>
+          <input 
+            type="number" 
+            formControlName="totalDiscount" 
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            [class.invalid]="isFieldInvalid('totalDiscount')"
+          />
+          @if (isFieldInvalid('totalDiscount')) {
+            <div class="error-message">{{ getFieldError('totalDiscount') }}</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="cloused" />
+            <span>Venta Cerrada</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="canceled" />
+            <span>Venta Cancelada</span>
+          </label>
+        </div>
+      </div>
+    }
+
+    <div class="form-actions">
+      @if (currentStep() > 0) {
+        <button type="button" class="btn-secondary" (click)="previousStep()">
+          Anterior
+        </button>
+      }
+
+      @if (currentStep() < 2) {
+        <button 
+          type="button" 
+          class="btn-primary" 
+          (click)="nextStep()"
+          [disabled]="!canProceedToNextStep()"
+        >
+          Siguiente
+        </button>
+      }
+
+      @if (currentStep() === 2) {
+        <button 
+          type="submit" 
+          class="btn-primary"
+          [disabled]="formState().isLoading || !saleForm.valid"
+        >
+          @if (formState().isLoading) {
+            <span class="spinner"></span>
+            Guardando...
+          } @else {
+            {{ formState().isEditMode ? 'Actualizar' : 'Crear' }} Venta
+          }
+        </button>
+      }
+    </div>
+  </form>
+</div>

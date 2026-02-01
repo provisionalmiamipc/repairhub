@@ -1,0 +1,17 @@
+<div *ngIf="soItem">
+  <h2>Detalle de Item de Orden de Servicio</h2>
+  <div><strong>ID:</strong> {{ soItem.id }}</div>
+  <div><strong>Orden de Servicio ID:</strong> {{ soItem.serviceOrderId }}</div>
+  <div><strong>Cantidad:</strong> {{ soItem.quantity }}</div>
+  <div><strong>Costo:</strong> {{ soItem.cost }}</div>
+  <div><strong>Precio:</strong> {{ soItem.price }}</div>
+  <div><strong>Descuento:</strong> {{ soItem.discount }}</div>
+  <div><strong>Nota:</strong> {{ soItem.note }}</div>
+  <div><strong>Fecha de creación:</strong> {{ soItem.createdAt | date:'shortDate' }}</div>
+  <div><strong>Fecha de actualización:</strong> {{ soItem.updatedAt | date:'shortDate' }}</div>
+  <div *ngIf="soItem.center"><strong>Centro:</strong> {{ soItem.center.centerName }}</div>
+  <div *ngIf="soItem.store"><strong>Tienda:</strong> {{ soItem.store.storeName }}</div>
+  <div *ngIf="soItem.item"><strong>Item:</strong> {{ soItem.item.id }}</div>
+  <div *ngIf="soItem.serviceOrder"><strong>Orden de Servicio:</strong> {{ soItem.serviceOrder.id }}</div>
+  <div *ngIf="soItem.employee"><strong>Creado por:</strong> {{ soItem.employee.firstName }}</div>
+</div>

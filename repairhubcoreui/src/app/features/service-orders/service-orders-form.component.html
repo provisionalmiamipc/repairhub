@@ -1,0 +1,547 @@
+<div class="container">
+  <!-- app-toasts is now global in AppComponent; removed local inclusion -->
+  <div class="row">
+    <!-- Left: form card -->
+    <div class="col-lg-8" [ngClass]="serviceOrder ? 'col-lg-8' : 'col-md-12'">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5 class="mb-0">Service Order</h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="needs-validation" novalidate>
+            <div class="row g-4">
+
+              <!-- Columna izquierda: Formulario -->
+              <div class="col-lg-8">
+
+                <!-- Sección: Información del dispositivo -->
+                <fieldset class="mb-4 p-3 border rounded">
+                  <legend class="fw-bold fs-5">Device Information</legend>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label for="model" class="form-label">Model *</label>
+                      <input id="model" class="form-control" formControlName="model" />
+                      <div class="invalid-feedback d-block"
+                        *ngIf="form.get('model')?.invalid && form.get('model')?.touched">
+                        Model is required
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="serial" class="form-label">Serial</label>
+                      <input id="serial" class="form-control" formControlName="serial" />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="deviceBrandId" class="form-label">Device Brand *</label>
+                      <div class="input-group">
+                        <select id="deviceBrandId" class="form-select" formControlName="deviceBrandId">
+                          <option [ngValue]="null">Select brand</option>
+                          <option *ngFor="let b of deviceBrands" [ngValue]="b.id">{{ b.brandName || b.name }}</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button"
+                          (click)="openAddDeviceBrand()">+</button>
+                      </div>
+                      <div class="invalid-feedback d-block"
+                        *ngIf="form.get('deviceBrandId')?.invalid && form.get('deviceBrandId')?.touched">
+                        Brand is required
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="deviceId" class="form-label">Device *</label>
+                      <div class="input-group">
+                        <select id="deviceId" class="form-select" formControlName="deviceId">
+                          <option [ngValue]="null">Select device</option>
+                          <option *ngFor="let d of devices" [ngValue]="d.id">{{ d.model || d.name }}</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button" (click)="openAddDevice()">+</button>
+                      </div>
+                      <div class="invalid-feedback d-block"
+                        *ngIf="form.get('deviceId')?.invalid && form.get('deviceId')?.touched">
+                        Device is required
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label for="defectivePart" class="form-label">Defective Part</label>
+                      <input id="defectivePart" class="form-control" formControlName="defectivePart" />
+                    </div>
+                  </div>
+                </fieldset>
+
+                <!-- Sección: Cliente y ubicación -->
+                <fieldset class="mb-4 p-3 border rounded">
+                  <legend class="fw-bold fs-5">Customer & Location</legend>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label for="customerId" class="form-label">Customer *</label>
+                      <div class="input-group">
+                        <select id="customerId" class="form-select" formControlName="customerId">
+                          <option [ngValue]="null">Select customer</option>
+                          <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.firstName + ' ' + c.lastName }}
+                          </option>
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                      <div class="invalid-feedback d-block"
+                        *ngIf="form.get('customerId')?.invalid && form.get('customerId')?.touched">
+                        Customer is required
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="centerId" class="form-label">Center *</label>
+                      <select id="centerId" class="form-select" formControlName="centerId">
+                        <option [ngValue]="null">Select center</option>
+                        <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
+                      </select>
+                      <div class="invalid-feedback d-block"
+                        *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">
+                        Center is required
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="storeId" class="form-label">Store *</label>
+                      <select id="storeId" class="form-select" formControlName="storeId">
+                        <option [ngValue]="null">Select store</option>
+                        <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+                      </select>
+                      <div class="invalid-feedback d-block"
+                        *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">
+                        Store is required
+                      </div>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <!-- Sección: Asignación -->
+                <fieldset class="mb-4 p-3 border rounded">
+                  <legend class="fw-bold fs-5">Assignment</legend>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label for="assignedTechId" class="form-label">Assigned Technician</label>
+                      <select id="assignedTechId" class="form-select" formControlName="assignedTechId">
+                        <option [ngValue]="null">Select technician</option>
+                        <option *ngFor="let e of employees" [ngValue]="e.id">{{ e.firstName + ' ' + e.lastName }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="createdById" class="form-label">Created By</label>
+                      <select id="createdById" class="form-select" formControlName="createdById">
+                        <option [ngValue]="null">Select user</option>
+                        <option *ngFor="let e of employees" [ngValue]="e.id">{{ e.firstName + ' ' + e.lastName }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <!-- Sección: Notas -->
+                <fieldset class="mb-4 p-3 border rounded">
+                  <legend class="fw-bold fs-5">Notes</legend>
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label for="noteReception" class="form-label">Reception Note</label>
+                      <textarea id="noteReception" class="form-control" rows="3"
+                        formControlName="noteReception"></textarea>
+                    </div>
+                  </div>
+                </fieldset>
+
+              </div>
+
+              <!-- Columna derecha: Costos + Estado + Listados -->
+              <div class="col-lg-4">
+
+                <!-- Tarjeta: Costos (calculados) -->
+                <div class="card mb-4">
+                  <div class="card-header">
+                    <h6 class="mb-0">Costs</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-2">
+                      <div class="col-12">
+                        <label for="price" class="form-label">Price *</label>
+                        <input id="price" type="number" min="0" class="form-control" formControlName="price" />
+                        <div class="invalid-feedback d-block"
+                          *ngIf="form.get('price')?.invalid && form.get('price')?.touched">
+                          Required
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <label for="repairCost" class="form-label">Repair Cost *</label>
+                        <input id="repairCost" type="number" min="0" class="form-control"
+                          formControlName="repairCost" />
+                        <div class="invalid-feedback d-block"
+                          *ngIf="form.get('repairCost')?.invalid && form.get('repairCost')?.touched">
+                          Required
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <label for="costdiscount" class="form-label">Discount</label>
+                        <input id="costdiscount" type="number" min="0" class="form-control"
+                          formControlName="costdiscount" />
+                      </div>
+                      <div class="col-12">
+                        <label for="tax" class="form-label">Tax</label>
+                        <input id="tax" type="number" min="0" class="form-control" formControlName="tax" />
+                      </div>
+                      <div class="col-12">
+                        <label for="advancePayment" class="form-label">Advance Payment</label>
+                        <input id="advancePayment" type="number" min="0" class="form-control"
+                          formControlName="advancePayment" />
+                      </div>
+                      <div class="col-12">
+                        <label for="totalCost" class="form-label">Total Cost *</label>
+                        <input id="totalCost" type="number" min="0" class="form-control" formControlName="totalCost"
+                          readonly />
+                        <small class="text-muted">Calculated automatically</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tarjeta: Estado (checkboxes) -->
+                <div class="card mb-4">
+                  <div class="card-header">
+                    <h6 class="mb-0">Status</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="form-check mb-2">
+                      <input id="lock" class="form-check-input" type="checkbox" formControlName="lock" />
+                      <label class="form-check-label" for="lock">Locked</label>
+                    </div>
+                    <div class="form-check mb-2">
+                      <input id="cloused" type="checkbox" class="form-check-input" formControlName="cloused" />
+                      <label class="form-check-label" for="cloused">Closed</label>
+                    </div>
+                    <div class="form-check">
+                      <input id="canceled" type="checkbox" class="form-check-input" formControlName="canceled" />
+                      <label class="form-check-label" for="canceled">Canceled</label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Aquí irían tus 4 listados (Notes, Diagnostics, etc.) -->
+                <!-- (los que ya tienes en tarjetas apiladas) -->
+
+                <!-- Botón de acción -->
+                <div class="d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-primary flex-grow-1" [disabled]="form.invalid">
+                    Save
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals for device/brand/payment type -->
+    <ng-container *ngIf="showDeviceModal">
+      <!-- Let the DevicesFormComponent render its own modal when isModal is true -->
+      <app-devices-form [device]="editingDevice" [isModal]="true" (save)="onDeviceSaved($event)"
+        (cancel)="closeDeviceModal()"></app-devices-form>
+    </ng-container>
+
+    <ng-container *ngIf="showDeviceBrandModal">
+      <!-- Let the DeviceBrandsFormComponent render its own modal when isModal is true -->
+      <app-device-brands-form [deviceBrand]="editingDeviceBrand" [isModal]="true" (save)="onDeviceBrandSaved($event)"
+        (cancel)="closeDeviceBrandModal()"></app-device-brands-form>
+    </ng-container>
+
+    <ng-container *ngIf="showPaymentTypeModal">
+      <!-- Let the PaymentTypesFormComponent render its own modal when isModal is true -->
+      <app-payment-types-form [paymentType]="editingPaymentType" [isModal]="true" (save)="onPaymentTypeSaved($event)"
+        (cancel)="closePaymentTypeModal()"></app-payment-types-form>
+    </ng-container>
+
+    <ng-container *ngIf="showCustomerSearch">
+      <app-customer-search [isModal]="true" (select)="onCustomerSelected($event)"
+        (cancel)="closeCustomerSearch()"></app-customer-search>
+    </ng-container>
+
+    <!-- Related entity modals rendered by child components (they handle the modal wrapper when isModal=true) -->
+    <ng-container *ngIf="showNoteModal">
+      <app-so-notes-form [soNotes]="editingNote" [serviceOrderId]="serviceOrder?.id" [centerId]="serviceOrder?.centerId"
+        [storeId]="serviceOrder?.storeId"
+        [createdById]="(serviceOrder?.createdById ?? form.get('createdById')?.value) ? (serviceOrder?.createdById ?? form.get('createdById')?.value) : null"
+        [isModal]="true" (save)="onNoteSaved($event)" (cancel)="closeNoteModal()">
+      </app-so-notes-form>
+    </ng-container>
+
+    <ng-container *ngIf="showDiagnosticModal">
+      <app-so-diagnostic-form [soDiagnostic]="editingDiagnostic" [serviceOrderId]="serviceOrder?.id"
+        [centerId]="serviceOrder?.centerId ?? form.get('centerId')?.value"
+        [storeId]="serviceOrder?.storeId ?? form.get('storeId')?.value"
+        [createdById]="(serviceOrder?.createdById ?? form.get('createdById')?.value) ? (serviceOrder?.createdById ?? form.get('createdById')?.value) : null"
+        [isModal]="true" (save)="onDiagnosticSaved($event)" (cancel)="closeDiagnosticModal()">
+      </app-so-diagnostic-form>
+    </ng-container>
+
+    <ng-container *ngIf="showItemModal">
+      <app-so-items-form [soItem]="editingItem" [serviceOrderId]="serviceOrder?.id"
+        [centerId]="serviceOrder?.centerId ?? form.get('centerId')?.value"
+        [storeId]="serviceOrder?.storeId ?? form.get('storeId')?.value"
+        [createdById]="(serviceOrder?.createdById ?? form.get('createdById')?.value) ? (serviceOrder?.createdById ?? form.get('createdById')?.value) : null"
+        [isModal]="true" (save)="onItemSaved($event)" (cancel)="closeItemModal()">
+      </app-so-items-form>
+    </ng-container>
+
+    <ng-container *ngIf="showStatusModal">
+      <app-repair-status-form [repairStatus]="editingStatus" [serviceOrderIdInput]="serviceOrder?.id"
+        [centerIdInput]="serviceOrder?.centerId ?? form.get('centerId')?.value"
+        [storeIdInput]="serviceOrder?.storeId ?? form.get('storeId')?.value"
+        [createdByIdInput]="(serviceOrder?.createdById ?? form.get('createdById')?.value) ? (serviceOrder?.createdById ?? form.get('createdById')?.value) : null"
+        [isModal]="true" (save)="onStatusSaved($event)" (cancel)="closeStatusModal()">
+      </app-repair-status-form>
+    </ng-container>
+
+    <!-- Right: accordion with related objects -->
+    <!--div class="col-md-4" *ngIf="serviceOrder">
+      <div class="card mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">Related</h6>
+        </div>
+        <div class="card-body">
+          <div class="accordion" id="relatedAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header d-flex align-items-center" id="headingNotes">
+
+                <button class="accordion-button flex-grow-1" type="button" [class.collapsed]="!showNotesCollapse"
+                  (click)="toggleNotes()" [attr.aria-expanded]="showNotesCollapse" aria-controls="collapseNotes">
+                  Notes <span class="badge bg-secondary ms-2">{{ soNotes.length || 0 }}</span>
+
+                </button>
+                <div class="me-1">
+                  <button class="btn btn-sm btn-outline-primary" type="button"
+                    (click)="openAddNote(); $event.stopPropagation()">+</button>
+                </div>
+              </h2>
+              <div id="collapseNotes" class="accordion-collapse collapse" aria-labelledby="headingNotes"
+                [class.show]="showNotesCollapse">
+                <div class="accordion-body p-2">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-start"
+                      *ngFor="let n of soNotes">
+                      <div>{{ n.note }}</div>
+                      <div>
+                        <button class="btn btn-sm btn-link"
+                          (click)="openEditSONote(n); $event.stopPropagation()">Edit</button>
+                        <button class="btn btn-sm btn-link text-danger"
+                          (click)="deleteSONote(n.id); $event.stopPropagation()">Delete</button>
+                      </div>
+                    </li>
+                    <li class="list-group-item text-muted" *ngIf="!soNotes || soNotes.length===0">No notes</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header d-flex align-items-center" id="headingDiagnostics">
+                <button class="accordion-button collapsed flex-grow-1" [class.collapsed]="!showDiagnosticsCollapse"
+                  type="button" (click)="toggleDiagnostics()" [attr.aria-expanded]="showDiagnosticsCollapse"
+                  aria-controls="collapseDiagnostics">
+                  Diagnostics <span class="badge bg-secondary ms-2">{{ soDiagnostics.length || 0 }}</span>
+                </button>
+                <div class="me-1">
+                  <button class="btn btn-sm btn-outline-primary" type="button"
+                    (click)="openAddDiagnostic(); $event.stopPropagation()">+</button>
+                </div>
+              </h2>
+              <div id="collapseDiagnostics" class="accordion-collapse collapse" [class.show]="showDiagnosticsCollapse"
+                aria-labelledby="headingDiagnostics" data-bs-parent="#relatedAccordion">
+                <div class="accordion-body p-2">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-start"
+                      *ngFor="let d of soDiagnostics">
+                      <div>{{ d.diagnostic || d.diagnostic || 'Diagnostic' }}</div>
+                      <div>
+                        <button class="btn btn-sm btn-link"
+                          (click)="openEditSODiagnostic(d); $event.stopPropagation()">Edit</button>
+                        <button class="btn btn-sm btn-link text-danger"
+                          (click)="deleteSODiagnostic(d.id); $event.stopPropagation()">Delete</button>
+                      </div>
+                    </li>
+                    <li class="list-group-item text-muted" *ngIf="!soDiagnostics || soDiagnostics.length===0">No
+                      diagnostics</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header d-flex align-items-center" id="headingStatuses">
+                <button class="accordion-button flex-grow-1" [class.collapsed]="!showStatusesCollapse"
+                  type="button" (click)="toggleStatuses()" [attr.aria-expanded]="showStatusesCollapse"
+                  aria-controls="collapseStatuses">
+                  Repair Statuses <span class="badge bg-secondary ms-2">{{ repairStatuses.length || 0 }}</span>
+                </button>
+                <div class="me-1">
+                  <button class="btn btn-sm btn-outline-primary" type="button"
+                    (click)="openAddStatus(); $event.stopPropagation()">+</button>
+                </div>
+              </h2>
+              <div id="collapseStatuses" class="accordion-collapse collapse" [class.show]="showStatusesCollapse" aria-labelledby="headingStatuses"
+                data-bs-parent="#relatedAccordion">
+                <div class="accordion-body p-2">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-start"
+                      *ngFor="let rs of repairStatuses">
+                      <div>{{ rs.status }}</div>
+                      <div>
+                        <button class="btn btn-sm btn-link"
+                          (click)="openEditRepairStatus(rs); $event.stopPropagation()">Edit</button>
+                        <button class="btn btn-sm btn-link text-danger"
+                          (click)="deleteRepairStatus(rs.id); $event.stopPropagation()">Delete</button>
+                      </div>
+                    </li>
+                    <li class="list-group-item text-muted" *ngIf="!repairStatuses || repairStatuses.length===0">No
+                      statuses</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h2 class="accordion-header d-flex align-items-center" id="headingItems">
+                <button class="accordion-button collapsed flex-grow-1" type="button" data-bs-toggle="collapse"
+                  data-bs-target="#collapseItems" aria-expanded="false" aria-controls="collapseItems">
+                  Items <span class="badge bg-secondary ms-2">{{ soItems.length || 0 }}</span>
+                </button>
+                <div class="me-1">
+                  <button class="btn btn-sm btn-outline-primary" type="button"
+                    (click)="openAddItem(); $event.stopPropagation()">+</button>
+                </div>
+              </h2>
+              <div id="collapseItems" class="accordion-collapse collapse" aria-labelledby="headingItems"
+                data-bs-parent="#relatedAccordion">
+                <div class="accordion-body p-2">
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center"
+                      *ngFor="let it of soItems">
+                      <div>
+                        <div class="fw-bold">{{ it.item?.product || it.note || 'Item' }}</div>
+                        <div class="small text-muted">Qty: {{ it.quantity }} — Price: {{ it.price }}</div>
+                      </div>
+                      <div>
+                        <span class="badge bg-light text-dark me-2">{{ it.price }}</span>
+                        <button class="btn btn-sm btn-link"
+                          (click)="openEditSOItem(it); $event.stopPropagation()">Edit</button>
+                        <button class="btn btn-sm btn-link text-danger"
+                          (click)="deleteSOItem(it.id); $event.stopPropagation()">Delete</button>
+                      </div>
+                    </li>
+                    <li class="list-group-item text-muted" *ngIf="!soItems || soItems.length===0">No items</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div-->
+
+    <!-- Listados relacionados (lado derecho, apilados) -->
+    <div class="col-lg-4">
+
+      <!-- Tarjeta: Notas -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Notes</h6>
+          <div>
+            <span class="badge bg-secondary me-2">{{ soNotes.length || 0 }}</span>
+            <button class="btn btn-sm btn-outline-primary" (click)="openAddNote()">+</button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let n of soNotes" class="list-group-item d-flex justify-content-between align-items-start">
+              <div>{{ n.note }}</div>
+              <div>
+                
+                <button class="btn btn-sm btn-link text-danger p-0" (click)="deleteSONote(n.id)"><i class="bi bi-trash"></i></button>
+              </div>
+            </li>
+            <li *ngIf="!soNotes.length" class="list-group-item text-muted">No notes</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Diagnósticos -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Diagnostics</h6>
+          <div>
+            <span class="badge bg-secondary me-2">{{ soDiagnostics.length || 0 }}</span>
+            <button class="btn btn-sm btn-outline-primary" (click)="openAddDiagnostic()">+</button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let d of soDiagnostics" class="list-group-item">
+              {{ d.diagnostic }}
+              <div class="float-end">
+                
+                <button class="btn btn-sm btn-link text-danger p-0" (click)="deleteSODiagnostic(d.id)"><i class="bi bi-trash"></i></button>
+              </div>
+            </li>
+            <li *ngIf="!soDiagnostics.length" class="list-group-item text-muted">No diagnostics</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Estados -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Repair Statuses</h6>
+          <div>
+            <span class="badge bg-secondary me-2">{{ repairStatuses.length || 0 }}</span>
+            <button class="btn btn-sm btn-outline-primary" (click)="openAddStatus()">+</button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let rs of repairStatuses" class="list-group-item">
+              {{ rs.status }}
+              <div class="float-end">
+                
+                <button class="btn btn-sm btn-link text-danger p-0" (click)="deleteRepairStatus(rs.id)"><i class="bi bi-trash"></i></button>
+              </div>
+            </li>
+            <li *ngIf="!repairStatuses.length" class="list-group-item text-muted">No statuses</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tarjeta: Artículos -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Items</h6>
+          <div>
+            <span class="badge bg-secondary me-2">{{ soItems.length || 0 }}</span>
+            <button class="btn btn-sm btn-outline-primary" (click)="openAddItem()">+</button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let it of soItems" class="list-group-item">
+              <div class="fw-bold">{{ it.item?.product || it.note || 'Item' }}</div>
+              <small class="text-muted">Qty: {{ it.quantity }} — Price: {{ it.price | currency }}</small>
+              <div class="float-end">
+               
+                <button class="btn btn-sm btn-link text-danger p-0" (click)="deleteSOItem(it.id)"><i class="bi bi-trash"></i></button>
+              </div>
+            </li>
+            <li *ngIf="!soItems.length" class="list-group-item text-muted">No items</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

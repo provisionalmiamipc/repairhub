@@ -1,0 +1,103 @@
+<!-- components/login/login.component.html -->
+<div class="container vh-100 d-flex align-items-center justify-content-center">
+  <div class="row w-100">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5 mx-auto">
+      <div class="card shadow-sm" *ngIf="!showPinModal">
+        <div class="card-body p-4">
+          <div class="text-center mb-3">
+            <!-- optional logo placeholder -->
+            <img src="/assets/brand/coreui-signet.svg" alt="logo" class="mb-2" style="height:48px;"/>
+            <h4 class="card-title mb-0">Employee Login</h4>
+            <p class="text-muted small">Please enter your employee credentials to access the system</p>
+          </div>
+
+          <form (ngSubmit)="onLogin()" #loginForm="ngForm" novalidate>
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input
+                type="text"
+                id="username"
+                class="form-control"
+                [(ngModel)]="username"
+                name="username"
+                required
+                [disabled]="isLoading"
+                placeholder="Enter your username"
+                aria-label="Username">
+              <div *ngIf="loginAttempted && !loginForm.controls['username'].valid && !isLoading" class="invalid-feedback d-block">
+                Username is required
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                [(ngModel)]="password"
+                name="password"
+                required
+                [disabled]="isLoading"
+                placeholder="Enter your password"
+                aria-label="Password">
+              <div *ngIf="loginAttempted && !loginForm.controls['password'].valid && !isLoading" class="invalid-feedback d-block">
+                Password is required
+              </div>
+            </div>
+
+            <div class="mb-3 d-flex align-items-center justify-content-end">
+              <a class="small" href="#" (click)="$event.preventDefault()">Forgot password?</a>
+            </div>
+
+            <!--
+              Commented admin toggle checkbox for future use. To re-enable, uncomment and restore
+              the `isAdminLogin` property and logic in `login.component.ts`.
+
+            <div class="mb-3 form-check d-flex align-items-center justify-content-between">
+              <div>
+                <input
+                  type="checkbox"
+                  id="isAdminLogin"
+                  class="form-check-input me-2"
+                  [(ngModel)]="isAdminLogin"
+                  name="isAdminLogin"
+                  (change)="toggleLoginType()"
+                  [disabled]="isLoading">
+                <label for="isAdminLogin" class="form-check-label">{{ isAdminLogin ? 'Administrator Mode' : 'Employee Mode' }}</label>
+              </div>
+            </div>
+            -->
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg" [disabled]="!loginForm.form.valid || isLoading">
+                <span *ngIf="!isLoading">Login</span>
+                <span *ngIf="isLoading">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Verifying...
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <div *ngIf="errorMessage" class="alert alert-danger mt-3" role="alert">
+            {{ errorMessage }}
+          </div>
+
+          <div class="text-center mt-3">
+            <small class="text-muted">Use your employee username and password</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIN Verification Modal (shown after successful employee login) -->
+  <app-pin-input-modal
+    *ngIf="showPinModal"
+    [isOpen]="showPinModal"
+    [employeeName]="employeeName"
+    (pinSubmit)="onPinSubmit($event)"
+    (cancel)="onPinCancel()"
+  ></app-pin-input-modal>
+</div>

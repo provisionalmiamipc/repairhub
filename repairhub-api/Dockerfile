@@ -1,0 +1,57 @@
+# ============================================================================
+# BUILD STAGE - Compilar TypeScript a JavaScript
+# ============================================================================
+FROM node:18-alpine AS builder
+
+LABEL maintainer="RepairHub <soporte@repairhub.com>"
+LABEL description="RepairHub API - Sistema de Gestión de Reparaciones"
+
+WORKDIR /build
+
+# Copiar archivos de definición de dependencias
+COPY package*.json ./
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
+
+# Instalar todas las dependencias (incluyendo dev)
+RUN npm ci --legacy-peer-deps
+
+# Copiar código fuente
+COPY src ./src
+
+# Compilar TypeScript a JavaScript
+RUN npm run build
+
+# ============================================================================
+# PRODUCTION STAGE - Imagen pequeña solo con lo necesario
+# ============================================================================
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Crear usuario no-root por seguridad
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
+
+# Copiar archivos de dependencias
+COPY --from=builder --chown=nestjs:nodejs /build/package*.json ./
+
+# Instalar solo dependencias de producción
+RUN npm ci --only=production --legacy-peer-deps && \
+    npm cache clean --force
+
+# Copiar código compilado del builder
+COPY --from=builder --chown=nestjs:nodejs /build/dist ./dist
+
+# Cambiar al usuario no-root
+USER nestjs
+
+# Exponer puerto
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
+# Comando para iniciar la aplicación
+CMD ["node", "dist/main.js"]

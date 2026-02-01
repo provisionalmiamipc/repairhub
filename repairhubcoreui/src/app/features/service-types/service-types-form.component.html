@@ -1,0 +1,127 @@
+<div class="form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <div>
+      <h1>{{ serviceType?.id ? 'Editar Tipo de Servicio' : 'Nuevo Tipo de Servicio' }}</h1>
+      <p>Completa los campos para {{ serviceType?.id ? 'actualizar el' : 'crear un nuevo' }} tipo de servicio</p>
+    </div>
+    <button type="button" class="btn-close" (click)="onCancel()" [attr.aria-label]="'Cerrar formulario'">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+
+  <!-- Alert Messages -->
+  <div *ngIf="successMessage" class="alert-success">
+    <i class="bi bi-check-circle"></i>
+    {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert-error">
+    <i class="bi bi-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Form -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modern-form">
+    @if (isUserTypeUser()) {
+    <!-- Centro (solo para USER) -->
+    <div class="form-group">
+      <label for="centerId" class="form-label">
+        Centro <span class="required">*</span>
+      </label>
+      <select id="centerId" formControlName="centerId" class="form-select" [class.is-invalid]="isFieldInvalid('centerId')">
+        <option [ngValue]="null">Selecciona un centro</option>
+        <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
+      </select>
+      <div *ngIf="isFieldInvalid('centerId')" class="error-message">
+        <i class="bi bi-exclamation-circle"></i> El centro es requerido
+      </div>
+    </div>
+
+    <!-- Tienda (solo para USER) -->
+    <div class="form-group">
+      <label for="storeId" class="form-label">
+        Tienda <span class="required">*</span>
+      </label>
+      <select id="storeId" formControlName="storeId" class="form-select" [class.is-invalid]="isFieldInvalid('storeId')">
+        <option [ngValue]="null">Selecciona una tienda</option>
+        <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+      </select>
+      <div *ngIf="isFieldInvalid('storeId')" class="error-message">
+        <i class="bi bi-exclamation-circle"></i> La tienda es requerida
+      </div>
+    </div>
+    } @else {
+    <!-- Centro (deshabilitado para EMPLOYEE) -->
+    <div class="form-group">
+      <label for="centerId" class="form-label">
+        Centro
+      </label>
+      <select id="centerId" formControlName="centerId" class="form-select" [disabled]="true">
+        <option [ngValue]="null">Auto-asignado</option>
+        <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
+      </select>
+    </div>
+
+    <!-- Tienda (deshabilitada para EMPLOYEE) -->
+    <div class="form-group">
+      <label for="storeId" class="form-label">
+        Tienda
+      </label>
+      <select id="storeId" formControlName="storeId" class="form-select" [disabled]="true">
+        <option [ngValue]="null">Auto-asignada</option>
+        <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+      </select>
+    </div>
+    }
+
+    <!-- Nombre -->
+    <div class="form-group">
+      <label for="name" class="form-label">
+        Nombre <span class="required">*</span>
+      </label>
+      <input 
+        type="text" 
+        id="name" 
+        formControlName="name" 
+        class="form-input"
+        [class.is-invalid]="isFieldInvalid('name')"
+        placeholder="Nombre del tipo de servicio"
+      />
+      <div *ngIf="isFieldInvalid('name')" class="error-message">
+        <i class="bi bi-exclamation-circle"></i> El nombre es requerido
+      </div>
+    </div>
+
+    <!-- Descripción -->
+    <div class="form-group">
+      <label for="description" class="form-label">
+        Descripción
+      </label>
+      <textarea 
+        id="description" 
+        formControlName="description" 
+        class="form-input"
+        placeholder="Descripción opcional del tipo de servicio"
+        rows="4"
+      ></textarea>
+    </div>
+
+    <!-- Buttons -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">
+        Cancelar
+      </button>
+      <button 
+        type="submit" 
+        class="btn btn-primary" 
+        [disabled]="form.invalid || isLoading"
+        [attr.aria-busy]="isLoading"
+      >
+        <span *ngIf="isLoading" class="spinner">
+          <i class="bi bi-hourglass-split"></i>
+        </span>
+        {{ serviceType?.id ? 'Actualizar' : 'Crear' }}
+      </button>
+    </div>
+  </form>
+</div>

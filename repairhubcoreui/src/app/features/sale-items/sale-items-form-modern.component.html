@@ -1,0 +1,213 @@
+<div class="form-container">
+  <div class="form-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="cancel()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver
+      </button>
+      <h1>{{ formState().isEditMode ? '✏️ Editar Ítem de Venta' : '🛒 Nuevo Ítem de Venta' }}</h1>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+    </div>
+  </div>
+
+  @if (formState().success) {
+    <div class="alert alert-success">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span>Ítem de venta {{ formState().isEditMode ? 'actualizado' : 'creado' }} exitosamente</span>
+    </div>
+  }
+
+  @if (formState().error) {
+    <div class="alert alert-error">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ formState().error }}</span>
+    </div>
+  }
+
+  <div class="stepper">
+    <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
+      <div class="step-circle">1</div>
+      <span class="step-label">Venta y Producto</span>
+    </div>
+    <div class="step-line" [class.completed]="currentStep() > 0"></div>
+    <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
+      <div class="step-circle">2</div>
+      <span class="step-label">Cantidad y Precios</span>
+    </div>
+  </div>
+
+  <form [formGroup]="saleItemForm" (ngSubmit)="onSubmit()">
+    @if (currentStep() === 0) {
+      <div class="step-content">
+        <h3>Venta, Centro, Tienda y Producto</h3>
+        
+        <div class="form-group">
+          <label>Venta *</label>
+          <select formControlName="saleId" [class.invalid]="isFieldInvalid('saleId')">
+            <option [value]="null">Seleccione una venta</option>
+            @for (sale of sales(); track sale.id) {
+              <option [value]="sale.id">Venta #{{ sale.id }} - {{ sale.totalPrice | currency: 'COP':'symbol-narrow' }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('saleId')) {
+            <div class="error-message">{{ getFieldError('saleId') }}</div>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Centro *</label>
+            <select formControlName="centerId" [class.invalid]="isFieldInvalid('centerId')">
+              <option [value]="null">Seleccione un centro</option>
+              @for (center of centers(); track center.id) {
+                <option [value]="center.id">{{ center.centerName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('centerId')) {
+              <div class="error-message">{{ getFieldError('centerId') }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Tienda *</label>
+            <select formControlName="storeId" [class.invalid]="isFieldInvalid('storeId')" [disabled]="!saleItemForm.get('centerId')?.value">
+              <option [value]="null">Seleccione una tienda</option>
+              @for (store of filteredStores(); track store.id) {
+                <option [value]="store.id">{{ store.storeName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('storeId')) {
+              <div class="error-message">{{ getFieldError('storeId') }}</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Producto *</label>
+          <select formControlName="itemId" [class.invalid]="isFieldInvalid('itemId')">
+            <option [value]="null">Seleccione un producto</option>
+            @for (item of items(); track item.id) {
+              <option [value]="item.id">{{ item.product }} ({{ item.sku }})</option>
+            }
+          </select>
+          @if (isFieldInvalid('itemId')) {
+            <div class="error-message">{{ getFieldError('itemId') }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (currentStep() === 1) {
+      <div class="step-content">
+        <h3>Cantidad, Precios y Descuento</h3>
+        
+        <div class="form-group">
+          <label>Cantidad *</label>
+          <input 
+            type="number" 
+            formControlName="quantity" 
+            placeholder="1"
+            min="1"
+            [class.invalid]="isFieldInvalid('quantity')"
+          />
+          @if (isFieldInvalid('quantity')) {
+            <div class="error-message">{{ getFieldError('quantity') }}</div>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Costo Unitario *</label>
+            <input 
+              type="number" 
+              formControlName="cost" 
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              [class.invalid]="isFieldInvalid('cost')"
+            />
+            @if (isFieldInvalid('cost')) {
+              <div class="error-message">{{ getFieldError('cost') }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Precio Unitario *</label>
+            <input 
+              type="number" 
+              formControlName="price" 
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+              [class.invalid]="isFieldInvalid('price')"
+            />
+            @if (isFieldInvalid('price')) {
+              <div class="error-message">{{ getFieldError('price') }}</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Descuento Total *</label>
+          <input 
+            type="number" 
+            formControlName="discount" 
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            [class.invalid]="isFieldInvalid('discount')"
+          />
+          @if (isFieldInvalid('discount')) {
+            <div class="error-message">{{ getFieldError('discount') }}</div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="form-actions">
+      @if (currentStep() > 0) {
+        <button type="button" class="btn-secondary" (click)="previousStep()">
+          Anterior
+        </button>
+      }
+
+      @if (currentStep() < 1) {
+        <button 
+          type="button" 
+          class="btn-primary" 
+          (click)="nextStep()"
+          [disabled]="!canProceedToNextStep()"
+        >
+          Siguiente
+        </button>
+      }
+
+      @if (currentStep() === 1) {
+        <button 
+          type="submit" 
+          class="btn-primary"
+          [disabled]="formState().isLoading || !saleItemForm.valid"
+        >
+          @if (formState().isLoading) {
+            <span class="spinner"></span>
+            Guardando...
+          } @else {
+            {{ formState().isEditMode ? 'Actualizar' : 'Crear' }} Ítem
+          }
+        </button>
+      }
+    </div>
+  </form>
+</div>

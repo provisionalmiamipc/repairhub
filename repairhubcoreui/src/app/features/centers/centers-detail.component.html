@@ -1,0 +1,100 @@
+<div class="detail-container" *ngIf="center">
+  
+
+  <!-- CONTENT -->
+  <div class="detail-content">
+    <!-- Información de Contacto -->
+    <div class="info-section">
+      <h2 class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        Información de Contacto
+      </h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Email</span>
+          <span class="info-value">
+            <a href="mailto:{{ center.email }}">{{ center.email }}</a>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Teléfono</span>
+          <span class="info-value">
+            <a href="tel:{{ center.phoneNumber }}">{{ center.phoneNumber }}</a>
+          </span>
+        </div>
+        <div class="info-item" *ngIf="center.webSite">
+          <span class="info-label">Sitio Web</span>
+          <span class="info-value">
+            <a [href]="center.webSite" target="_blank" rel="noopener">{{ center.webSite }}</a>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="info-section">
+      <h2 class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        Ubicación
+      </h2>
+      <div class="info-grid">
+        <div class="info-item full-width">
+          <span class="info-label">Dirección</span>
+          <span class="info-value">{{ center.address }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Ciudad</span>
+          <span class="info-value">{{ center.city }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Estado/Departamento</span>
+          <span class="info-value">{{ center.state }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">País</span>
+          <span class="info-value">{{ center.country }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Código Postal</span>
+          <span class="info-value">{{ center.zipCode }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Zona Horaria</span>
+          <span class="info-value">{{ center.time_zone }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del Sistema -->
+    <div class="info-section">
+      <h2 class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Información del Sistema
+      </h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">ID</span>
+          <span class="info-value">{{ center.id }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Fecha de Creación</span>
+          <span class="info-value">{{ center.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="info-item" *ngIf="center.completion">
+          <span class="info-label">Fecha de Finalización</span>
+          <span class="info-value">{{ center.completion | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

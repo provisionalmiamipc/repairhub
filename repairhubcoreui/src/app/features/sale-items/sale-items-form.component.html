@@ -1,0 +1,22 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <label>Cantidad:
+    <input type="number" formControlName="quantity" min="1" />
+    <span *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Requerido</span>
+  </label>
+
+  <label>Costo:
+    <input type="number" formControlName="cost" min="0" />
+    <span *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Requerido</span>
+  </label>
+
+  <label>Precio:
+    <input type="number" formControlName="price" min="0" />
+    <span *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Requerido</span>
+  </label>
+
+  <label>Descuento:
+    <input type="number" formControlName="discount" min="0" />
+  </label>
+
+  <button type="submit" [disabled]="form.invalid">Guardar</button>
+</form>

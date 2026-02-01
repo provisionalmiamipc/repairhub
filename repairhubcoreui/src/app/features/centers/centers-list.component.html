@@ -1,0 +1,29 @@
+<c-card>
+  <table c-table striped hover responsive *ngIf="(items | async) as centersList">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Country</th>
+        <th>City</th>
+        <th>End Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of centersList">
+        <td>{{ item.centerCode }}</td>
+        <td>{{ item.centerName }}</td>
+        <td>{{ item.country }}</td>
+        <td>{{ item.city }}</td>
+        <td>{{ item.completion| date:'shortDate' }}</td>
+        <td>
+          <button (click)="onSelect(item)"><i class="cil-zoom-in"></i></button>
+          <button (click)="onEdit(item)"><i class="cil-pencil"></i></button>
+          <button (click)="onDelete(item)"><i class="cil-trash"></i></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p *ngIf="!(items | async)">There are no centers to show.</p>
+</c-card>

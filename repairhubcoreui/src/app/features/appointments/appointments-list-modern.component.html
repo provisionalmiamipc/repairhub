@@ -1,0 +1,177 @@
+<div class="appointments-list-container" @fadeInUp>
+  <!-- Header Section -->
+  <div class="list-header" @slideDown>
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Citas</h1>
+        <p class="page-subtitle">Administra las citas y servicios</p>
+      </div>
+      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'Nueva cita'">
+        <span class="btn-icon"><i class="bi bi-plus"></i></span>
+        Nueva Cita
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section" @slideDown>
+    <div class="search-box">
+      <span class="search-icon"><i class="bi bi-search"></i></span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Busca por cliente, fecha o notas..."
+        (input)="onSearchChange($any($event).target.value)"
+        [attr.aria-label]="'Buscar citas'"
+      />
+    </div>
+
+    <div class="filter-controls">
+      <select
+        class="select-filter"
+        (change)="onFilterChange($any($event).target.value)"
+        [attr.aria-label]="'Filtrar citas'"
+      >
+        <option value="all">Todas</option>
+        <option value="active">Activas</option>
+        <option value="closed">Cerradas</option>
+        <option value="canceled">Canceladas</option>
+      </select>
+
+      <select
+        class="select-filter"
+        (change)="onSortChange($any($event).target.value)"
+        [attr.aria-label]="'Ordenar citas'"
+      >
+        <option value="date">Ordenar por: Fecha</option>
+        <option value="customer">Cliente</option>
+        <option value="duration">Duración</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  @if (error()) {
+  <div class="error-state" @fadeInUp>
+    <div class="error-content">
+      <span class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+      <div>
+        <h3>Error al cargar</h3>
+        <p>{{ error() }}</p>
+      </div>
+      <button class="btn-retry" (click)="retryLoad()">Reintentar</button>
+    </div>
+  </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="loading-grid" @fadeInUp>
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-header"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-footer"></div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Cards Grid -->
+  @if (!isLoading()) {
+  <div class="appointments-grid">
+    @if (isEmptyState()) {
+    <div class="empty-state" @fadeInUp>
+      <div class="empty-icon"><i class="bi bi-calendar2-x"></i></div>
+      <h3>No hay citas</h3>
+      <p>Comienza creando tu primera cita</p>
+      <button class="btn-empty" (click)="onNew()">Crear Cita</button>
+    </div>
+    } @else {
+    @for (appointment of filteredAppointments(); track appointment.id) {
+    <div class="appointment-card" [class]="getStatusClass(appointment)" @cardEnter>
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="status-badge" [class]="getStatusClass(appointment)">
+          {{ getStatusBadge(appointment) }}
+        </div>
+        <div class="card-actions">
+          <button
+            class="btn-action btn-view"
+            (click)="onView(appointment)"
+            title="Ver detalles"
+            [attr.aria-label]="'Ver detalles de cita'"
+          >
+            <i class="bi bi-eye"></i>
+          </button>
+          <button
+            class="btn-action btn-edit"
+            (click)="onEdit(appointment)"
+            title="Editar"
+            [attr.aria-label]="'Editar cita'"
+          >
+            <i class="bi bi-pencil"></i>
+          </button>
+          <!--button
+            class="btn-action btn-delete"
+            (click)="onDelete(appointment)"
+            title="Eliminar"
+            [attr.aria-label]="'Eliminar cita'"
+          >
+            <i class="bi bi-trash"></i>
+          </button-->
+        </div>
+      </div>
+
+      <!-- Appointment Info -->
+      <div class="appointment-info">
+        <h3 class="customer-name">{{ appointment.customer }}</h3>
+        <p class="appointment-date"><i class="bi bi-calendar-event"></i> {{ appointment.date | date: 'medium' }} - {{ appointment.time }}</p>
+      </div>
+
+      <!-- Details Grid -->
+      <div class="details-grid">
+        <div class="detail-item">
+          <span class="detail-label"><i class="bi bi-tools"></i> Servicio</span>
+          <span class="detail-value">{{ appointment.serviceType?.name || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="bi bi-clock"></i> Duración</span>
+          <span class="detail-value">{{ appointment.duration }} min</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="bi bi-building"></i> Centro</span>
+          <span class="detail-value">{{ appointment.center?.centerName || 'N/A' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label"><i class="bi bi-shop"></i> Tienda</span>
+          <span class="detail-value">{{ appointment.store?.storeName || 'N/A' }}</span>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      @if (appointment.notes) {
+      <div class="notes-section">
+        <span class="notes-label"><i class="bi bi-card-text"></i> Notas</span>
+        <p class="notes-text">{{ appointment.notes }}</p>
+      </div>
+      }
+
+      <!-- Card Footer -->
+      <div class="card-footer">
+        <span class="created-date">Creada: {{ appointment.createdAt | date: 'short' }}</span>
+      </div>
+    </div>
+    }
+    }
+  </div>
+  }
+
+  <!-- Results Counter -->
+  @if (!isLoading() && filteredAppointments().length > 0) {
+  <div class="results-info">
+    Mostrando {{ filteredAppointments().length }} de {{ appointments().length }} citas
+  </div>
+  }
+</div>

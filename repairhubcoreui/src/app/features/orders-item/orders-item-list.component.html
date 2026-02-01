@@ -1,0 +1,28 @@
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Cantidad</th>
+      <th>Costo</th>
+      <th>Precio</th>
+      <th>Condición</th>
+      <th>Recibido</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let oi of ordersItems">
+      <td>{{ oi.id }}</td>
+      <td>{{ oi.quantity }}</td>
+      <td>{{ oi.cost }}</td>
+      <td>{{ oi.price }}</td>
+      <td>{{ oi.condition }}</td>
+      <td>{{ oi.received ? 'Sí' : 'No' }}</td>
+      <td>
+        <button (click)="select.emit(oi)">Ver</button>
+        <button (click)="edit.emit(oi)">Editar</button>
+        <button (click)="delete.emit(oi)">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

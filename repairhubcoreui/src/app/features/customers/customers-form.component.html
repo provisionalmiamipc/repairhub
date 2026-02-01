@@ -1,0 +1,354 @@
+<!-- components/customer-form/customer-form.component.html -->
+<div class="container-fluid" style="margin-bottom: 60px">
+  <c-card>
+    <c-card-header>
+      <h5 class="mb-0">{{ customer ? 'Edit' : 'New' }} Customer</h5>
+    </c-card-header>
+    
+    <c-card-body>
+      <form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Center & Store Selection -->
+        <c-card class="mb-4">
+          <c-card-header>
+            <strong>Location Information</strong>
+          </c-card-header>
+          <c-card-body>
+            <div class="row g-3">
+              
+              <!-- Center -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="centerId">Center *</label>
+                  <select
+                  cSelect
+                    cFormControl
+                    id="centerId"
+                    formControlName="centerId"
+                    [class.is-valid]="centerId?.valid && centerId?.touched"
+                    [class.is-invalid]="centerId?.invalid && centerId?.touched">
+                    <option value="" disabled selected>Select a center</option>
+                    @for (center of centers; track center.id) {
+                      <option [value]="center.id">{{ center.centerName }}</option>
+                    }
+                  </select>
+                  @if (centerId?.invalid && centerId?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (centerId?.errors?.['required']) {
+                        <span>Center is required</span>
+                      }
+                    </c-form-feedback>
+                  }
+                
+              </div>
+
+              <!-- Store -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="storeId">Store *</label>
+                  <select
+                  cSelect
+                    cFormControl
+                    id="storeId"
+                    formControlName="storeId"
+                    [class.is-valid]="storeId?.valid && storeId?.touched"
+                    [class.is-invalid]="storeId?.invalid && storeId?.touched">
+                    <option value="null" disabled selected>Select a store</option>
+                    @for (store of filterStores; track store.id) {
+                      <option [value]="store.id">{{ store.storeName }}</option>
+                    }
+                  </select>
+                  
+                  @if (storeId?.invalid && storeId?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (storeId?.errors?.['required']) {
+                        <span>Store is required</span>
+                      }
+                    </c-form-feedback>
+                  }
+                  
+                  <div class="form-text" [class.text-warning]="!hasStores && centerId?.value">
+                    {{ storeHelpText }}
+                  </div>
+                
+              </div>
+
+            </div>
+          </c-card-body>
+        </c-card>
+
+        <!-- Personal Information -->
+        <c-card class="mb-4">
+          <c-card-header>
+            <strong>Personal Information</strong>
+          </c-card-header>
+          <c-card-body>
+            <div class="row g-3">
+              
+              <!-- First Name -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="firstName">First Name *</label>
+                  <input
+                    cFormControl
+                    type="text"
+                    id="firstName"                    
+                    formControlName="firstName"
+                    [class.is-valid]="firstName?.valid && firstName?.touched"
+                    [class.is-invalid]="firstName?.invalid && firstName?.touched"
+                    placeholder="Enter first name">
+                  @if (firstName?.invalid && firstName?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (firstName?.errors?.['required']) {
+                        <span>First name is required</span>
+                      }
+                      @if (firstName?.errors?.['minlength']) {
+                        <span>First name must be at least 2 characters</span>
+                      }
+                      @if (firstName?.errors?.['maxlength']) {
+                        <span>First name cannot exceed 50 characters</span>
+                      }
+                    </c-form-feedback>
+                  }
+                
+              </div>
+
+              <!-- Last Name -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="lastName">Last Name *</label>
+                  <input
+                    cFormControl
+                    type="text"
+                    id="lastName"
+                    formControlName="lastName"
+                    [class.is-valid]="lastName?.valid && lastName?.touched"
+                    [class.is-invalid]="lastName?.invalid && lastName?.touched"
+                    placeholder="Enter last name">
+                  @if (lastName?.invalid && lastName?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (lastName?.errors?.['required']) {
+                        <span>Last name is required</span>
+                      }
+                      @if (lastName?.errors?.['minlength']) {
+                        <span>Last name must be at least 2 characters</span>
+                      }
+                    </c-form-feedback>
+                  }
+                
+              </div>
+
+              <!-- Phone -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="phone">Phone *</label>
+                  <input
+                    cFormControl
+                    type="tel"
+                    id="phone"
+                    formControlName="phone"
+                    [class.is-valid]="phone?.valid && phone?.touched"
+                    [class.is-invalid]="phone?.invalid && phone?.touched"
+                    placeholder="Enter phone number">
+                  @if (phone?.invalid && phone?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (phone?.errors?.['required']) {
+                        <span>Phone number is required</span>
+                      }
+                      @if (phone?.errors?.['pattern']) {
+                        <span>Please enter a valid phone number</span>
+                      }
+                    </c-form-feedback>
+                  }
+                
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="email">Email *</label>
+                  <input
+                    cFormControl
+                    type="email"
+                    id="email"
+                    formControlName="email"
+                    [class.is-valid]="email?.valid && email?.touched"
+                    [class.is-invalid]="email?.invalid && email?.touched"
+                    placeholder="Enter email address">
+                  @if (email?.invalid && email?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (email?.errors?.['required']) {
+                        <span>Email is required</span>
+                      }
+                      @if (email?.errors?.['email']) {
+                        <span>Please enter a valid email address</span>
+                      }
+                    </c-form-feedback>
+                  }
+                
+              </div>
+
+              <!-- City -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="city">City *</label>
+                  <input
+                    cFormControl
+                    type="text"
+                    id="city"
+                    formControlName="city"
+                    [class.is-valid]="city?.valid && city?.touched"
+                    [class.is-invalid]="city?.invalid && city?.touched"
+                    placeholder="Enter city">
+                  @if (city?.invalid && city?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (city?.errors?.['required']) {
+                        <span>City is required</span>
+                      }
+                      @if (city?.errors?.['minlength']) {
+                        <span>City must be at least 2 characters</span>
+                      }
+                    </c-form-feedback>
+                  }
+                
+              </div>
+
+              <!-- Gender -->
+              <div class="col-md-6">
+                
+                  <label cLabel for="gender">Gender *</label>
+                  <select
+                    cSelect
+                    cFormControl
+                    id="gender"
+                    formControlName="gender"
+                    [class.is-valid]="gender?.valid && gender?.touched"
+                    [class.is-invalid]="gender?.invalid && gender?.touched">
+                    <option value="" disabled selected>Select gender</option>
+                    @for (g of genders; track g) {
+                      <option [value]="g">{{ g }}</option>
+                    }
+                  </select>
+                  @if (gender?.invalid && gender?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (gender?.errors?.['required']) {
+                        <span>Gender is required</span>
+                      }
+                    </c-form-feedback>
+                  }
+                
+              </div>
+
+            </div>
+          </c-card-body>
+        </c-card>
+
+        <!-- Additional Information -->
+        <c-card class="mb-4">
+          <c-card-header>
+            <strong>Additional Information</strong>
+          </c-card-header>
+          <c-card-body>
+            <div class="row g-3">
+              
+              <!-- Extra Info -->
+              <div class="col-12">
+                
+                  <label cLabel for="extraInfo">Additional Information</label>
+                  <textarea
+                    cFormControl
+                    id="extraInfo"
+                    formControlName="extraInfo"
+                    [class.is-valid]="extraInfo?.valid && extraInfo?.touched"
+                    [class.is-invalid]="extraInfo?.invalid && extraInfo?.touched"
+                    placeholder="Enter any additional information"
+                    rows="4"></textarea>
+                  @if (extraInfo?.invalid && extraInfo?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (extraInfo?.errors?.['maxlength']) {
+                        <span>Additional information cannot exceed 500 characters</span>
+                      }
+                    </c-form-feedback>
+                  }
+                  <div class="form-text">
+                    {{ extraInfo?.value?.length || 0 }}/500 characters
+                  </div>
+                
+              </div>
+
+              <!-- B2B & Discount -->
+              <div class="col-md-6">
+                
+                  <c-form-check>
+                    <input
+                      cFormCheckInput
+                      type="checkbox"
+                      id="b2b"
+                      formControlName="b2b">
+                    <label cFormCheckLabel for="b2b">
+                      Business Customer (B2B)
+                    </label>
+                  </c-form-check>
+                
+              </div>
+
+              <div class="col-md-3">
+                <c-input-group>
+                  <label cLabel for="discount" style="padding-right: 5%;">Discount (%)</label>
+                  <input
+                    cFormControl
+                    type="number"
+                    id="discount"
+                    formControlName="discount"
+                    [class.is-valid]="discount?.valid && discount?.touched"
+                    [class.is-invalid]="discount?.invalid && discount?.touched"
+                    placeholder="0"
+                    min="0"
+                    max="100"
+                    step="0.1">
+                  @if (discount?.invalid && discount?.touched) {
+                    <c-form-feedback [valid]="false">
+                      @if (discount?.errors?.['min']) {
+                        <span>Discount cannot be negative</span>
+                      }
+                      @if (discount?.errors?.['max']) {
+                        <span>Discount cannot exceed 100%</span>
+                      }
+                    </c-form-feedback>
+                  }
+                </c-input-group>
+              </div>
+
+            </div>
+          </c-card-body>
+        </c-card>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 justify-content-end">
+          <button
+            cButton
+            color="secondary"
+            type="button"
+            (click)="onCancel()"
+            [disabled]="isSubmitting">
+            Cancel
+          </button>
+          
+          <button
+            cButton
+            color="primary"
+            type="submit"
+            [disabled]="isSubmitting || customerForm.invalid">
+            @if (isSubmitting) {
+              <c-spinner size="sm"></c-spinner>
+              Saving...
+            } @else {
+              {{ customer ? 'Update' : 'Create' }} Customer
+            }
+          </button>
+        </div>
+
+      </form>
+    </c-card-body>
+  </c-card>
+</div>

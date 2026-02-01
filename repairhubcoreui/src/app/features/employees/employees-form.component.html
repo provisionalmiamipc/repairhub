@@ -1,0 +1,386 @@
+<c-col xs="12" class="col-12" style="margin-bottom: 60px">
+  <c-card>
+    <c-card-header>
+      <h5 class="mb-0">{{ employee ? 'Edit' : 'New' }} Employee</h5>
+    </c-card-header>
+    
+    <c-card-body>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        
+        <!-- Sección: Información Personal -->
+        <c-card class="mb-4">
+          <c-card-header>
+            <strong>Personal Information</strong>
+          </c-card-header>
+          <c-card-body>
+            <div class="row g-3">
+              <!-- First Name -->
+              <div class="col-md-6">
+                <label cLabel for="firstName"> First Name *</label>
+                <input
+                  cFormControl
+                  type="text"
+                  id="firstName"
+                  formControlName="firstName"
+                  [class.is-valid]="firstName?.valid && firstName?.touched"
+                  [class.is-invalid]="firstName?.invalid && firstName?.touched"
+                  placeholder="Enter the name">
+                @if (firstName?.invalid && firstName?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (firstName?.errors?.['required']) {
+                      <span>Name is required</span>
+                    }
+                    @if (firstName?.errors?.['minlength']) {
+                      <span>The name must have at least 2 characters</span>
+                    }
+                    @if (firstName?.errors?.['maxlength']) {
+                      <span>The name cannot have more than 50 characters</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Last Name -->
+              <div class="col-md-6">
+                <label cLabel for="lastName">Last Name*</label>
+                <input
+                  cFormControl
+                  type="text"
+                  id="lastName"
+                  formControlName="lastName"
+                  [class.is-valid]="lastName?.valid && lastName?.touched"
+                  [class.is-invalid]="lastName?.invalid && lastName?.touched"
+                  placeholder="Enter the last name">
+                @if (lastName?.invalid && lastName?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (lastName?.errors?.['required']) {
+                      <span>Last name is required</span>
+                    }
+                    @if (lastName?.errors?.['minlength']) {
+                      <span>The last name must have at least 2 characters</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Gender -->
+              <div class="col-md-6">
+                <label cLabel for="gender">Gender *</label>
+                <select
+                  cSelect
+                  id="gender"
+                  formControlName="gender"
+                  [class.is-valid]="gender?.valid && gender?.touched"
+                  [class.is-invalid]="gender?.invalid && gender?.touched">
+                  <option [ngValue]="null" selected>--Select gender--</option>
+                  @for (g of genders; track g) {
+                    <option [value]="g">{{ g }}</option>
+                  }
+                </select>
+                @if (gender?.invalid && gender?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (gender?.errors?.['required']) {
+                      <span>Gender is required</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Phone -->
+              <div class="col-md-6">
+                <label cLabel for="phone">Phone *</label>
+                <input
+                  cFormControl
+                  type="tel"
+                  id="phone"
+                  formControlName="phone"
+                  [class.is-valid]="phone?.valid && phone?.touched"
+                  [class.is-invalid]="phone?.invalid && phone?.touched"
+                  placeholder="Ej: +1 234-567-8900">
+                @if (phone?.invalid && phone?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (phone?.errors?.['required']) {
+                      <span>Phone is required</span>
+                    }
+                    @if (phone?.errors?.['pattern']) {
+                      <span>Invalid phone format</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                <label cLabel for="email">Email *</label>
+                <input
+                  cFormControl
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  [class.is-valid]="email?.valid && email?.touched"
+                  [class.is-invalid]="email?.invalid && email?.touched"
+                  placeholder="ejemplo@correo.com">
+                @if (email?.invalid && email?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (email?.errors?.['required']) {
+                      <span>Email is required</span>
+                    }
+                    @if (email?.errors?.['email']) {
+                      <span>Invalid email format</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- City -->
+              <div class="col-md-6">
+                <label cLabel for="city">City *</label>
+                <input
+                  cFormControl
+                  type="text"
+                  id="city"
+                  formControlName="city"
+                  [class.is-valid]="city?.valid && city?.touched"
+                  [class.is-invalid]="city?.invalid && city?.touched"
+                  placeholder="Enter the city">
+                @if (city?.invalid && city?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (city?.errors?.['required']) {
+                      <span>The city is wanted</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+            </div>
+          </c-card-body>
+        </c-card>
+
+        <!-- Sección: Información Laboral -->
+        <c-card class="mb-4">
+          <c-card-header>
+            <strong>Employment Information</strong>
+          </c-card-header>
+          <c-card-body>
+            <div class="row g-3">
+              <!-- Employee Type -->
+              <div class="col-md-6">
+                <label cLabel for="employee_type">Employee type *</label>
+                <select
+                  cSelect
+                  id="employee_type"
+                  formControlName="employee_type"
+                  [class.is-valid]="employee_type?.valid && employee_type?.touched"
+                  [class.is-invalid]="employee_type?.invalid && employee_type?.touched">
+                  <option [ngValue]="null">Select type</option>
+                  @for (type of employee_types; track type) {
+                    <option [value]="type">{{ type }}</option>
+                  }
+                </select>
+                @if (employee_type?.invalid && employee_type?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (employee_type?.errors?.['required']) {
+                      <span>The type of employee is required</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Job Title -->
+              <div class="col-md-6">
+                <label cLabel for="jobTitle">Job Title*</label>
+                <input
+                  cFormControl
+                  type="text"
+                  id="jobTitle"
+                  formControlName="jobTitle"
+                  [class.is-valid]="jobTitle?.valid && jobTitle?.touched"
+                  [class.is-invalid]="jobTitle?.invalid && jobTitle?.touched"
+                  placeholder="Ingrese el puesto">
+                @if (jobTitle?.invalid && jobTitle?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (jobTitle?.errors?.['required']) {
+                      <span>The job is required</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Center -->
+              <div class="col-md-6">
+                <label cLabel for="centerId">Center *</label>
+                <select
+                  cSelect
+                  id="centerId"
+                  formControlName="centerId"
+                  [class.is-valid]="centerId?.valid && centerId?.touched"
+                  [class.is-invalid]="centerId?.invalid && centerId?.touched">
+                  <option [ngValue]="null">Select center</option>
+                  @for (center of centers; track center.id) {
+                    <option [value]="center.id">{{ center.centerName }}</option>
+                  }
+                </select>
+                @if (centerId?.invalid && centerId?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (centerId?.errors?.['required']) {
+                      <span>The center is required</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Store -->
+              <div class="col-md-6">
+                <label cLabel for="storeId">Store *</label>
+                <select
+                  cSelect
+                  id="storeId"
+                  formControlName="storeId"
+                  [class.is-valid]="storeId?.valid && storeId?.touched"
+                  [class.is-invalid]="storeId?.invalid && storeId?.touched"
+                  ><!--[disabled]="!centerId?.value" -->
+                  <option [ngValue]="null">Select store</option>
+                  @for (store of filteredStores; track store.id) {
+                    <option [value]="store.id">{{ store.storeName }}</option>
+                  }
+                </select>
+                @if (storeId?.invalid && storeId?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (storeId?.errors?.['required']) {
+                      <span>The store is required</span>
+                    }
+                  </c-form-feedback>
+                }
+                @if (!centerId?.value) {
+                  <div class="form-text">
+                    First select a center
+                  </div>
+                }
+              </div>
+
+              <!-- Is Center Admin -->
+              <div class="col-12">
+                
+                  <c-form-check>
+                    <input
+                      cFormCheckInput
+                      type="checkbox"
+                      id="isCenterAdmin"
+                      formControlName="isCenterAdmin">
+                    <label cFormCheckLabel for="isCenterAdmin">
+                      Is Center Admin?
+                    </label>
+                  </c-form-check>
+                
+              </div>
+            </div>
+          </c-card-body>
+        </c-card>
+
+        <!-- Sección: Seguridad y Acceso -->
+        <c-card class="mb-4">
+          <c-card-header>
+            <strong>Seguridad y Acceso</strong>
+          </c-card-header>
+          <c-card-body>
+            <div class="row g-3">
+              <!-- PIN Timeout -->
+              <div class="col-md-4">
+                <label cLabel for="pinTimeout">Timeout PIN (minutes) *</label>
+                <select
+                  cSelect
+                  id="pinTimeout"
+                  formControlName="pinTimeout"
+                  [class.is-valid]="pinTimeout?.valid && pinTimeout?.touched"
+                  [class.is-invalid]="pinTimeout?.invalid && pinTimeout?.touched">
+                  <option value="">-- Select --</option>
+                  @for (timeout of pinTimeouts; track timeout) {
+                    <option [value]="timeout">{{ timeout }} minutos</option>
+                  }
+                </select>
+                @if (pinTimeout?.invalid && pinTimeout?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (pinTimeout?.errors?.['required']) {
+                      <span>Timeout is required</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- PIN -->
+              <div class="col-md-4">
+                <label cLabel for="pin">PIN *</label>
+                <input
+                  cFormControl
+                  type="password"
+                  id="pin"
+                  formControlName="pin"
+                  [class.is-valid]="pin?.valid && pin?.touched"
+                  [class.is-invalid]="pin?.invalid && pin?.touched"
+                  placeholder="4-6 digits"
+                  maxlength="6">
+                @if (pin?.invalid && pin?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (pin?.errors?.['required']) {
+                      <span>PIN is required</span>
+                    }
+                    @if (pin?.errors?.['pattern']) {
+                      <span>The PIN must contain only numbers (4-6 digits)</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+
+              <!-- Password -->
+              <div class="col-md-4">
+                <label cLabel for="password">Password *</label>
+                <input
+                  cFormControl
+                  type="password"
+                  id="password"
+                  formControlName="password"
+                  [class.is-valid]="password?.valid && password?.touched"
+                  [class.is-invalid]="password?.invalid && password?.touched"
+                  placeholder="Minimum 6 characters">
+                @if (password?.invalid && password?.touched) {
+                  <c-form-feedback [valid]="false">
+                    @if (password?.errors?.['required']) {
+                      <span>Password is required</span>
+                    }
+                    @if (password?.errors?.['minlength']) {
+                      <span>The password must be at least 6 characters long.</span>
+                    }
+                  </c-form-feedback>
+                }
+              </div>
+            </div>
+          </c-card-body>
+        </c-card>
+
+        <!-- Botones de Acción -->
+        <div class="d-flex gap-2 justify-content-end">
+          <button
+            cButton
+            color="secondary"
+            type="button"
+            (click)="onCancel()"
+            [disabled]="isSubmitting">
+            Cancel
+          </button>
+          
+          <button
+            cButton
+            color="primary"
+            type="submit"
+            [disabled]="isSubmitting || form.invalid">
+            @if (isSubmitting) {
+              <c-spinner size="sm"></c-spinner>
+              Saving...
+            } @else {
+              {{ employee ? 'Update' : 'Create' }} Employee
+            }
+          </button>
+        </div>
+      </form>
+    </c-card-body>
+  </c-card>
+</c-col>

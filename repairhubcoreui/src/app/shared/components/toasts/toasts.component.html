@@ -1,0 +1,10 @@
+<div class="position-fixed top-0 end-0 p-3" style="z-index:2000;">
+  <ng-container *ngIf="toasts$ | async as toasts">
+    <div *ngFor="let t of toasts" class="toast show mb-2 shadow rounded" role="alert" aria-live="assertive" aria-atomic="true">
+      <div [ngClass]="{'bg-success text-white': t.type==='success', 'bg-danger text-white': t.type==='error', 'bg-info text-dark': t.type==='info'}" class="toast-body d-flex align-items-center">
+        <div class="flex-grow-1">{{ t.message }}</div>
+        <button type="button" class="btn-close ms-2" aria-label="Close" (click)="dismiss(t.id)"></button>
+      </div>
+    </div>
+  </ng-container>
+</div>

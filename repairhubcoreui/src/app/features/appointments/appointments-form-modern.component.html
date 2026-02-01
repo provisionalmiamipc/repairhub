@@ -1,0 +1,305 @@
+<div class="form-container" @fadeInUp>
+  <!-- Header Section -->
+  <div class="form-header">
+    <div class="header-content">
+      <h1 class="form-title">
+        {{ isEditMode() ? 'Editar Cita' : 'Nueva Cita' }}
+      </h1>
+      <p class="form-subtitle">Completa los pasos para crear o editar una cita de servicio</p>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-section">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="getStepProgress()"></div>
+    </div>
+    <p class="progress-text">Paso {{ currentStep() + 1 }} de {{ steps.length }}</p>
+  </div>
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="alert alert-error" @slideInFrom>
+      <span class="alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+      <span class="alert-message">{{ error() }}</span>
+      <button class="alert-close" (click)="clearError()">×</button>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (success()) {
+    <div class="alert alert-success" @slideInFrom>
+      <span class="alert-icon"><i class="bi bi-check-circle"></i></span>
+      <span class="alert-message">Cita guardada correctamente</span>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando información...</p>
+    </div>
+  } @else {
+    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+      <!-- Step 0: Basic Info -->
+      @if (currentStep() === 0) {
+        <div class="form-step" @slideInFrom>
+          <h2 class="step-title">{{ steps[0].title }}</h2>
+          <p class="step-description">{{ steps[0].description }}</p>
+
+          <div class="form-grid">
+            @if (isUserTypeUser()) {
+              <!-- Center -->
+              <div class="form-group">
+                <label for="centerId" class="form-label">Centro *</label>
+                  <select class="form-select" formControlName="centerId">
+                    <option value="">Seleccionar centro</option>
+                    <option *ngFor="let center of centers()" [ngValue]="center.id">
+                      {{ center.centerName || ('Centro #' + center.id) }}
+                    </option>
+                  </select>
+                  <div *ngIf="appointmentForm.get('centerId')?.touched && appointmentForm.get('centerId')?.invalid"
+                    class="text-danger small">
+                    Centro requerido
+                  </div>
+              </div>
+
+              <!-- Store -->
+              <div class="form-group">
+                <label for="storeId" class="form-label">Tienda *</label>
+                  <select class="form-select" formControlName="storeId">
+                    <option value="">Seleccionar tienda</option>
+                    <option *ngFor="let store of stores()"
+                      [ngValue]="store.id"
+                      [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
+                      {{ store.storeName || ('Tienda #' + store.id) }}
+                    </option>
+                  </select>
+                  <div *ngIf="appointmentForm.get('storeId')?.touched && appointmentForm.get('storeId')?.invalid"
+                    class="text-danger small">
+                    Tienda requerida
+                  </div>
+              </div>
+            }
+
+            <!-- Customer Name -->
+            <div class="form-group">
+              <label for="customer" class="form-label">Cliente *</label>
+              <input
+                type="text"
+                id="customer"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('customer')"
+                formControlName="customer"
+                placeholder="Nombre del cliente"
+                autocomplete="off"
+              />
+              @if (isFieldInvalid('customer')) {
+                <span class="error-message">{{ getFieldError('customer') }}</span>
+              }
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+              <label for="date" class="form-label">Fecha *</label>
+              <input
+                type="date"
+                id="date"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('date')"
+                formControlName="date"
+                [attr.min]="minDate()"
+              />
+              @if (isFieldInvalid('date')) {
+                <span class="error-message">{{ getFieldError('date') }}</span>
+              }
+            </div>
+
+            <!-- Time -->
+            <div class="form-group">
+              <label for="time" class="form-label">Hora *</label>
+              <input
+                type="time"
+                id="time"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('time')"
+                formControlName="time"
+              />
+              @if (isFieldInvalid('time')) {
+                <span class="error-message">{{ getFieldError('time') }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Step 1: Device & Service -->
+      @if (currentStep() === 1) {
+        <div class="form-step" @slideInFrom>
+          <h2 class="step-title">{{ steps[1].title }}</h2>
+          <p class="step-description">{{ steps[1].description }}</p>
+
+          <div class="form-grid">
+            <!-- Device -->
+            <div class="form-group">
+              <label for="deviceId" class="form-label">Dispositivo *</label>
+              <select class="form-select" formControlName="deviceId">
+                <option value="">Seleccionar dispositivo</option>
+                <option *ngFor="let device of devices()" [ngValue]="device.id">
+                  {{ device.name }}
+                </option>
+              </select>
+              <div *ngIf="appointmentForm.get('deviceId')?.touched && appointmentForm.get('deviceId')?.invalid"
+                class="text-danger small">
+                Dispositivo requerido
+              </div>
+            </div>
+
+            <!-- Service Type -->
+            <div class="form-group">
+              <label for="serviceTypeId" class="form-label">Tipo de Servicio *</label>
+              <select class="form-select" formControlName="serviceTypeId">
+                <option value="">Seleccionar servicio</option>
+                <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
+                  {{ service.name }}
+                </option>
+              </select>
+              <div *ngIf="appointmentForm.get('serviceTypeId')?.touched && appointmentForm.get('serviceTypeId')?.invalid"
+                class="text-danger small">
+                Tipo de servicio requerido
+              </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="form-group">
+              <label for="duration" class="form-label">Duración (minutos) *</label>
+              <input
+                type="number"
+                id="duration"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('duration')"
+                formControlName="duration"
+                min="15"
+                max="480"
+                placeholder="30"
+              />
+              @if (isFieldInvalid('duration')) {
+                <span class="error-message">{{ getFieldError('duration') }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Step 2: Notes & Status -->
+      @if (currentStep() === 2) {
+        <div class="form-step" @slideInFrom>
+          <h2 class="step-title">{{ steps[2].title }}</h2>
+          <p class="step-description">{{ steps[2].description }}</p>
+
+          <div class="form-grid">
+            <!-- Notes -->
+            <div class="form-group full-width">
+              <label for="notes" class="form-label">Notas Adicionales</label>
+              <textarea
+                id="notes"
+                class="form-control textarea"
+                formControlName="notes"
+                placeholder="Información adicional sobre la cita..."
+                rows="4"
+              ></textarea>
+            </div>
+
+            <!-- Status Checkboxes -->
+            <div class="status-section full-width">
+              <h3 class="status-title">Estado de la Cita</h3>
+              <div class="checkbox-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    formControlName="cloused"
+                    class="checkbox-input"
+                  />
+                  <span class="checkbox-text">Cerrada</span>
+                </label>
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    formControlName="canceled"
+                    class="checkbox-input"
+                  />
+                  <span class="checkbox-text">Cancelada</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Step Indicators -->
+      <div class="steps-indicator">
+        @for (step of steps; track step.id) {
+          <button
+            type="button"
+            class="step-indicator"
+            [class.active]="currentStep() === step.id"
+            [class.completed]="currentStep() > step.id"
+            (click)="currentStep.set(step.id)"
+            [disabled]="currentStep() < step.id"
+          >
+            {{ step.id + 1 }}
+          </button>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="isSaving()"
+        >
+          Cancelar
+        </button>
+
+        @if (currentStep() > 0) {
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="prevStep()"
+            [disabled]="isSaving()"
+          >
+            <i class="bi bi-arrow-left"></i>
+            Anterior
+          </button>
+        }
+
+        @if (currentStep() < steps.length - 1) {
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="nextStep()"
+            [disabled]="!canProceedToNextStep() || isSaving()"
+          >
+            Siguiente
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        } @else {
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!appointmentForm.valid || isSaving()"
+          >
+            @if (isSaving()) {
+              <span class="button-spinner"></span> Guardando...
+            } @else {
+              {{ isEditMode() ? 'Actualizar' : 'Crear' }} Cita
+            }
+          </button>
+        }
+      </div>
+    </form>
+  }
+</div>

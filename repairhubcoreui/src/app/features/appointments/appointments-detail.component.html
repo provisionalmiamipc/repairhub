@@ -1,0 +1,112 @@
+<div class="detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Cargando detalles de la cita...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-state">
+    <p class="error-message">{{ error }}</p>
+    <button class="btn btn-secondary" (click)="goBack()">Volver</button>
+  </div>
+
+  <!-- Detail Content -->
+  <div *ngIf="appointment && !isLoading" class="detail-content">
+    <div class="detail-header">
+      <h1>Detalles de la Cita #{{ appointment.appointmentCode }}</h1>
+      <div class="header-actions">
+        <button class="btn btn-primary" 
+                *ngIf="!appointment.cloused && !appointment.canceled"
+                (click)="editAppointment()">
+          <i class="bi bi-pencil-square"></i> Editar
+        </button>
+        <button class="btn btn-secondary" (click)="goBack()">Volver</button>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <!-- Basic Info -->
+      <section class="detail-section">
+        <h2>Información General</h2>
+        
+        <div class="detail-row">
+          <label>Código:</label>
+          <span>{{ appointment.appointmentCode }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Cliente:</label>
+          <span>{{ appointment.customer }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Centro:</label>
+          <span>{{ centerName }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Tienda:</label>
+          <span>{{ storeName }}</span>
+        </div>
+      </section>
+
+      <!-- Appointment Details -->
+      <section class="detail-section">
+        <h2>Detalles de la Cita</h2>
+        <div class="detail-row">
+          <label>Fecha:</label>
+          <span>{{ appointment.date }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Hora:</label>
+          <span>{{ appointment.time }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Duración:</label>
+          <span>{{ appointment.duration }} minutos</span>
+        </div>
+        <div class="detail-row">
+          <label>Dispositivo:</label>
+          <span>{{ deviceName }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Tipo de Servicio:</label>
+          <span>{{ serviceTypeName }}</span>
+        </div>
+      </section>
+
+      <!-- Status -->
+      <section class="detail-section">
+        <h2>Estado</h2>
+        <div class="detail-row">
+          <label>Cerrada:</label>
+          <span class="status-badge" [class.closed]="appointment.cloused">
+            {{ appointment.cloused ? 'Sí' : 'No' }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <label>Cancelada:</label>
+          <span class="status-badge" [class.canceled]="appointment.canceled">
+            {{ appointment.canceled ? 'Sí' : 'No' }}
+          </span>
+        </div>
+      </section>
+
+      <!-- Notes -->
+      <section class="detail-section full-width" *ngIf="appointment.notes">
+        <h2>Notas</h2>
+        <p class="notes-text">{{ appointment.notes }}</p>
+      </section>
+
+      <!-- Metadata -->
+      <section class="detail-section">
+        <h2>Información del Sistema</h2>
+        <div class="detail-row">
+          <label>Creado por:</label>
+          <span>{{ createdByName }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Fecha de Creación:</label>
+          <span>{{ appointment.createdAt | date: 'short' }}</span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

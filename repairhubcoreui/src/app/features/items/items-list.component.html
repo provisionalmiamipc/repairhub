@@ -1,0 +1,30 @@
+<c-card>
+  <table c-table striped hover responsive>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Producto</th>
+        <th>SKU</th>
+        <th>Precio</th>
+        <th>Stock</th>
+        <th>Activo</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of (items | async)">
+        <td>{{ item.id }}</td>
+        <td>{{ item.product }}</td>
+        <td>{{ item.sku }}</td>
+        <td>{{ item.price }}</td>
+        <td>{{ item.stock }}</td>
+        <td>{{ item.isActive ? 'Sí' : 'No' }}</td>
+        <td>
+          <button (click)="onSelect(item)"><i class="cil-zoom-in"></i></button>
+          <button (click)="onEdit(item)"><i class="cil-pencil"></i></button>
+          <!--button (click)="onDelete(item)"><i class="cil-trash"></i></button>-->
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</c-card>

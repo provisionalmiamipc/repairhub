@@ -1,0 +1,88 @@
+<div class="stores-detail-container" *ngIf="store">
+  
+
+  <!-- Content Grid -->
+  <div class="detail-content">
+    <!-- Contact Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+        </svg>
+        <h2 class="section-title">Contacto</h2>
+      </div>
+      <div class="info-grid">
+        <div class="info-item full-width">
+          <span class="info-label">Email</span>
+          <a [href]="'mailto:' + store.email" class="info-value link">{{ store.email }}</a>
+        </div>
+        <div class="info-item full-width">
+          <span class="info-label">Teléfono</span>
+          <a *ngIf="store.phoneNumber" [href]="'tel:' + store.phoneNumber" class="info-value link">{{ store.phoneNumber }}</a>
+          <span *ngIf="!store.phoneNumber" class="info-value">No disponible</span>
+        </div>
+        <div class="info-item full-width" *ngIf="store.webSite">
+          <span class="info-label">Sitio Web</span>
+          <a [href]="store.webSite" target="_blank" class="info-value link">{{ store.webSite }}</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <h2 class="section-title">Ubicación</h2>
+      </div>
+      <div class="info-grid">
+        <div class="info-item full-width">
+          <span class="info-label">Dirección</span>
+          <span class="info-value">{{ store.address }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Ciudad</span>
+          <span class="info-value">{{ store.city }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Estado/Departamento</span>
+          <span class="info-value">{{ store.state }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Código Postal</span>
+          <span class="info-value">{{ store.zipCode }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">País</span>
+          <span class="info-value">{{ store.country }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="1"></circle>
+          <path d="M12 1v6m0 6v6"></path>
+          <path d="M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24"></path>
+          <path d="M1 12h6m6 0h6"></path>
+          <path d="M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24"></path>
+        </svg>
+        <h2 class="section-title">Sistema</h2>
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Zona Horaria</span>
+          <span class="info-value">{{ store.time_zone }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Creado</span>
+          <span class="info-value">{{ store.createdAt ? (store.createdAt | date:'dd/MM/yyyy') : 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

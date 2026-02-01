@@ -1,0 +1,9 @@
+<div *ngIf="saleItem">
+  <h2>Item de Venta #{{ saleItem.id }}</h2>
+  <p><strong>Cantidad:</strong> {{ saleItem.quantity }}</p>
+  <p><strong>Costo:</strong> {{ saleItem.cost }}</p>
+  <p><strong>Precio:</strong> {{ saleItem.price }}</p>
+  <p><strong>Descuento:</strong> {{ saleItem.discount }}</p>
+  <p><strong>Creado:</strong> {{ saleItem.createdAt | date:'short' }}</p>
+  <p><strong>Actualizado:</strong> {{ saleItem.updatedAt | date:'short' }}</p>
+</div>

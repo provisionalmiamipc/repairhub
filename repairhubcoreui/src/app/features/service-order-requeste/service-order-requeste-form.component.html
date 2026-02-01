@@ -1,0 +1,26 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <label>Estado:
+    <input type="text" formControlName="status" />
+  </label>
+  <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched">Estado requerido</div>
+
+  <label>Cerrado:
+    <input type="checkbox" formControlName="cloused" />
+  </label>
+
+  <label>Cancelado:
+    <input type="checkbox" formControlName="canceled" />
+  </label>
+
+  <label>Fecha de creación:
+    <input type="date" formControlName="createdAt" />
+  </label>
+  <div *ngIf="form.get('createdAt')?.invalid && form.get('createdAt')?.touched">Fecha requerida</div>
+
+  <label>Fecha de actualización:
+    <input type="date" formControlName="updatedAt" />
+  </label>
+  <div *ngIf="form.get('updatedAt')?.invalid && form.get('updatedAt')?.touched">Fecha requerida</div>
+
+  <button type="submit" [disabled]="form.invalid">Guardar</button>
+</form>

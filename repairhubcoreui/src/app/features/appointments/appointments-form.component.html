@@ -1,0 +1,117 @@
+
+
+<div class="container mt-4" style="margin-bottom: 60px">
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>{{ appointment?.id !==0 ? 'Edit Appointment' : 'New Appointment' }}</h4>
+        </div>
+        <div class="card-body">
+          <form class="row g-3" [formGroup]="dateForm" (ngSubmit)="onSubmit()" autocomplete="off">
+
+            <div class="col-md-6">
+              <label class="form-label" for="centerId">Center *</label>
+              <select class="form-select" id="centerId" formControlName="centerId">
+                <option [ngValue]="null">Select center</option>
+                <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
+              </select>
+              <div class="invalid-feedback d-block" *ngIf="dateForm.get('centerId')?.invalid && dateForm.get('centerId')?.touched">Center is required</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="storeId">Store *</label>
+              <select class="form-select" id="storeId" formControlName="storeId">
+                <option [ngValue]="null">Select store</option>
+                <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+              </select>
+              <div class="invalid-feedback d-block" *ngIf="dateForm.get('storeId')?.invalid && dateForm.get('storeId')?.touched">Store is required</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="customer" class="form-label">Customer</label>
+              <input formControlName="customer" type="text" class="form-control" id="customer" />
+            </div>
+
+            <div class="col-md-4">
+              <label for="date" class="form-label">Date *</label>
+              <input formControlName="date" type="date" class="form-control" id="date" />
+              <div class="invalid-feedback d-block" *ngIf="dateForm.get('date')?.invalid && dateForm.get('date')?.touched">Date is required</div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="time" class="form-label">Time *</label>
+              <input formControlName="time" type="time" class="form-control" id="time" />
+              <div class="invalid-feedback d-block" *ngIf="dateForm.get('time')?.invalid && dateForm.get('time')?.touched">Time is required</div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="duration" class="form-label">Duration (minutes) *</label>
+              <input formControlName="duration" type="number" min="1" class="form-control" id="duration" />
+              <div class="invalid-feedback d-block" *ngIf="dateForm.get('duration')?.invalid && dateForm.get('duration')?.touched">Duration is required and must be greater than 0</div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="serviceTypeId" class="form-label">Service Type</label>
+              <div class="input-group">
+                <select formControlName="serviceTypeId" class="form-select" id="serviceTypeId">
+                  <option [ngValue]="null">Select a Service Type</option>
+                  <option *ngFor="let s of serviceTypes!" [value]="s.id">{{s.name}}</option>
+                </select>
+                <button type="button" class="btn btn-outline-primary" (click)="openServiceTypeModal()" title="Add Service Type">
+                  <i class="bi bi-plus"></i> Add
+                </button>
+              </div>
+              <app-service-types-form *ngIf="showServiceTypeModal" [isModal]="true" (save)="onServiceTypeCreated($event)" (cancel)="closeServiceTypeModal()"></app-service-types-form>
+            </div>
+
+            <div class="col-md-4">
+              <label for="deviceId" class="form-label">Device</label>
+              <div class="input-group">
+                <select formControlName="deviceId" class="form-select" id="deviceId">
+                  <option [ngValue]="null">Select Device</option>
+                  <option *ngFor="let d of devices" [value]="d.id">{{d.name}}</option>
+                </select>
+                <button type="button" class="btn btn-outline-primary" (click)="openDeviceModal()" title="Add Device">
+                  <i class="bi bi-plus"></i> Add
+                </button>
+              </div>
+              <app-devices-form *ngIf="showDeviceModal" [isModal]="true" (save)="onDeviceCreated($event)" (cancel)="closeDeviceModal()"></app-devices-form>
+            </div>
+
+            <div class="col-md-4">
+              <label for="createdById" class="form-label">Employee</label>
+              <select formControlName="createdById" class="form-select" id="createdById">
+                <option [ngValue]="null">Select employee</option>
+                <option *ngFor="let e of employees" [value]="e.id">{{e.firstName}}</option>
+              </select>
+            </div> 
+
+            <div class="mb-3">
+              <label for="notes" class="form-label">Notes</label>
+              <textarea formControlName="notes" class="form-control" id="notes"></textarea>
+            </div>
+
+            <div class="form-check mb-2">
+              <input type="checkbox" class="form-check-input" id="cloused" formControlName="cloused" />
+              <label class="form-check-label" for="cloused">Closed</label>
+            </div>
+
+            <div class="form-check mb-2">
+              <input type="checkbox" class="form-check-input" id="canceled" formControlName="canceled" />
+              <label class="form-check-label" for="canceled">Canceled</label>
+            </div>        
+                     
+
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary" [disabled]="dateForm.invalid">
+                {{ appointment?.id !==0 ? 'Update' : 'Create' }}
+              </button>
+              <button type="button" class="btn btn-secondary ms-2" (click)="onCancel()">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

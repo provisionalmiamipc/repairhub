@@ -1,0 +1,19 @@
+<div *ngIf="item">
+  <h2>Item #{{ item.id }}</h2>
+  <p><strong>Producto:</strong> {{ item.product }}</p>
+  <p><strong>SKU:</strong> {{ item.sku }}</p>
+  <p><strong>Precio:</strong> {{ item.price }}</p>
+  <p><strong>Costo:</strong> {{ item.cost }}</p>
+  <p><strong>Descripción corta:</strong> {{ item.shortTitleDesc }}</p>
+  <p><strong>Stock:</strong> {{ item.stock }}</p>
+  <p><strong>Stock mínimo:</strong> {{ item.minimunStock }}</p>
+  <p><strong>Especificaciones:</strong> {{ item.specs }}</p>
+  <p><strong>Imagen:</strong> <img *ngIf="item.image" [src]="item.image" alt="Imagen" style="max-width:100px;max-height:100px;" /></p>
+  <p><strong>Código de barras:</strong> {{ item.barcode }}</p>
+  <p><strong>Gravable:</strong> {{ item.taxable ? 'Sí' : 'No' }}</p>
+  <p><strong>Garantía:</strong> {{ item.warranty }} meses</p>
+  <p><strong>Descuento:</strong> {{ item.discount }}</p>
+  <p><strong>Activo:</strong> {{ item.isActive ? 'Sí' : 'No' }}</p>
+  <p><strong>Creado:</strong> {{ item.createdAt | date:'short' }}</p>
+  <p><strong>Actualizado:</strong> {{ item.updatedAt | date:'short' }}</p>
+</div>

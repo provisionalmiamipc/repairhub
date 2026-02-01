@@ -1,0 +1,76 @@
+<ng-container *ngIf="isModal; else pageContent">
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-md" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Repair Status</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="cancel.emit()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" />
+            <input *ngIf="isModal" type="hidden" formControlName="createdById" />
+            <!-- Center -->
+            <div class="mb-3">
+              <label class="form-label" for="devicecenterId">Center *</label>
+              <select class="form-select" id="devicecenterId" formControlName="centerId">
+                <option [ngValue]="null">Select center</option>
+                <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
+              </select>
+              <div class="invalid-feedback d-block"
+                *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">
+                Center is required</div>
+            </div>
+
+            <!-- Store -->
+            <div class="mb-3">
+              <label class="form-label" for="devicestoreId">Store *</label>
+              <select class="form-select" id="devicestoreId"
+                formControlName="storeId"><!--[disabled]="!centerId?.value" -->
+                <option [ngValue]="null">Select store</option>
+                <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+              </select>
+              <div class="invalid-feedback d-block"
+                *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">Store
+                is required</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <input type="text" formControlName="status" class="form-control" />
+              <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched" class="text-danger small">Estado
+                requerido</div>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-secondary me-2" (click)="cancel.emit()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
+</ng-container>
+
+<ng-template #pageContent>
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Repair Status</h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label class="form-label">Estado</label>
+          <input type="text" formControlName="status" class="form-control" />
+          <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched" class="text-danger small">Estado
+            requerido</div>
+        </div>
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-secondary me-2" (click)="cancel.emit()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</ng-template>

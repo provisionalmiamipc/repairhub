@@ -1,0 +1,122 @@
+
+<div class="animated fadeIn" style="margin-bottom: 60px">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-header">
+          <h4>Detalles del Empleado</h4>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <strong>Código de Empleado:</strong>
+                <p class="mb-0">{{ employee?.employeeCode }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Nombre Completo:</strong>
+                <p class="mb-0">{{ employee?.firstName }} {{ employee?.lastName }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Género:</strong>
+                <p class="mb-0">{{ employee?.gender === 'Male' ? 'Masculino' : 'Femenino' }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Teléfono:</strong>
+                <p class="mb-0">{{ employee?.phone }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Correo Electrónico:</strong>
+                <p class="mb-0">{{ employee?.email }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Ciudad:</strong>
+                <p class="mb-0">{{ employee?.city }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Tipo de Empleado:</strong>
+                <p class="mb-0">
+                  {{
+                    employee?.employee_type === 'Expert'
+                      ? 'Experto'
+                      : employee?.employee_type === 'Accountant'
+                        ? 'Contador'
+                        : 'Administrador de Tienda'
+                  }}
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="mb-3">
+                <strong>Puesto:</strong>
+                <p class="mb-0">{{ employee?.jobTitle }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Timeout del PIN (minutos):</strong>
+                <p class="mb-0">{{ employee?.pinTimeout }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>PIN:</strong>
+                <p class="mb-0">••••••</p> <!-- Nunca mostrar el PIN real en UI -->
+              </div>
+
+              <div class="mb-3">
+                <strong>Contraseña:</strong>
+                <p class="mb-0">••••••••</p> <!-- Nunca mostrar la contraseña real -->
+              </div>
+
+              <div class="mb-3">
+                <strong>Centro ID:</strong>
+                <p class="mb-0">{{ employee?.center?.centerName }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Tienda ID:</strong>
+                <p class="mb-0">{{ employee?.store?.storeName }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>¿Es Administrador del Centro?</strong>
+                <p class="mb-0">
+                  {{ employee?.isCenterAdmin ? 'Sí' : 'No' }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <div class="mb-3">
+                <strong>Fecha de Creación:</strong>
+                <p class="mb-0">{{ employee?.createdAt | date:'medium' }}</p>
+              </div>
+
+              <div class="mb-3">
+                <strong>Última Actualización:</strong>
+                <p class="mb-0">{{ employee?.updatedAt | date:'medium' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer text-end">
+          <button class="btn btn-secondary me-2" (click)="goBack()">
+            <i class="cil-arrow-circle-left me-1"></i> Volver
+          </button>
+          <button class="btn btn-primary" (click)="editEmployee()">
+            <i class="cil-pencil me-1"></i> Editar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

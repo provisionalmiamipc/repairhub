@@ -1,0 +1,33 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <label>Total Precio:
+    <input type="number" formControlName="totalPrice" min="0" />
+    <span *ngIf="form.get('totalPrice')?.invalid && form.get('totalPrice')?.touched">Requerido</span>
+  </label>
+
+  <label>Total Costo:
+    <input type="number" formControlName="totalCost" min="0" />
+    <span *ngIf="form.get('totalCost')?.invalid && form.get('totalCost')?.touched">Requerido</span>
+  </label>
+
+  <label>Impuesto:
+    <input type="number" formControlName="tax" min="0" />
+  </label>
+
+  <label>Anticipo:
+    <input type="number" formControlName="advancePayment" min="0" />
+  </label>
+
+  <label>Nota:
+    <textarea formControlName="note"></textarea>
+  </label>
+
+  <label>
+    <input type="checkbox" formControlName="cloused" /> Cerrada
+  </label>
+
+  <label>
+    <input type="checkbox" formControlName="canceled" /> Cancelada
+  </label>
+
+  <button type="submit" [disabled]="form.invalid">Guardar</button>
+</form>

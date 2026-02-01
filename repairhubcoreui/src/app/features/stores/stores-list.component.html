@@ -1,0 +1,29 @@
+<c-card>
+  <div class="table-responsive">
+    <table c-table striped hover responsive *ngIf="(items | async) as storesList">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Store Name</th>
+          <th>Country</th>
+          <th>Address</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of storesList">
+          <td>{{ item.storeCode }}</td>
+          <td>{{ item.storeName}}</td>
+          <td>{{ item.country }}</td>
+          <td>{{ item.address }}</td>
+          <td>
+            <button (click)="onSelect(item)"><i class="cil-zoom-in"></i></button>
+            <button (click)="onEdit(item)"><i class="cil-pencil"></i></button>
+            <button (click)="onDelete(item)"><i class="cil-trash"></i></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="!(items | async)">There are no stores to show.</p>
+  </div>
+</c-card>

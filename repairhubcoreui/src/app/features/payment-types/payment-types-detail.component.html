@@ -1,0 +1,9 @@
+<div *ngIf="paymentType">
+  <h2>Detalle de Tipo de Pago</h2>
+  <div><strong>ID:</strong> {{ paymentType.id }}</div>
+  <div><strong>Tipo:</strong> {{ paymentType.type }}</div>
+  <div><strong>Descripción:</strong> {{ paymentType.description }}</div>
+  <div><strong>Fecha de creación:</strong> {{ paymentType.createdAt | date:'shortDate' }}</div>
+  <div *ngIf="paymentType.center"><strong>Centro:</strong> {{ paymentType.center.centerName }}</div>
+  <div *ngIf="paymentType.store"><strong>Tienda:</strong> {{ paymentType.store.storeName }}</div>
+</div>

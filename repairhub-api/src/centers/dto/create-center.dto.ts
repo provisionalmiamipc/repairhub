@@ -1,0 +1,53 @@
+import { IsString, IsOptional, IsUrl, IsDate, IsNotEmpty, IsEmail, Matches, MaxLength } from 'class-validator';
+
+export class CreateCenterDto {
+	
+	@IsNotEmpty()
+	@IsString()
+	centerName: string;
+
+	@IsOptional()
+	@IsString()
+	logo?: string;
+
+	@IsOptional()
+	@IsString()
+	country?: string;
+
+	@IsOptional()
+	@IsString()
+	address?: string;
+
+	@IsOptional()
+	@IsString()
+	zipCode?: string;
+
+	@IsOptional()
+	@IsString()
+	city?: string;
+
+	@IsOptional()
+	@IsString()
+	state?: string;
+
+	@IsOptional()
+	@IsString()
+	time_zone?: string;
+
+	@IsOptional()
+	@IsEmail()
+	email?: string;
+
+	@IsOptional()
+	@Matches(/^\+?[0-9\s\-]{7,20}$/, { message: 'El número de teléfono no es válido' })
+	phoneNumber?: string;
+
+	@IsOptional()
+	@IsUrl()
+	webSite?: string;
+
+	@IsOptional()
+	@IsString()
+	completion?: string;
+}
+

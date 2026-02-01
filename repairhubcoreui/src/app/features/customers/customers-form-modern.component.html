@@ -1,0 +1,310 @@
+<div class="customers-form-container" @fadeInUp>
+  <div class="form-header" @slideInFrom>
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">
+          {{ isEditMode() ? 'Editar Cliente' : 'Nuevo Cliente' }}
+          @if (isEditMode() && customerCode()) {
+            <span class="code-inline">- {{ customerCode() }}</span>
+          }
+        </h1>
+        <p class="page-subtitle">{{ isEditMode() ? 'Actualiza los datos del cliente' : 'Crea un nuevo cliente' }}</p>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando información...</p>
+  </div>
+  } @else {
+
+  @if (error()) {
+  <div class="error-alert" @fadeInUp>
+      <span class="error-icon"><i class="bi bi-x-circle"></i></span>
+    <div>
+      <h3>Error</h3>
+      <p>{{ error() }}</p>
+    </div>
+  </div>
+  }
+
+  @if (success()) {
+  <div class="success-alert" @fadeInUp>
+      <span class="success-icon"><i class="bi bi-check-circle"></i></span>
+    <div>
+      <h3>¡Éxito!</h3>
+      <p>{{ isEditMode() ? 'Cliente actualizado' : 'Cliente creado' }} correctamente</p>
+    </div>
+  </div>
+  }
+
+  <div class="form-wrapper">
+    <div class="stepper-container" @slideInFrom>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="getStepProgress()"></div>
+      </div>
+
+      <div class="stepper-steps">
+        @for (step of steps; track step.id) {
+        <div
+          class="stepper-item"
+          [class.active]="currentStep() === step.id"
+          [class.completed]="currentStep() > step.id"
+          [class.clickable]="isEditMode()"
+          (click)="onStepClick(step.id)"
+        >
+          <div class="step-badge">{{ step.id + 1 }}</div>
+          <div class="step-info">
+            <h3 class="step-title">{{ step.title }}</h3>
+            <p class="step-description">{{ step.description }}</p>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="form-content">
+      <!-- Step 0: Centro y Tienda -->
+      @if (currentStep() === 0) {
+      <div class="form-step" @fadeInUp>
+        <div class="form-group">
+          <label for="centerId" class="form-label">Centro *</label>
+          <select
+            id="centerId"
+            formControlName="centerId"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('centerId')"
+          >
+            <option value="">Selecciona un centro</option>
+            @for (center of centers(); track center.id) {
+            <option [value]="center.id">{{ center.centerName }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('centerId')) {
+          <span class="error-text">{{ getFieldError('centerId') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="storeId" class="form-label">Tienda *</label>
+          <select
+            id="storeId"
+            formControlName="storeId"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('storeId')"
+            [disabled]="!selectedCenterId()"
+          >
+            <option value="">Selecciona una tienda</option>
+            @for (store of stores(); track store.id) {
+            <option [value]="store.id">{{ store.storeName }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('storeId')) {
+          <span class="error-text">{{ getFieldError('storeId') }}</span>
+          }
+        </div>
+      </div>
+      }
+
+      <!-- Step 1: Información Personal -->
+      @if (currentStep() === 1) {
+      <div class="form-step" @fadeInUp>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName" class="form-label">Nombre *</label>
+            <input
+              id="firstName"
+              type="text"
+              formControlName="firstName"
+              class="form-control"
+              placeholder="Ej: Juan"
+              [class.is-invalid]="isFieldInvalid('firstName')"
+            />
+            @if (isFieldInvalid('firstName')) {
+            <span class="error-text">{{ getFieldError('firstName') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="lastName" class="form-label">Apellido *</label>
+            <input
+              id="lastName"
+              type="text"
+              formControlName="lastName"
+              class="form-control"
+              placeholder="Ej: Pérez"
+              [class.is-invalid]="isFieldInvalid('lastName')"
+            />
+            @if (isFieldInvalid('lastName')) {
+            <span class="error-text">{{ getFieldError('lastName') }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gender" class="form-label">Género *</label>
+            <select
+              id="gender"
+              formControlName="gender"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('gender')"
+            >
+              <option value="">Selecciona un género</option>
+              <option value="Male">Masculino</option>
+              <option value="Female">Femenino</option>
+              <option value="Other">Otro</option>
+            </select>
+            @if (isFieldInvalid('gender')) {
+            <span class="error-text">{{ getFieldError('gender') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="b2b" class="form-label checkbox-label">
+              <input
+                id="b2b"
+                type="checkbox"
+                formControlName="b2b"
+                class="form-checkbox"
+              />
+              <span>Cliente B2B</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Step 2: Contacto -->
+      @if (currentStep() === 2) {
+      <div class="form-step" @fadeInUp>
+        <div class="form-group">
+          <label for="email" class="form-label">Email *</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="form-control"
+            placeholder="Ej: juan@email.com"
+            [class.is-invalid]="isFieldInvalid('email')"
+          />
+          @if (isFieldInvalid('email')) {
+          <span class="error-text">{{ getFieldError('email') }}</span>
+          }
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone" class="form-label">Teléfono</label>
+            <input
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              class="form-control"
+              placeholder="Ej: +57 1 234 5678"
+              [class.is-invalid]="isFieldInvalid('phone')"
+            />
+            @if (isFieldInvalid('phone')) {
+            <span class="error-text">{{ getFieldError('phone') }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="city" class="form-label">Ciudad *</label>
+            <input
+              id="city"
+              type="text"
+              formControlName="city"
+              class="form-control"
+              placeholder="Ej: Bogotá"
+              [class.is-invalid]="isFieldInvalid('city')"
+            />
+            @if (isFieldInvalid('city')) {
+            <span class="error-text">{{ getFieldError('city') }}</span>
+            }
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Step 3: Datos Comerciales -->
+      @if (currentStep() === 3) {
+      <div class="form-step" @fadeInUp>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="discount" class="form-label">Descuento (%) *</label>
+            <input
+              id="discount"
+              type="number"
+              formControlName="discount"
+              class="form-control"
+              min="0"
+              max="100"
+              [class.is-invalid]="isFieldInvalid('discount')"
+            />
+            @if (isFieldInvalid('discount')) {
+            <span class="error-text">{{ getFieldError('discount') }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="extraInfo" class="form-label">Información Extra</label>
+          <textarea
+            id="extraInfo"
+            formControlName="extraInfo"
+            class="form-control form-textarea"
+            placeholder="Información adicional del cliente..."
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+      }
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="prevStep()"
+          [disabled]="currentStep() === 0 || isSaving()"
+        >
+          ← Anterior
+        </button>
+
+        <div class="action-buttons">
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="onCancel()"
+            [disabled]="isSaving()"
+          >
+            Cancelar
+          </button>
+
+          @if (currentStep() < steps.length - 1) {
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="nextStep()"
+            [disabled]="!canProceedToNextStep() || isSaving()"
+          >
+            Siguiente →
+          </button>
+          } @else {
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="customerForm.invalid || isSaving()"
+          >
+            {{ isSaving() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Crear Cliente') }}
+          </button>
+          }
+        </div>
+      </div>
+    </form>
+  </div>
+  }
+</div>

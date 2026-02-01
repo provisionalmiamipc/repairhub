@@ -1,0 +1,363 @@
+<div class="form-container">
+  <!-- HEADER -->
+  <div class="form-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="onCancel()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div class="title-section">
+        @if (isEditMode()) {
+          <h1>Editar Centro {{ centerForm.get('centerCode')?.value }}</h1>
+          <p>Actualiza la información del centro de servicio</p>
+        } @else {
+          <h1>Nuevo Centro</h1>
+          <p>Registra un nuevo centro de servicio</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING STATE -->
+  @if (isLoading()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <!-- ERROR MESSAGE -->
+  @if (error()) {
+    <div class="alert-error" @fadeInUp>
+      <div class="alert-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <div class="alert-content">
+        <strong>Error</strong>
+        <p>{{ error() }}</p>
+      </div>
+      <button class="btn-close-alert" (click)="clearError()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- SUCCESS MESSAGE -->
+  @if (success()) {
+    <div class="alert-success" @fadeInUp>
+      <div class="alert-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="alert-content">
+        <strong>¡Éxito!</strong>
+        <p>Centro guardado correctamente</p>
+      </div>
+    </div>
+  }
+
+  <!-- STEPPER SECTION -->
+  <div class="stepper-section">
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" [style.width.%]="getProgressPercent()"></div>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps-container">
+      @for (step of steps; track step.id) {
+        <button
+          class="step-button"
+          [class.active]="currentStep() === step.id"
+          [class.completed]="currentStep() > step.id"
+          (click)="goToStep(step.id)"
+          [disabled]="isLoading() || isSaving()"
+        >
+          <div class="step-circle">
+            @if (currentStep() > step.id) {
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            } @else {
+              {{ step.id + 1 }}
+            }
+          </div>
+          <div class="step-text">
+            <div class="step-title">{{ step.title }}</div>
+            <div class="step-description">{{ step.description }}</div>
+          </div>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- FORM CONTENT -->
+  <form [formGroup]="centerForm" (ngSubmit)="onSubmit()" class="form-content" @fadeInUp>
+    <div class="form-body">
+      <!-- STEP 0: INFORMACIÓN BÁSICA -->
+      @if (currentStep() === 0) {
+        <div class="form-step" @fadeInUp>
+          <h2 class="step-heading">Información Básica</h2>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="centerName" class="form-label">
+                Nombre del Centro *
+              </label>
+              <input
+                id="centerName"
+                type="text"
+                formControlName="centerName"
+                class="form-input"
+                [class.error]="hasError('centerName')"
+                placeholder="Ej: Centro Bogotá"
+              />
+              @if (hasError('centerName')) {
+                <span class="error-message">{{ getFieldError('centerName') }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- STEP 1: UBICACIÓN -->
+      @if (currentStep() === 1) {
+        <div class="form-step" @fadeInUp>
+          <h2 class="step-heading">Ubicación</h2>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="address" class="form-label">
+                Dirección *
+              </label>
+              <input
+                id="address"
+                type="text"
+                formControlName="address"
+                class="form-input"
+                [class.error]="hasError('address')"
+                placeholder="Calle, número, apartamento"
+              />
+              @if (hasError('address')) {
+                <span class="error-message">{{ getFieldError('address') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city" class="form-label">
+                Ciudad *
+              </label>
+              <input
+                id="city"
+                type="text"
+                formControlName="city"
+                class="form-input"
+                [class.error]="hasError('city')"
+                placeholder="Ej: Bogotá"
+              />
+              @if (hasError('city')) {
+                <span class="error-message">{{ getFieldError('city') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="state" class="form-label">
+                Departamento/Estado *
+              </label>
+              <input
+                id="state"
+                type="text"
+                formControlName="state"
+                class="form-input"
+                [class.error]="hasError('state')"
+                placeholder="Ej: Cundinamarca"
+              />
+              @if (hasError('state')) {
+                <span class="error-message">{{ getFieldError('state') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="zipCode" class="form-label">
+                Código Postal *
+              </label>
+              <input
+                id="zipCode"
+                type="text"
+                formControlName="zipCode"
+                class="form-input"
+                [class.error]="hasError('zipCode')"
+                placeholder="Ej: 110111"
+              />
+              @if (hasError('zipCode')) {
+                <span class="error-message">{{ getFieldError('zipCode') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="country" class="form-label">
+                País *
+              </label>
+              <input
+                id="country"
+                type="text"
+                formControlName="country"
+                class="form-input"
+                [class.error]="hasError('country')"
+                placeholder="Ej: Colombia"
+              />
+              @if (hasError('country')) {
+                <span class="error-message">{{ getFieldError('country') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="time_zone" class="form-label">
+                Zona Horaria 
+              </label>
+              <select
+                id="time_zone"
+                formControlName="time_zone"
+                class="form-input"
+              >
+                <option value="UTC">UTC</option>
+                <option value="America/Bogota">UTC-5 (Colombia)</option>
+                <option value="America/Mexico_City">UTC-6 (México)</option>
+                <option value="America/New_York">UTC-5 (USA Este)</option>
+                <option value="America/Los_Angeles">UTC-8 (USA Oeste)</option>
+                <option value="Europe/London">UTC+0 (UK)</option>
+                <option value="Europe/Madrid">UTC+1 (España)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- STEP 2: CONTACTO -->
+      @if (currentStep() === 2) {
+        <div class="form-step" @fadeInUp>
+          <h2 class="step-heading">Información de Contacto</h2>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email" class="form-label">
+                Email *
+              </label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                class="form-input"
+                [class.error]="hasError('email')"
+                placeholder="contacto@centro.com"
+              />
+              @if (hasError('email')) {
+                <span class="error-message">{{ getFieldError('email') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="phoneNumber" class="form-label">
+                Teléfono *
+              </label>
+              <input
+                id="phoneNumber"
+                type="tel"
+                formControlName="phoneNumber"
+                class="form-input"
+                [class.error]="hasError('phoneNumber')"
+                placeholder="+57 1 1234 5678"
+              />
+              @if (hasError('phoneNumber')) {
+                <span class="error-message">{{ getFieldError('phoneNumber') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="webSite" class="form-label">
+                Sitio Web
+              </label>
+              <input
+                id="webSite"
+                type="url"
+                formControlName="webSite"
+                class="form-input"
+                [class.error]="hasError('webSite')"
+                placeholder="https://www.ejemplo.com"
+              />
+              @if (hasError('webSite')) {
+                <span class="error-message">{{ getFieldError('webSite') }}</span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- FORM FOOTER -->
+    <div class="form-footer">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="prevStep()"
+        [disabled]="currentStep() === 0 || isLoading() || isSaving()"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Anterior
+      </button>
+
+      @if (currentStep() < steps.length - 1) {
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="nextStep()"
+          [disabled]="isLoading() || isSaving()"
+        >
+          Siguiente
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      } @else {
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="!centerForm.valid || isSaving()"
+        >
+          @if (isSaving()) {
+            <span class="spinner-mini"></span>
+            Guardando...
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            Guardar Centro
+          }
+        </button>
+      }
+    </div>
+  </form>
+</div>

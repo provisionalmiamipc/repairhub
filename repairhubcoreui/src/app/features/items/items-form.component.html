@@ -1,0 +1,190 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Center *</label>
+      <select class="form-select" [class.is-invalid]="form.get('centerId')?.invalid && form.get('centerId')?.touched" formControlName="centerId">
+        <option [ngValue]="null">Select center</option>
+        <option *ngFor="let c of centers" [ngValue]="c.id">{{ c.centerName }}</option>
+      </select>
+      <div class="invalid-feedback" *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">
+        Center is required
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Store *</label>
+      <select class="form-select" [class.is-invalid]="form.get('storeId')?.invalid && form.get('storeId')?.touched" formControlName="storeId">
+        <option [ngValue]="null">Select store</option>
+        <option *ngFor="let s of filteredStores" [ngValue]="s.id">{{ s.storeName }}</option>
+      </select>
+      <div class="invalid-feedback" *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">
+        Store is required
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Item Type *</label>
+      <div class="input-group">
+        <select class="form-select" [class.is-invalid]="form.get('itemTypeId')?.invalid && form.get('itemTypeId')?.touched" formControlName="itemTypeId">
+          <option [ngValue]="null">Select type</option>
+          <option *ngFor="let t of itemTypes" [ngValue]="t.id">{{ t.name }}</option>
+        </select>
+        <button class="btn btn-outline-secondary" type="button" (click)="openItemTypeModal()">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+      <div class="invalid-feedback" *ngIf="form.get('itemTypeId')?.invalid && form.get('itemTypeId')?.touched">
+        Item type is required
+      </div>
+      <div *ngIf="typeCreatedMessage" class="alert alert-success py-2 px-3 mt-2 mb-0">
+        {{ typeCreatedMessage }}
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Product *</label>
+      <input class="form-control" [class.is-invalid]="form.get('product')?.invalid && form.get('product')?.touched" formControlName="product" />
+      <div class="invalid-feedback" *ngIf="form.get('product')?.invalid && form.get('product')?.touched">
+        Product name is required
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">SKU *</label>
+      <input class="form-control" [class.is-invalid]="form.get('sku')?.invalid && form.get('sku')?.touched" formControlName="sku" />
+      <div class="invalid-feedback" *ngIf="form.get('sku')?.invalid && form.get('sku')?.touched">
+        SKU is required
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Price *</label>
+      <input class="form-control" type="number" [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched" formControlName="price" min="0" />
+      <div class="invalid-feedback" *ngIf="form.get('price')?.invalid && form.get('price')?.touched">
+        <span *ngIf="form.get('price')?.getError('required')">Price is required</span>
+        <span *ngIf="form.get('price')?.getError('min')">Price must be greater than or equal to 0</span>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Cost *</label>
+      <input class="form-control" type="number" [class.is-invalid]="form.get('cost')?.invalid && form.get('cost')?.touched" formControlName="cost" min="0" />
+      <div class="invalid-feedback" *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">
+        <span *ngIf="form.get('cost')?.getError('required')">Cost is required</span>
+        <span *ngIf="form.get('cost')?.getError('min')">Cost must be greater than or equal to 0</span>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Short Description</label>
+      <input class="form-control" formControlName="shortTitleDesc" />
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Stock *</label>
+      <input class="form-control" type="number" [class.is-invalid]="form.get('stock')?.invalid && form.get('stock')?.touched" formControlName="stock" min="0" />
+      <div class="invalid-feedback" *ngIf="form.get('stock')?.invalid && form.get('stock')?.touched">
+        <span *ngIf="form.get('stock')?.getError('required')">Stock is required</span>
+        <span *ngIf="form.get('stock')?.getError('min')">Stock must be greater than or equal to 0</span>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Min Stock *</label>
+      <input class="form-control" type="number" [class.is-invalid]="form.get('minimunStock')?.invalid && form.get('minimunStock')?.touched" formControlName="minimunStock" min="0" />
+      <div class="invalid-feedback" *ngIf="form.get('minimunStock')?.invalid && form.get('minimunStock')?.touched">
+        <span *ngIf="form.get('minimunStock')?.getError('required')">Min Stock is required</span>
+        <span *ngIf="form.get('minimunStock')?.getError('min')">Min Stock must be greater than or equal to 0</span>
+      </div>
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Specs</label>
+      <textarea class="form-control" rows="3" formControlName="specs"></textarea>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Image URL</label>
+      <input class="form-control" formControlName="image" />
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Barcode</label>
+      <input class="form-control" formControlName="barcode" />
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Warranty (months)</label>
+      <input class="form-control" type="number" formControlName="warranty" min="0" />
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Discount</label>
+      <input class="form-control" type="number" formControlName="discount" min="0" />
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end gap-4">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" formControlName="taxable" id="taxable" />
+        <label class="form-check-label" for="taxable">Taxable</label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" formControlName="isActive" id="isActive" />
+        <label class="form-check-label" for="isActive">Active</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 d-flex justify-content-end">
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isSaving">
+      <i class="bi bi-check-circle me-1" *ngIf="!isSaving"></i>
+      <span class="spinner-border spinner-border-sm me-2" *ngIf="isSaving" role="status" aria-hidden="true"></span>
+      {{ isSaving ? 'Saving...' : 'Save Item' }}
+    </button>
+  </div>
+</form>
+
+<div *ngIf="saveMessage" class="alert alert-success mt-3" role="alert">
+  <i class="bi bi-check-circle me-2"></i>{{ saveMessage }}
+</div>
+
+<div *ngIf="saveError" class="alert alert-danger mt-3" role="alert">
+  <i class="bi bi-exclamation-circle me-2"></i>{{ saveError }}
+</div>
+
+<ng-container *ngIf="showItemTypeModal">
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Item Type</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeItemTypeModal()" [disabled]="isCreatingType"></button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="typeCreateError" class="alert alert-danger d-flex align-items-start" role="alert">
+            <i class="bi bi-exclamation-circle me-2 mt-1"></i>
+            <div>{{ typeCreateError }}</div>
+          </div>
+          <div *ngIf="typeCreatedMessage" class="alert alert-success d-flex align-items-start" role="alert">
+            <i class="bi bi-check-circle me-2 mt-1"></i>
+            <div>{{ typeCreatedMessage }}</div>
+          </div>
+          <app-item-types-form
+            [centerId]="form.get('centerId')?.value"
+            [storeId]="form.get('storeId')?.value"
+            (save)="onItemTypeSaved($event)"
+          ></app-item-types-form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeItemTypeModal()" [disabled]="isCreatingType">
+            <span *ngIf="!isCreatingType">Cancel</span>
+            <span *ngIf="isCreatingType">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Creating...
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
+</ng-container>

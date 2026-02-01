@@ -1,0 +1,174 @@
+<div class="customers-list-container" @fadeInUp>
+  <!-- Header Section -->
+  <div class="list-header" @slideDown>
+    <div class="header-content">
+      <div>
+        <h1 class="page-title">Clientes</h1>
+        <p class="page-subtitle">Administra tus clientes y sus órdenes</p>
+      </div>
+      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'Nuevo cliente'">
+        <span class="btn-icon"><i class="bi bi-plus"></i></span>
+        Nuevo Cliente
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section" @slideDown>
+    <div class="search-box">
+      <span class="search-icon"><i class="bi bi-search"></i></span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Busca por nombre, código, email o teléfono..."
+        (input)="onSearchChange($any($event).target.value)"
+        [attr.aria-label]="'Buscar clientes'"
+      />
+    </div>
+
+    <div class="filter-controls">
+      <select
+        class="select-filter"
+        (change)="onFilterChange($any($event).target.value)"
+        [attr.aria-label]="'Filtrar clientes'"
+      >
+        <option value="all">Todos</option>
+        <option value="b2b">B2B</option>
+        <option value="b2c">B2C</option>
+      </select>
+
+      <select
+        class="select-filter"
+        (change)="onSortChange($any($event).target.value)"
+        [attr.aria-label]="'Ordenar clientes'"
+      >
+        <option value="name">Ordenar por: Nombre</option>
+        <option value="code">Código</option>
+        <option value="city">Ciudad</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  @if (error()) {
+  <div class="error-state" @fadeInUp>
+    <div class="error-content">
+      <span class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
+      <div>
+        <h3>Error al cargar</h3>
+        <p>{{ error() }}</p>
+      </div>
+      <button class="btn-retry" (click)="retryLoad()">Reintentar</button>
+    </div>
+  </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+  <div class="loading-grid" @fadeInUp>
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-header"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-footer"></div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- Cards Grid -->
+  @if (!isLoading()) {
+  <div class="customers-grid">
+    @if (isEmptyState()) {
+    <div class="empty-state" @fadeInUp>
+      <div class="empty-icon"><i class="bi bi-people"></i></div>
+      <h3>No hay clientes</h3>
+      <p>Comienza creando tu primer cliente</p>
+      <button class="btn-empty" (click)="onNew()">Crear Cliente</button>
+    </div>
+    } @else {
+    @for (customer of filteredCustomers(); track customer.id) {
+    <div class="customer-card" [class.b2b]="customer.b2b" @cardEnter>
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="customer-type-badge">{{ customer.b2b ? 'B2B' : 'B2C' }}</div>
+        <div class="card-actions">
+          <button
+            class="btn-action btn-view"
+            (click)="onView(customer)"
+            title="Ver detalles"
+            [attr.aria-label]="'Ver detalles de ' + customer.firstName + ' ' + customer.lastName"
+          >
+            <i class="bi bi-eye"></i>
+          </button>
+          <button
+            class="btn-action btn-edit"
+            (click)="onEdit(customer)"
+            title="Editar"
+            [attr.aria-label]="'Editar cliente ' + customer.firstName + ' ' + customer.lastName"
+          >
+            <i class="bi bi-pencil"></i>
+          </button>
+          <!--button
+            class="btn-action btn-delete"
+            (click)="onDelete(customer)"
+            title="Eliminar"
+            [attr.aria-label]="'Eliminar cliente ' + customer.firstName + ' ' + customer.lastName"
+          >
+            <i class="bi bi-trash"></i>
+          </button-->
+        </div>
+      </div>
+
+      <!-- Customer Info -->
+      <div class="customer-info">
+        <h3 class="customer-name">{{ customer.firstName }} {{ customer.lastName }}</h3>
+        <p class="customer-code">{{ customer.customerCode }}</p>
+      </div>
+
+      <!-- Customer Stats -->
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-label"><i class="bi bi-envelope"></i> Email</span>
+          <span class="stat-value">{{ customer.email }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label"><i class="bi bi-telephone"></i> Teléfono</span>
+          <span class="stat-value">{{ customer.phone || 'N/A' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label"><i class="bi bi-geo-alt"></i> Ciudad</span>
+          <span class="stat-value">{{ customer.city }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label"><i class="bi bi-person"></i> Género</span>
+          <span class="stat-value">{{ customer.gender }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label"><i class="bi bi-percent"></i> Descuento</span>
+          <span class="stat-value">{{ customer.discount }}%</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label"><i class="bi bi-card-text"></i> Información Extra</span>
+          <span class="stat-value">{{ customer.extraInfo || 'N/A' }}</span>
+        </div>
+      </div>
+
+      <!-- Card Footer -->
+      <div class="card-footer">
+        <span class="created-date">Desde: {{ customer.createdAt | date: 'short' }}</span>
+      </div>
+    </div>
+    }
+    }
+  </div>
+  }
+
+  <!-- Results Counter -->
+  @if (!isLoading() && filteredCustomers().length > 0) {
+  <div class="results-info">
+    Mostrando {{ filteredCustomers().length }} de {{ customers().length }} clientes
+  </div>
+  }
+</div>

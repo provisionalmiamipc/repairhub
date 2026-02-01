@@ -1,0 +1,176 @@
+<div class="form-container">
+  <div class="form-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="cancel()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Volver
+      </button>
+      <h1>
+        @if (formState().isEditMode) {
+          <i class="bi bi-pencil-square"></i> Editar Marca
+        } @else {
+          <i class="bi bi-phone"></i> Nueva Marca de Dispositivo
+        }
+      </h1>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+    </div>
+  </div>
+
+  @if (formState().success) {
+    <div class="alert alert-success">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span>Marca {{ formState().isEditMode ? 'actualizada' : 'creada' }} exitosamente</span>
+    </div>
+  }
+
+  @if (formState().error) {
+    <div class="alert alert-error">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>{{ formState().error }}</span>
+    </div>
+  }
+
+  <div class="stepper">
+    <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
+      <div class="step-circle">1</div>
+      <span class="step-label">Centro y Tienda</span>
+    </div>
+    <div class="step-line" [class.completed]="currentStep() > 0"></div>
+    <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
+      <div class="step-circle">2</div>
+      <span class="step-label">Datos de la Marca</span>
+    </div>
+  </div>
+
+  <form [formGroup]="deviceBrandForm" (ngSubmit)="onSubmit()">
+    @if (currentStep() === 0) {
+      <div class="step-content">
+        <h3>Centro y Tienda</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Centro *</label>
+            <select formControlName="centerId" [class.invalid]="isFieldInvalid('centerId')">
+              <option [ngValue]="null">Seleccione un centro</option>
+              @for (center of centers(); track center.id) {
+                <option [value]="center.id">{{ center.centerName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('centerId')) {
+              <div class="error-message">{{ getFieldError('centerId') }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Tienda *</label>
+            <select formControlName="storeId" [class.invalid]="isFieldInvalid('storeId')">
+              <option [ngValue]="null">Seleccione una tienda</option>
+              @for (store of filteredStores(); track store.id) {
+                <option [value]="store.id">{{ store.storeName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('storeId')) {
+              <div class="error-message">{{ getFieldError('storeId') }}</div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (currentStep() === 1) {
+      <div class="step-content">
+        <h3>Datos de la Marca</h3>
+        
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input 
+            type="text" 
+            formControlName="name" 
+            placeholder="Samsung, Apple, Xiaomi..."
+            [class.invalid]="isFieldInvalid('name')"
+          />
+          @if (isFieldInvalid('name')) {
+            <div class="error-message">{{ getFieldError('name') }}</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea 
+            formControlName="description" 
+            placeholder="Descripción de la marca (opcional)"
+            rows="4"
+            [class.invalid]="isFieldInvalid('description')"
+          ></textarea>
+          @if (isFieldInvalid('description')) {
+            <div class="error-message">{{ getFieldError('description') }}</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>URL de Imagen</label>
+          <input 
+            type="text" 
+            formControlName="img" 
+            placeholder="https://example.com/logo.png"
+            [class.invalid]="isFieldInvalid('img')"
+          />
+          @if (isFieldInvalid('img')) {
+            <div class="error-message">{{ getFieldError('img') }}</div>
+          }
+          @if (deviceBrandForm.get('img')?.value) {
+            <div class="image-preview">
+              <img [src]="deviceBrandForm.get('img')?.value" alt="Preview" />
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="form-actions">
+      @if (currentStep() > 0) {
+        <button type="button" class="btn-secondary" (click)="previousStep()">
+          Anterior
+        </button>
+      }
+
+      @if (currentStep() < 1) {
+        <button 
+          type="button" 
+          class="btn-primary" 
+          (click)="nextStep()"
+          [disabled]="!canProceedToNextStep()"
+        >
+          Siguiente
+        </button>
+      }
+
+      @if (currentStep() === 1) {
+        <button 
+          type="submit" 
+          class="btn-primary"
+          [disabled]="formState().isLoading || !deviceBrandForm.valid"
+        >
+          @if (formState().isLoading) {
+            <span class="spinner"></span>
+            Guardando...
+          } @else {
+            {{ formState().isEditMode ? 'Actualizar' : 'Crear' }} Marca
+          }
+        </button>
+      }
+    </div>
+  </form>
+</div>

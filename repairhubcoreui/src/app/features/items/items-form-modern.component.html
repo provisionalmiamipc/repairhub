@@ -1,0 +1,276 @@
+<div class="form-container">
+  <!-- Header -->
+  <div class="form-header">
+    <div>
+      <h1>
+        @if (isEditMode()) {
+          <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Editar Artículo
+        } @else {
+          <i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Crear Artículo
+        }
+      </h1>
+      <p class="subtitle">Paso {{ currentStep() + 1 }} de 2</p>
+    </div>
+    <button class="btn-secondary" (click)="onCancel()">Cancelar</button>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar" [style.width.%]="getProgressPercentage()"></div>
+    <div class="progress-labels">
+      <span [class.active]="currentStep() >= 0" [class.completed]="currentStep() > 0">
+        <span class="number">
+          @if (currentStep() > 0) {
+            <i class="bi bi-check-lg" aria-hidden="true"></i>
+          } @else {
+            1
+          }
+        </span>
+        Centro
+      </span>
+      <span [class.active]="currentStep() >= 1" [class.completed]="false">
+        <span class="number">2</span>
+        Información
+      </span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="loader"></div>
+      <p>Cargando datos...</p>
+    </div>
+  }
+
+  <!-- Form Content -->
+  @if (!isLoading()) {
+    <form [formGroup]="itemForm" class="form-content">
+      <!-- Step 0: Center, Store & Type -->
+      @if (currentStep() === 0) {
+        <div class="step-content" [@slideInFrom]>
+          <h2>Selecciona Centro, Tienda y Tipo</h2>
+
+          <!-- Center Selection -->
+          <div class="form-group">
+            <label for="centerId" class="form-label">Centro *</label>
+            <select id="centerId" formControlName="centerId" class="form-control">
+              <option [ngValue]="null">Selecciona un centro</option>
+              <option *ngFor="let center of centers()" [ngValue]="center.id">
+                {{ center.centerName }}
+              </option>
+            </select>
+            @if (getFieldError('centerId')) {
+              <span class="error-message">{{ getFieldError('centerId') }}</span>
+            }
+          </div>
+
+          <!-- Store Selection (filtered by center) -->
+          <div class="form-group">
+            <label for="storeId" class="form-label">Tienda *</label>
+            <select id="storeId" formControlName="storeId" class="form-control" [disabled]="!itemForm.get('centerId')?.value">
+              <option [ngValue]="null">Selecciona una tienda</option>
+              <option *ngFor="let store of filteredStores" [ngValue]="store.id">
+                {{ store.storeName }}
+              </option>
+            </select>
+            @if (!itemForm.get('centerId')?.value) {
+              <span class="helper-text">Primero selecciona un centro</span>
+            }
+            @if (getFieldError('storeId')) {
+              <span class="error-message">{{ getFieldError('storeId') }}</span>
+            }
+          </div>
+
+          <!-- Item Type Selection -->
+          <div class="form-group">
+            <label for="itemTypeId" class="form-label">Tipo de Artículo *</label>
+            <select id="itemTypeId" formControlName="itemTypeId" class="form-control">
+              <option [ngValue]="null">Selecciona un tipo</option>
+              <option *ngFor="let type of itemTypes()" [ngValue]="type.id">
+                {{ type.name }}
+              </option>
+            </select>
+            @if (getFieldError('itemTypeId')) {
+              <span class="error-message">{{ getFieldError('itemTypeId') }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Step 1: Basic Info, Prices & Stock -->
+      @if (currentStep() === 1) {
+        <div class="step-content" [@slideInFrom]>
+          <h2>Información del Artículo</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product" class="form-label">Nombre del Producto *</label>
+              <input type="text" id="product" formControlName="product" class="form-control" placeholder="Ej: Pantalla LCD 32 pulgadas">
+              @if (getFieldError('product')) {
+                <span class="error-message">{{ getFieldError('product') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="sku" class="form-label">SKU *</label>
+              <input type="text" id="sku" formControlName="sku" class="form-control" placeholder="Ej: LCD32-001">
+              @if (getFieldError('sku')) {
+                <span class="error-message">{{ getFieldError('sku') }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="barcode" class="form-label">Código de Barras</label>
+              <input type="text" id="barcode" formControlName="barcode" class="form-control" placeholder="Ej: 1234567890123">
+            </div>
+
+            <div class="form-group">
+              <label for="shortTitleDesc" class="form-label">Descripción Corta</label>
+              <input type="text" id="shortTitleDesc" formControlName="shortTitleDesc" class="form-control" placeholder="Descripción breve">
+            </div>
+          </div>
+
+          <!-- Prices Section -->
+          <div class="section-header">
+            <h3>Precios y Márgenes</h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cost" class="form-label">Costo *</label>
+              <input type="number" id="cost" formControlName="cost" class="form-control" placeholder="0" min="0">
+              @if (getFieldError('cost')) {
+                <span class="error-message">{{ getFieldError('cost') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="price" class="form-label">Precio de Venta *</label>
+              <input type="number" id="price" formControlName="price" class="form-control" placeholder="0" min="0">
+              @if (getFieldError('price')) {
+                <span class="error-message">{{ getFieldError('price') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="discount" class="form-label">Descuento (%)</label>
+              <input type="number" id="discount" formControlName="discount" class="form-control" placeholder="0" min="0" max="100">
+            </div>
+          </div>
+
+          <!-- Stock Section -->
+          <div class="section-header">
+            <h3>Stock e Inventario</h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="stock" class="form-label">Stock Actual *</label>
+              <input type="number" id="stock" formControlName="stock" class="form-control" placeholder="0" min="0">
+              @if (getFieldError('stock')) {
+                <span class="error-message">{{ getFieldError('stock') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="minimunStock" class="form-label">Stock Mínimo *</label>
+              <input type="number" id="minimunStock" formControlName="minimunStock" class="form-control" placeholder="0" min="0">
+            </div>
+
+            <div class="form-group">
+              <label for="warranty" class="form-label">Garantía (meses)</label>
+              <input type="number" id="warranty" formControlName="warranty" class="form-control" placeholder="0" min="0">
+            </div>
+          </div>
+
+          <!-- Additional Info -->
+          <div class="section-header">
+            <h3>Información Adicional</h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group checkbox">
+              <input type="checkbox" id="taxable" formControlName="taxable">
+              <label for="taxable">Gravable (IVA)</label>
+            </div>
+
+            <div class="form-group checkbox">
+              <input type="checkbox" id="isActive" formControlName="isActive">
+              <label for="isActive">Activo</label>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label for="image" class="form-label">URL de Imagen</label>
+            <input type="text" id="image" formControlName="image" class="form-control" placeholder="https://ejemplo.com/imagen.jpg">
+          </div>
+
+          <div class="form-group full">
+            <label for="specs" class="form-label">Especificaciones (JSON)</label>
+            <textarea id="specs" formControlName="specs" class="form-control" rows="3" placeholder='{"color": "negro", "peso": "2kg"}' style="font-family: monospace; font-size: 12px;"></textarea>
+          </div>
+        </div>
+      }
+
+      <!-- Error Alert -->
+      @if (error()) {
+        <div class="alert alert-error">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <!-- Success Alert -->
+      @if (success()) {
+        <div class="alert alert-success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>¡Guardado exitosamente! Redirigiendo...</span>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          Cancelar
+        </button>
+
+        @if (currentStep() > 0) {
+          <button type="button" class="btn-secondary" (click)="prevStep()" [disabled]="isSaving()">
+            ← Anterior
+          </button>
+        }
+
+        @if (currentStep() < 1) {
+          <button type="button" class="btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep() || isSaving()">
+            Siguiente →
+          </button>
+        }
+
+        @if (currentStep() === 1) {
+          <button type="submit" class="btn-success" [disabled]="!itemForm.valid || isSaving()" (click)="onSubmit()">
+            @if (isSaving()) {
+              <span class="spinner"></span>
+              Guardando...
+            }
+            @if (!isSaving()) {
+              @if (isEditMode()) {
+                <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Actualizar Artículo
+              } @else {
+                <i class="bi bi-save me-2" aria-hidden="true"></i>Crear Artículo
+              }
+            }
+          </button>
+        }
+      </div>
+    </form>
+  }
+</div>

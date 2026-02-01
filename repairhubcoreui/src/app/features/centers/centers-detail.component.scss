@@ -1,0 +1,187 @@
+@import '../../../scss/_modern-design-system.scss';
+
+.detail-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  // ============================================
+  // HEADER
+  // ============================================
+
+  .detail-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+
+    .header-content {
+      .title-section {
+        h1 {
+          font-size: 2rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin: 0 0 0.75rem 0;
+          letter-spacing: -0.5px;
+        }
+
+        .center-code {
+          display: inline-block;
+          padding: 0.5rem 1.2rem;
+          background: var(--primary-color);
+          color: white;
+          font-size: 0.95rem;
+          font-weight: 600;
+          border-radius: $radius-lg;
+          font-family: 'Monaco', 'Courier New', monospace;
+          letter-spacing: 0.05em;
+          box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.25);
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // CONTENT
+  // ============================================
+
+  .detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    .info-section {
+      padding: 2rem;
+      @include glass-effect;
+      border-radius: $radius-xl;
+      animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+
+        svg {
+          color: var(--primary-color);
+        }
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+
+        .info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+
+          &.full-width {
+            grid-column: 1 / -1;
+          }
+
+          .info-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+
+          .info-value {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            word-break: break-word;
+
+            a {
+              color: var(--primary-color);
+              text-decoration: none;
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              display: inline-flex;
+              align-items: center;
+              gap: 0.35rem;
+
+              &:hover {
+                text-decoration: underline;
+                opacity: 0.8;
+              }
+
+              &::after {
+                content: '↗';
+                font-size: 0.85em;
+                opacity: 0.6;
+              }
+
+              &[href^="mailto"]::after,
+              &[href^="tel"]::after {
+                content: '';
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: 768px) {
+  .detail-container {
+    padding: 1.5rem;
+
+    .detail-header {
+      .header-content {
+        .title-section {
+          h1 {
+            font-size: 1.5rem;
+          }
+
+          .center-code {
+            font-size: 0.85rem;
+            padding: 0.4rem 1rem;
+          }
+        }
+      }
+    }
+
+    .detail-content {
+      .info-section {
+        padding: 1.5rem;
+
+        .section-title {
+          font-size: 1.1rem;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+          gap: 1.25rem;
+        }
+      }
+    }
+  }
+}

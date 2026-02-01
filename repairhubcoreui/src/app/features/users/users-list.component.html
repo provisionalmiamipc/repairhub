@@ -1,0 +1,80 @@
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-striped table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Creado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of usersList" class="align-middle">
+          <td>
+            <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+          </td>
+          <td>
+            <code>{{ user.email }}</code>
+          </td>
+          <td>
+            <span 
+              class="badge bg-{{ getStatusClass(user.isActive) }}"
+              [class.opacity-50]="!user.isActive"
+            >
+              {{ getStatusText(user.isActive) }}
+            </span>
+          </td>
+          <td>
+            <small class="text-muted">
+              {{ user.createdAt | date: 'short' }}
+            </small>
+          </td>
+          <td>
+            <div class="btn-group btn-group-sm" role="group">
+              <button
+                type="button"
+                class="btn btn-outline-primary"
+                (click)="onSelect(user)"
+                title="Ver detalles"
+              >
+                <i class="icon-eye"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-warning"
+                (click)="onEdit(user)"
+                title="Editar"
+              >
+                <i class="icon-pencil"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-danger"
+                (click)="onDelete(user)"
+                title="Eliminar"
+              >
+                <i class="icon-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Estado vacío -->
+  <div *ngIf="usersList.length === 0 && !loading" class="card-body text-center py-5">
+    <i class="icon-inbox" style="font-size: 48px; opacity: 0.3;"></i>
+    <p class="text-muted mt-3 mb-0">No hay usuarios para mostrar</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="card-body text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+</div>
+

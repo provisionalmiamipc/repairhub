@@ -1,0 +1,51 @@
+import { Appointments } from "./Appointments";
+import { Centers } from "./Centers";
+import { EmployeeRole, EmployeeType } from "./constants/roles.constants";
+import { InventoryMovements } from "./InventoryMovements";
+import { Orders } from "./Orders";
+import { OrdersItem } from "./OrdersItem";
+import { RepairStatus } from "./RepairStatus";
+import { Sales } from "./Sales";
+import { ServiceOrders } from "./ServiceOrders";
+import { SODiagnostic } from "./SODiagnostic";
+import { SOItems } from "./SOItems";
+import { SONotes } from "./SONotes";
+import { Stores } from "./Stores";
+
+export type Gender = "Male" | "Female";
+//export type EmployeeType = "Employee" | "Accountant" | "AdminStore";
+
+export interface Employees {
+  id: number;
+  employeeCode: string;
+  firstName: string;
+  lastName: string;
+  gender: Gender; //"Male" | "Female";
+  phone: string;
+  email: string;
+  city: string;
+  employee_type: EmployeeType;//"Employee" | "Accountant" | "AdminStore";
+  jobTitle: string;
+  pinTimeout: number;
+  pin: string;
+  password: string;
+  createdAt: Date;
+  updatedAt: Date;
+  centerId: number;
+  storeId: number;
+  isCenterAdmin: boolean;
+  appointments: Appointments[];
+  center?: Centers;
+  store?: Stores;
+  inventoryMovements?: InventoryMovements[];
+  orders?: Orders[];
+  ordersItems?: OrdersItem[];
+  repairStatuses?: RepairStatus[];
+  sODiagnostics?: SODiagnostic[];
+  sOItems?: SOItems[];
+  sONotes?: SONotes[];
+  sales?: Sales[];
+  serviceOrders?: ServiceOrders[];
+  serviceOrders2?: ServiceOrders[];
+  isLocked?: boolean;
+}

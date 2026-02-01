@@ -1,0 +1,9 @@
+<div *ngIf="soDiagnostic">
+  <h2>Detalle de Diagnóstico</h2>
+  <p><strong>Diagnóstico:</strong> {{ soDiagnostic.diagnostic }}</p>
+  <p><strong>Enviar Email:</strong> {{ soDiagnostic.sendEmail ? 'Sí' : 'No' }}</p>
+  <p><strong>Fecha de creación:</strong> {{ soDiagnostic.createdAt | date }}</p>
+</div>
+<div *ngIf="!soDiagnostic">
+  <p>No hay información de diagnóstico.</p>
+</div>

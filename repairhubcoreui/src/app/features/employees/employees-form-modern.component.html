@@ -1,0 +1,880 @@
+<!-- 🎨 MODERN EMPLOYEES FORM TEMPLATE -->
+<div class="form-container">
+  <!-- ============================================
+       📑 FORM HEADER
+       ============================================ -->
+  <div class="form-header">
+    <div class="header-content">
+      <h1>{{ isEditMode() ? 'Editar Empleado' : 'Crear Nuevo Empleado' }}</h1>
+      <p class="subtitle">
+        {{ isEditMode() ? 'Actualiza los datos del empleado' : 'Completa los pasos para crear un nuevo empleado' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ============================================
+       SUCCESS MESSAGE
+       ============================================ -->
+  @if (submitSuccess()) {
+    <div class="success-message" @cardEnter>
+      <span class="success-icon"><i class="bi bi-check-circle-fill" aria-hidden="true"></i></span>
+      <span>Empleado {{ isEditMode() ? 'actualizado' : 'creado' }} correctamente</span>
+    </div>
+  }
+
+  <!-- ============================================
+       ERROR MESSAGE
+       ============================================ -->
+  @if (submitError()) {
+    <div class="error-message" @cardEnter>
+      <span class="error-icon"><i class="bi bi-x-circle-fill" aria-hidden="true"></i></span>
+      <span>{{ submitError() }}</span>
+    </div>
+  }
+
+  <!-- ============================================
+       PROGRESS INDICATOR (Solo en creación)
+       ============================================ -->
+  @if (!isEditMode()) {
+    <div class="progress-section">
+      <div class="steps-indicator">
+        <button
+          *ngFor="let step of [1, 2, 3]; let i = index"
+          class="step-btn"
+          [class.active]="currentStep() === step"
+          [class.completed]="stepsCompleted()[i]"
+          (click)="goToStep(step)"
+          [disabled]="(step === 2 && !canGoToStep2()) || (step === 3 && !canGoToStep3())"
+        >
+          @if (stepsCompleted()[i]) {
+            <span class="step-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+          } @else {
+            <span class="step-number">{{ step }}</span>
+          }
+          <span class="step-label">
+            @switch (step) {
+              @case (1) { Información Personal }
+              @case (2) { Contacto }
+              @case (3) { Detalles de Trabajo }
+            }
+          </span>
+        </button>
+      </div>
+      <div class="progress-bar">
+        <div
+          class="progress-fill"
+          [style.width.%]="(currentStep() / 3) * 100"
+        ></div>
+      </div>
+    </div>
+  }
+
+    <!-- ============================================
+      FORM
+      ============================================ -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modern-form">
+    <!-- ============================================
+         STEP 1: INFORMACIÓN PERSONAL
+         ============================================ -->
+    @if (!isEditMode() && currentStep() === 1) {
+      <div class="form-step" @stepSlide>
+        <div class="step-title">
+          <span class="step-icon"><i class="bi bi-person"></i></span>
+          <h2>Información Personal</h2>
+        </div>
+
+        <div class="form-grid">
+          <!-- First Name -->
+          <div class="form-group">
+            <label class="form-label" for="firstName">
+              Nombre
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="firstName"
+                class="form-input"
+                [class.is-error]="hasError('firstName')"
+                [class.is-valid]="isFieldValid('firstName')"
+                formControlName="firstName"
+                placeholder="Ej: Juan"
+              />
+              @if (isFieldValid('firstName')) {
+                <span class="input-icon success">✓</span>
+              }
+            </div>
+            @if (hasError('firstName')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('firstName') }}
+              </div>
+            }
+            <div class="help-text">
+              Mínimo 2 caracteres
+            </div>
+          </div>
+
+          <!-- Last Name -->
+          <div class="form-group">
+            <label class="form-label" for="lastName">
+              Apellido
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="lastName"
+                class="form-input"
+                [class.is-error]="hasError('lastName')"
+                [class.is-valid]="isFieldValid('lastName')"
+                formControlName="lastName"
+                placeholder="Ej: Pérez"
+              />
+              @if (isFieldValid('lastName')) {
+                <span class="input-icon success">✓</span>
+              }
+            </div>
+            @if (hasError('lastName')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('lastName') }}
+              </div>
+            }
+            <div class="help-text">
+              Mínimo 2 caracteres
+            </div>
+          </div>
+
+          <!-- Gender -->
+          <div class="form-group full-width">
+            <label class="form-label">
+              Género
+              <span class="required">*</span>
+            </label>
+            <div class="radio-group">
+              @for (gender of genders; track gender) {
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    [value]="gender"
+                    formControlName="gender"
+                    class="radio-input"
+                  />
+                  <span class="radio-custom">
+                    @if (form.get('gender')?.value === gender) {
+                      <span class="radio-inner"></span>
+                    }
+                  </span>
+                  <span class="radio-text">
+                    @if (gender === 'Male') {
+                      <i class="bi bi-gender-male"></i>
+                    } @else {
+                      <i class="bi bi-gender-female"></i>
+                    }
+                    {{ gender === 'Male' ? 'Masculino' : 'Femenino' }}
+                  </span>
+                </label>
+              }
+            </div>
+            @if (hasError('gender')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('gender') }}
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="onCancel()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="nextStep()"
+            [disabled]="!canGoToStep2()"
+          >
+            Siguiente
+            <span class="btn-icon">→</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ============================================
+         STEP 2: CONTACTO
+         ============================================ -->
+    @if (!isEditMode() && currentStep() === 2) {
+      <div class="form-step" @stepSlide>
+        <div class="step-title">
+          <span class="step-icon"><i class="bi bi-envelope"></i></span>
+          <h2>Información de Contacto</h2>
+        </div>
+
+        <div class="form-grid">
+          <!-- Email -->
+          <div class="form-group full-width">
+            <label class="form-label" for="email">
+              Email
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon-left"><i class="bi bi-envelope"></i></span>
+              <input
+                type="email"
+                id="email"
+                class="form-input with-icon"
+                [class.is-error]="hasError('email')"
+                [class.is-valid]="isFieldValid('email')"
+                formControlName="email"
+                placeholder="correo@ejemplo.com"
+              />
+              @if (isFieldValid('email')) {
+                <span class="input-icon success">✓</span>
+              }
+            </div>
+            @if (hasError('email')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('email') }}
+              </div>
+            }
+          </div>
+
+          <!-- Phone -->
+          <div class="form-group">
+            <label class="form-label" for="phone">
+              Teléfono
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon-left"><i class="bi bi-telephone"></i></span>
+              <input
+                type="tel"
+                id="phone"
+                class="form-input with-icon"
+                [class.is-error]="hasError('phone')"
+                [class.is-valid]="isFieldValid('phone')"
+                formControlName="phone"
+                placeholder="+1 (555) 123-4567"
+              />
+              @if (isFieldValid('phone')) {
+                <span class="input-icon success">✓</span>
+              }
+            </div>
+            @if (hasError('phone')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('phone') }}
+              </div>
+            }
+          </div>
+
+          <!-- City -->
+          <div class="form-group">
+            <label class="form-label" for="city">
+              Ciudad
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <span class="input-icon-left"><i class="bi bi-geo-alt"></i></span>
+              <input
+                type="text"
+                id="city"
+                class="form-input with-icon"
+                [class.is-error]="hasError('city')"
+                [class.is-valid]="isFieldValid('city')"
+                formControlName="city"
+                placeholder="Ej: Madrid"
+              />
+              @if (isFieldValid('city')) {
+                <span class="input-icon success">✓</span>
+              }
+            </div>
+            @if (hasError('city')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('city') }}
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="previousStep()"
+          >
+            <span class="btn-icon">←</span>
+            Anterior
+          </button>
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="nextStep()"
+            [disabled]="!canGoToStep3()"
+          >
+            Siguiente
+            <span class="btn-icon">→</span>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ============================================
+         STEP 3: DETALLES DE TRABAJO
+         ============================================ -->
+    @if (!isEditMode() && currentStep() === 3) {
+      <div class="form-step" @stepSlide>
+        <div class="step-title">
+          <span class="step-icon"><i class="bi bi-briefcase"></i></span>
+          <h2>Detalles de Trabajo</h2>
+        </div>
+
+        <div class="form-grid">
+          <!-- Employee Type -->
+          <div class="form-group">
+            <label class="form-label" for="employee_type">
+              Tipo de Empleado
+              <span class="required">*</span>
+            </label>
+            <select
+              id="employee_type"
+              class="form-select"
+              [class.is-error]="hasError('employee_type')"
+              [class.is-valid]="isFieldValid('employee_type')"
+              formControlName="employee_type"
+            >
+              <option value="">Selecciona un tipo</option>
+              @for (type of employeeTypes; track type) {
+                <option [value]="type">{{ getEmployeeTypeLabel(type) }}</option>
+              }
+            </select>
+            @if (hasError('employee_type')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('employee_type') }}
+              </div>
+            }
+          </div>
+
+          <!-- Job Title -->
+          <div class="form-group">
+            <label class="form-label" for="jobTitle">
+              Cargo
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="jobTitle"
+                class="form-input"
+                [class.is-error]="hasError('jobTitle')"
+                [class.is-valid]="isFieldValid('jobTitle')"
+                formControlName="jobTitle"
+                placeholder="Ej: Técnico Senior"
+              />
+              @if (isFieldValid('jobTitle')) {
+                <span class="input-icon success">✓</span>
+              }
+            </div>
+            @if (hasError('jobTitle')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('jobTitle') }}
+              </div>
+            }
+          </div>
+
+          <!-- Center -->
+          <div class="form-group">
+            <label class="form-label" for="centerId">
+              Centro
+              <span class="required">*</span>
+            </label>
+            <select
+              id="centerId"
+              class="form-select"
+              [class.is-error]="hasError('centerId')"
+              [class.is-valid]="isFieldValid('centerId')"
+              formControlName="centerId"
+            >
+              <option value="">Selecciona un centro</option>
+              @for (center of centers; track center.id) {
+                <option [ngValue]="center.id">{{ center.centerName }}</option>
+              }
+            </select>
+            @if (hasError('centerId')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('centerId') }}
+              </div>
+            }
+          </div>
+
+          <!-- Store -->
+          <div class="form-group">
+            <label class="form-label" for="storeId">
+              Tienda
+              <span class="required">*</span>
+            </label>
+            <select
+              id="storeId"
+              class="form-select"
+              [class.is-error]="hasError('storeId')"
+              [class.is-valid]="isFieldValid('storeId')"
+              formControlName="storeId"
+            >
+              <option value="">
+                @if (form.get('centerId')?.value) {
+                  Selecciona una tienda
+                } @else {
+                  Primero selecciona un centro
+                }
+              </option>
+              @for (store of filteredStores(); track store.id) {
+                <option [ngValue]="store.id">{{ store.storeName }}</option>
+              }
+            </select>
+            @if (hasError('storeId')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('storeId') }}
+              </div>
+            }
+          </div>
+
+          <!-- PIN Timeout -->
+          <div class="form-group">
+            <label class="form-label" for="pinTimeout">
+              Timeout PIN (minutos)
+              <span class="required">*</span>
+            </label>
+            <select
+              id="pinTimeout"
+              class="form-select"
+              [class.is-error]="hasError('pinTimeout')"
+              [class.is-valid]="isFieldValid('pinTimeout')"
+              formControlName="pinTimeout"
+            >
+              <option value="">Selecciona duración</option>
+              @for (timeout of pinTimeouts; track timeout) {
+                <option [value]="timeout">{{ timeout }} minutos</option>
+              }
+            </select>
+            @if (hasError('pinTimeout')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('pinTimeout') }}
+              </div>
+            }
+          </div>
+
+          <!-- PIN -->
+          <div class="form-group">
+            <label class="form-label" for="pin">
+              PIN
+              <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="pin"
+                class="form-input"
+                [class.is-error]="hasError('pin')"
+                [class.is-valid]="isFieldValid('pin')"
+                formControlName="pin"
+                placeholder="4-6 dígitos"
+                maxlength="6"
+              />
+              @if (isFieldValid('pin')) {
+                <span class="input-icon success">✓</span>
+              }
+            </div>
+            @if (hasError('pin')) {
+              <div class="error-text" @fieldError>
+                {{ getFieldError('pin') }}
+              </div>
+            }
+          </div>
+
+          <!-- Center Admin -->
+          <div class="form-group full-width">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                class="checkbox-input"
+                formControlName="isCenterAdmin"
+              />
+              <span class="checkbox-custom">
+                @if (form.get('isCenterAdmin')?.value) {
+                  <span class="checkbox-inner"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+                }
+              </span>
+              <span class="checkbox-text">
+                <i class="bi bi-award"></i> Este empleado es administrador del centro
+              </span>
+            </label>
+            <div class="help-text">
+              Los administradores del centro tienen acceso completo a los datos del mismo
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="previousStep()"
+          >
+            <span class="btn-icon">←</span>
+            Anterior
+          </button>
+          <button
+            type="submit"
+            class="btn-primary btn-submit"
+            [disabled]="!canSubmit()"
+          >
+            @if (isSubmitting()) {
+              <span class="spinner"></span>
+              Guardando...
+            } @else {
+              @if (isEditMode()) {
+                Guardar Cambios
+              } @else {
+                Crear Empleado
+              }
+            }
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ============================================
+         EDIT MODE: Show all fields at once
+         ============================================ -->
+    @if (isEditMode()) {
+      <div class="form-step edit-mode">
+        <div class="step-title">
+          <span class="step-icon"><i class="bi bi-pencil"></i></span>
+          <h2>Editar Información del Empleado</h2>
+        </div>
+
+        <div class="form-grid-2col">
+          <!-- Personal Info -->
+          <div class="form-section">
+            <h3 class="section-title"><i class="bi bi-person"></i> Información Personal</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    class="form-input"
+                    [class.is-error]="hasError('firstName')"
+                    [class.is-valid]="isFieldValid('firstName')"
+                    formControlName="firstName"
+                  />
+                  @if (isFieldValid('firstName')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+                @if (hasError('firstName')) {
+                  <div class="error-text" @fieldError>
+                    {{ getFieldError('firstName') }}
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Apellido</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    class="form-input"
+                    [class.is-error]="hasError('lastName')"
+                    [class.is-valid]="isFieldValid('lastName')"
+                    formControlName="lastName"
+                  />
+                  @if (isFieldValid('lastName')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+                @if (hasError('lastName')) {
+                  <div class="error-text" @fieldError>
+                    {{ getFieldError('lastName') }}
+                  </div>
+                }
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label">Género</label>
+                <div class="radio-group">
+                  @for (gender of genders; track gender) {
+                    <label class="radio-label">
+                      <input
+                        type="radio"
+                        [value]="gender"
+                        formControlName="gender"
+                        class="radio-input"
+                      />
+                      <span class="radio-custom">
+                        @if (form.get('gender')?.value === gender) {
+                          <span class="radio-inner"></span>
+                        }
+                      </span>
+                      <span class="radio-text">
+                        @if (gender === 'Male') {
+                          <i class="bi bi-gender-male"></i>
+                        } @else {
+                          <i class="bi bi-gender-female"></i>
+                        }
+                      </span>
+                    </label>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Info -->
+          <div class="form-section">
+            <h3 class="section-title"><i class="bi bi-envelope"></i> Contacto</h3>
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label">Email</label>
+                <div class="input-wrapper">
+                  <span class="input-icon-left"><i class="bi bi-envelope"></i></span>
+                  <input
+                    type="email"
+                    class="form-input with-icon"
+                    [class.is-error]="hasError('email')"
+                    [class.is-valid]="isFieldValid('email')"
+                    formControlName="email"
+                  />
+                  @if (isFieldValid('email')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+                @if (hasError('email')) {
+                  <div class="error-text" @fieldError>
+                    {{ getFieldError('email') }}
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Teléfono</label>
+                <div class="input-wrapper">
+                  <span class="input-icon-left"><i class="bi bi-telephone"></i></span>
+                  <input
+                    type="tel"
+                    class="form-input with-icon"
+                    [class.is-error]="hasError('phone')"
+                    [class.is-valid]="isFieldValid('phone')"
+                    formControlName="phone"
+                  />
+                  @if (isFieldValid('phone')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+                @if (hasError('phone')) {
+                  <div class="error-text" @fieldError>
+                    {{ getFieldError('phone') }}
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Ciudad</label>
+                <div class="input-wrapper">
+                  <span class="input-icon-left"><i class="bi bi-geo-alt"></i></span>
+                  <input
+                    type="text"
+                    class="form-input with-icon"
+                    [class.is-error]="hasError('city')"
+                    [class.is-valid]="isFieldValid('city')"
+                    formControlName="city"
+                  />
+                  @if (isFieldValid('city')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+                @if (hasError('city')) {
+                  <div class="error-text" @fieldError>
+                    {{ getFieldError('city') }}
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Job Info -->
+          <div class="form-section">
+            <h3 class="section-title"><i class="bi bi-briefcase"></i> Detalles de Trabajo</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Tipo</label>
+                <select
+                  class="form-select"
+                  [class.is-error]="hasError('employee_type')"
+                  [class.is-valid]="isFieldValid('employee_type')"
+                  formControlName="employee_type"
+                >
+                  <option value="">Selecciona</option>
+                  @for (type of employeeTypes; track type) {
+                    <option [value]="type">{{ getEmployeeTypeLabel(type) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Cargo</label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    class="form-input"
+                    [class.is-error]="hasError('jobTitle')"
+                    [class.is-valid]="isFieldValid('jobTitle')"
+                    formControlName="jobTitle"
+                  />
+                  @if (isFieldValid('jobTitle')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Centro</label>
+                <select
+                  class="form-select"
+                  [class.is-error]="hasError('centerId')"
+                  [class.is-valid]="isFieldValid('centerId')"
+                  formControlName="centerId"
+                >
+                  <option value="">Selecciona</option>
+                  @for (center of centers; track center.id) {
+                    <option [ngValue]="center.id">{{ center.centerName }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Tienda</label>
+                <select
+                  class="form-select"
+                  [class.is-error]="hasError('storeId')"
+                  [class.is-valid]="isFieldValid('storeId')"
+                  formControlName="storeId"
+                >
+                  <option value="">Selecciona</option>
+                  @for (store of filteredStores(); track store.id) {
+                    <option [ngValue]="store.id">{{ store.storeName }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="form-section">
+            <h3 class="section-title"><i class="bi bi-shield-lock"></i> Seguridad</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">PIN</label>
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    class="form-input"
+                    [class.is-error]="hasError('pin')"
+                    [class.is-valid]="isFieldValid('pin')"
+                    formControlName="pin"
+                    maxlength="6"
+                  />
+                  @if (isFieldValid('pin')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Contraseña (opcional)</label>
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    class="form-input"
+                    [class.is-error]="hasError('password')"
+                    [class.is-valid]="isFieldValid('password')"
+                    formControlName="password"
+                    placeholder="8+ caracteres, mayúscula, minúscula, número y símbolo"
+                  />
+                  @if (isFieldValid('password')) {
+                    <span class="input-icon success">✓</span>
+                  }
+                </div>
+                @if (hasError('password')) {
+                  <div class="error-text" @fieldError>
+                    {{ getFieldError('password') }}
+                  </div>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Timeout PIN (min)</label>
+                <select
+                  class="form-select"
+                  [class.is-error]="hasError('pinTimeout')"
+                  [class.is-valid]="isFieldValid('pinTimeout')"
+                  formControlName="pinTimeout"
+                >
+                  <option value="">Selecciona</option>
+                  @for (timeout of pinTimeouts; track timeout) {
+                    <option [value]="timeout">{{ timeout }}min</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    class="checkbox-input"
+                    formControlName="isCenterAdmin"
+                  />
+                  <span class="checkbox-custom">
+                    @if (form.get('isCenterAdmin')?.value) {
+                      <span class="checkbox-inner"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+                    }
+                  </span>
+                  <span class="checkbox-text"><i class="bi bi-award"></i> Admin del Centro</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="onCancel()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-primary btn-submit"
+            [disabled]="!canSubmit()"
+          >
+            @if (isSubmitting()) {
+              <span class="spinner"></span>
+              Guardando...
+            } @else {
+              Guardar Cambios
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </form>
+</div>

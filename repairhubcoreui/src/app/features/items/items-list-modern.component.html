@@ -1,0 +1,228 @@
+<div class="items-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <div>
+        <h1><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Gestión de Artículos</h1>
+        <p class="subtitle">{{ filteredItems().length }} artículos encontrados</p>
+      </div>
+      <button class="btn-primary" (click)="createNew()">
+        <span>+</span> Nuevo Artículo
+      </button>
+    </div>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" fill="currentColor"/>
+      </svg>
+      <input
+        type="text"
+        placeholder="Buscar por nombre, SKU o código de barras..."
+        (input)="onSearchChange($event.target.value)"
+      />
+    </div>
+
+    <div class="filter-group">
+      <select (change)="onFilterChange('status', $any($event).target.value)">
+        <option value="all">Todos los estados</option>
+        <option value="active">Activos</option>
+        <option value="inactive">Inactivos</option>
+      </select>
+
+      <select (change)="onFilterChange('center', $any($event).target.value)">
+        <option value="0">Todos los centros</option>
+        <option *ngFor="let center of centers()" [value]="center.id">
+          {{ center.centerName }}
+        </option>
+      </select>
+
+      <select (change)="onFilterChange('store', $any($event).target.value)">
+        <option value="0">Todas las tiendas</option>
+        <option *ngFor="let store of stores()" [value]="store.id">
+          {{ store.storeName }}
+        </option>
+      </select>
+
+      <select (change)="onFilterChange('type', $any($event).target.value)">
+        <option value="0">Todos los tipos</option>
+        <option *ngFor="let type of itemTypes()" [value]="type.id">
+          {{ type.name }}
+        </option>
+      </select>
+
+      <select (change)="onSortChange($any($event).target.value)">
+        <option value="date">Más recientes</option>
+        <option value="product">Nombre (A-Z)</option>
+        <option value="sku">SKU (A-Z)</option>
+        <option value="price">Precio (Mayor)</option>
+        <option value="stock">Stock (Mayor)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (listState().isLoading) {
+    <div class="loading-state">
+      <div class="loader"></div>
+      <p>Cargando artículos...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (listState().error) {
+    <div class="error-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <h3>Error al cargar</h3>
+      <p>{{ listState().error }}</p>
+      <button class="btn-secondary" (click)="retryLoad()">Reintentar</button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (isEmptyState()) {
+    <div class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 2h6m-3 16v3m-8-8h16m-16 0a2 2 0 012-2h12a2 2 0 012 2v6H3v-6z"></path>
+      </svg>
+      <h3>Sin artículos</h3>
+      <p>No hay artículos que coincidan con los filtros seleccionados</p>
+      <button class="btn-primary" (click)="createNew()">Crear primer artículo</button>
+    </div>
+  }
+
+  <!-- Items Grid -->
+  @if (!listState().isLoading && !listState().error && !isEmptyState()) {
+    <div class="items-grid">
+      @for (item of filteredItems(); track item.id) {
+        <div class="item-card" [@fadeInUp]>
+          <div class="card-header">
+            <div class="status-badge" [class]="item.isActive ? 'active' : 'inactive'">
+              {{ item.isActive ? '✓ Activo' : '✗ Inactivo' }}
+            </div>
+            @if (getStockStatus(item) === 'critical') {
+              <div class="stock-badge critical">🔴 Sin stock</div>
+            }
+            @if (getStockStatus(item) === 'low') {
+              <div class="stock-badge low">🟡 Stock bajo</div>
+            }
+          </div>
+
+          <div class="card-content">
+            <h3 class="product-name">{{ item.product }}</h3>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">SKU</span>
+                <span class="value">{{ item.sku }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Código</span>
+                <span class="value">{{ item.barcode || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Centro</span>
+                <span class="value">{{ getCenterName(item.centerid) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Tienda</span>
+                <span class="value">{{ getStoreName(item.storeid) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Tipo</span>
+                <span class="value">{{ getTypeName(item.itemTypeId) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Descripción</span>
+                <span class="value">{{ item.shortTitleDesc || '-' }}</span>
+              </div>
+            </div>
+
+            <!-- Price & Margin -->
+            <div class="price-section">
+              <div class="price-row">
+                <span class="label">Costo</span>
+                <span class="value">{{ formatCurrency(item.cost) }}</span>
+              </div>
+              <div class="price-row">
+                <span class="label">Precio</span>
+                <span class="value amount">{{ formatCurrency(item.price) }}</span>
+              </div>
+              <div class="price-row">
+                <span class="label">Margen</span>
+                <span class="value" [class]="getPriceMargin(item) > 0 ? 'positive' : 'negative'">
+                  {{ getPriceMargin(item).toFixed(1) }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Stock Info -->
+            <div class="stock-section">
+              <div class="stock-item">
+                <span class="label">Stock Actual</span>
+                <span class="value" [class]="getStockStatus(item)">{{ item.stock }}</span>
+              </div>
+              <div class="stock-item">
+                <span class="label">Stock Mínimo</span>
+                <span class="value">{{ item.minimunStock }}</span>
+              </div>
+              <div class="stock-item">
+                <span class="label">Descuento</span>
+                <span class="value">{{ item.discount }}%</span>
+              </div>
+              <div class="stock-item">
+                <span class="label">Garantía</span>
+                <span class="value">{{ item.warranty }} meses</span>
+              </div>
+            </div>
+
+            <!-- Taxable & Warranty -->
+            <div class="features-section">
+              @if (item.taxable) {
+                <span class="feature-badge taxable">Gravable</span>
+              }
+              @if (item.warranty > 0) {
+                <span class="feature-badge warranty">Garantía</span>
+              }
+            </div>
+
+            <!-- Dates -->
+            <div class="dates-info">
+              <small>Creado: {{ item.createdAt | date: 'short' }}</small>
+              <small>Actualizado: {{ item.updatedAt | date: 'short' }}</small>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="card-actions">
+            <button class="action-btn view" (click)="viewItem(item)" title="Ver detalles">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button class="action-btn edit" (click)="editItem(item)" title="Editar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L21 7z"></path>
+              </svg>
+            </button>
+            <!--button class="action-btn delete" (click)="deleteItem(item)" title="Eliminar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button-->
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

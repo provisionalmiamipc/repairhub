@@ -1,0 +1,2 @@
+<div *ngIf="loading">Cargando...</div>
+<app-employees-form *ngIf="employee" [employee]="employee" (save)="onSave($event)"></app-employees-form>

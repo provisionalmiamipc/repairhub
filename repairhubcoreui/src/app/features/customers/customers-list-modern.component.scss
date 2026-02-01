@@ -1,0 +1,389 @@
+@use '../../../scss/_modern-design-system.scss' as *;
+
+.customers-list-container {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// Header
+.list-header {
+  margin-bottom: 2rem;
+  .header-content {
+    @include flex-between;
+    align-items: flex-start;
+    gap: 2rem;
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+  }
+  .page-title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $dark-text-primary;
+    margin: 0 0 0.5rem 0;
+  }
+  .page-subtitle {
+    font-size: $font-size-base;
+    color: $dark-text-secondary;
+    margin: 0;
+  }
+}
+
+.btn-new {
+  @include btn-primary-modern;
+  @include flex-center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  white-space: nowrap;
+  .btn-icon {
+    font-size: 1.25rem;
+  }
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+// Search and Filter
+.search-filter-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  @include glass-effect;
+  border-radius: $radius-lg;
+  padding: 0 1rem;
+  transition: all $transition-base;
+  &:focus-within {
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    border-color: rgba($primary, 0.5);
+  }
+  .search-icon {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    opacity: 0.6;
+  }
+  .search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 0.75rem 0;
+    color: $dark-text-primary;
+    font-size: $font-size-base;
+    outline: none;
+    &::placeholder {
+      color: $dark-text-tertiary;
+    }
+  }
+}
+
+.filter-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  @media (max-width: 768px) {
+    width: 100%;
+    .select-filter {
+      flex: 1;
+    }
+  }
+}
+
+.select-filter {
+  @include glass-effect;
+  padding: 0.75rem 1rem;
+  border-radius: $radius-lg;
+  color: $dark-text-primary;
+  font-size: $font-size-base;
+  cursor: pointer;
+  transition: all $transition-base;
+  border: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f1f5f9' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+  appearance: none;
+  &:hover,
+  &:focus {
+    border-color: rgba($primary, 0.5);
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+  option {
+    background: $dark-bg-secondary;
+    color: $dark-text-primary;
+  }
+}
+
+// Error State
+.error-state {
+  @include glass-effect;
+  padding: 2rem;
+  border-radius: $radius-lg;
+  border-left: 4px solid $danger;
+  margin-bottom: 2rem;
+  .error-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    .error-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    h3 {
+      color: $danger;
+      margin: 0 0 0.5rem 0;
+    }
+    p {
+      color: $dark-text-secondary;
+      margin: 0 0 1rem 0;
+    }
+    .btn-retry {
+      @include btn-secondary-modern;
+    }
+  }
+}
+
+// Loading State
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.skeleton-card {
+  @include glass-effect;
+  padding: 1.5rem;
+  border-radius: $radius-lg;
+  animation: skeleton-loading 2s infinite;
+}
+
+.skeleton {
+  @include skeleton;
+  margin-bottom: 1rem;
+  height: 1rem;
+  &.skeleton-header {
+    height: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  &.skeleton-footer {
+    margin-bottom: 0;
+  }
+}
+
+// Customers Grid
+.customers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+// Empty State
+.empty-state {
+  grid-column: 1 / -1;
+  @include glass-effect;
+  padding: 4rem 2rem;
+  border-radius: $radius-lg;
+  text-align: center;
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  h3 {
+    color: $dark-text-primary;
+    margin: 0 0 0.5rem 0;
+  }
+  p {
+    color: $dark-text-secondary;
+    margin: 0 0 1.5rem 0;
+  }
+  .btn-empty {
+    @include btn-primary-modern;
+  }
+}
+
+// Customer Card
+.customer-card {
+  @include glass-effect;
+  border-radius: $radius-lg;
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, $primary, $secondary);
+    opacity: 0;
+    transition: opacity $transition-base;
+  }
+  &.b2b::before {
+    background: linear-gradient(90deg, $warning, #f97316);
+  }
+  &:hover {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba($primary, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+    &::before {
+      opacity: 1;
+    }
+  }
+}
+
+// Card Header
+.card-header {
+  @include flex-between;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+  gap: 1rem;
+  .customer-type-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, $secondary, $primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: $radius-full;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+  }
+  .card-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+}
+
+.btn-action {
+  @include button-reset;
+  width: 2rem;
+  height: 2rem;
+  border-radius: $radius-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all $transition-base;
+  cursor: pointer;
+  background: rgba($primary, 0.1);
+  &:hover {
+    background: rgba($primary, 0.2);
+    transform: scale(1.1);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+  &.btn-view:hover {
+    background: rgba($info, 0.2);
+  }
+  &.btn-edit:hover {
+    background: rgba($warning, 0.2);
+  }
+  &.btn-delete:hover {
+    background: rgba($danger, 0.2);
+  }
+}
+
+// Customer Info
+.customer-info {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba($primary, 0.1);
+  padding-bottom: 1rem;
+}
+
+.customer-name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $dark-text-primary;
+  margin: 0 0 0.5rem 0;
+  @include truncate;
+}
+
+.customer-code {
+  font-size: $font-size-sm;
+  color: $dark-text-secondary;
+  margin: 0;
+  @include truncate;
+}
+
+// Stats Grid
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  .stat-label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $dark-text-secondary;
+  }
+  .stat-value {
+    font-size: $font-size-sm;
+    color: $dark-text-primary;
+    @include truncate;
+  }
+}
+
+// Card Footer
+.card-footer {
+  border-top: 1px solid rgba($primary, 0.1);
+  padding-top: 1rem;
+  .created-date {
+    font-size: $font-size-sm;
+    color: $dark-text-tertiary;
+  }
+}
+
+// Results Info
+.results-info {
+  text-align: center;
+  color: $dark-text-secondary;
+  font-size: $font-size-sm;
+  padding: 1rem;
+  background: rgba($primary, 0.05);
+  border-radius: $radius-base;
+}
+
+// Animations
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

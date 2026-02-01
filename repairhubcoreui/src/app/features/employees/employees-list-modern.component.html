@@ -1,0 +1,262 @@
+<!-- 🎨 MODERN EMPLOYEES LIST TEMPLATE -->
+<div class="employees-container">
+  <!-- ============================================
+       📊 HEADER SECTION
+       ============================================ -->
+  <div class="list-header">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>Empleados</h1>
+        <p class="subtitle">Gestiona tu equipo de trabajo</p>
+      </div>
+
+      <!-- Estadísticas rápidas -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-value">{{ stats().total }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-card accent-primary">
+          <span class="stat-value">{{ stats().experts }}</span>
+          <span class="stat-label">Expertos</span>
+        </div>
+        <div class="stat-card accent-info">
+          <span class="stat-value">{{ stats().accountants }}</span>
+          <span class="stat-label">Contadores</span>
+        </div>
+        <div class="stat-card accent-warning">
+          <span class="stat-value">{{ stats().admins }}</span>
+          <span class="stat-label">Admins</span>
+        </div>
+        <div class="stat-card accent-secondary">
+          <span class="stat-value">{{ stats().centerAdmins }}</span>
+          <span class="stat-label">Admins Centro</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="header-actions">
+      <button class="btn-primary btn-lg" (click)="onCreateNew()">
+        <span class="btn-icon"><i class="bi bi-plus"></i></span>
+        Nuevo Empleado
+      </button>
+    </div>
+  </div>
+
+    <!-- ============================================
+      SEARCH & FILTER BAR
+      ============================================ -->
+  <div class="search-filter-bar">
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Busca por nombre, email o código..."
+        [value]="searchQuery()"
+        (input)="updateSearch($event.target.value)"
+      />
+      <span class="search-icon"><i class="bi bi-search"></i></span>
+      @if (searchQuery()) {
+        <button class="btn-clear" (click)="clearSearch()" aria-label="Limpiar búsqueda">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-group">
+      <div class="filter-chip">
+        <label>Tipo:</label>
+        <select (change)="onFilterByEmployeeType($event)">
+          <option value="">Todos</option>
+          <option value="Expert">Experto</option>
+          <option value="Accountant">Contador</option>
+          <option value="AdminStore">Admin Tienda</option>
+        </select>
+      </div>
+
+      <div class="filter-chip">
+        <label>Centro Admin:</label>
+        <select (change)="onFilterByCenterAdmin($event)">
+          <option value="">Todos</option>
+          <option value="true">Sí</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+
+      @if (searchQuery() || state().selectedFilters.employeeType || state().selectedFilters.isCenterAdmin !== undefined) {
+        <button class="btn-reset-filters" (click)="resetFilters()">
+          <i class="bi bi-arrow-clockwise"></i>
+          Resetear
+        </button>
+      }
+    </div>
+
+    <button class="btn-refresh" (click)="onRefresh()" [disabled]="loading()">
+      @if (loading()) {
+        <span class="spinner"></span>
+      } @else {
+        <i class="bi bi-arrow-clockwise"></i>
+      }
+    </button>
+  </div>
+
+    <!-- ============================================
+      ERROR STATE
+      ============================================ -->
+  @if (hasError()) {
+    <div class="error-state" @cardEnter>
+      <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <h3>Error</h3>
+      <p>{{ error() }}</p>
+      <button class="btn-secondary" (click)="onRefresh()">Reintentar</button>
+    </div>
+  }
+
+  <!-- ============================================
+       ⌛ LOADING STATE
+       ============================================ -->
+  @if (loading() && items().length === 0) {
+    <div class="skeleton-grid">
+      @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+        <div class="skeleton-card" @cardEnter>
+          <div class="skeleton-header"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+          <div class="skeleton-footer"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================
+       📭 EMPTY STATE
+       ============================================ -->
+  @if (isEmpty()) {
+    <div class="empty-state" @cardEnter>
+      <div class="empty-icon"><i class="bi bi-people"></i></div>
+      <h3>No hay empleados</h3>
+      <p>Comienza creando tu primer empleado para ver la lista aquí.</p>
+      <button class="btn-primary" (click)="onCreateNew()">
+        <span class="btn-icon"><i class="bi bi-plus"></i></span>
+        Crear Empleado
+      </button>
+    </div>
+  }
+
+  <!-- ============================================
+       🎯 MAIN CONTENT - BENTO GRID CARDS
+       ============================================ -->
+  @if (!isEmpty() && !loading() && !hasError()) {
+    <div class="employees-grid" @listStagger>
+      @for (employee of filteredItems(); track employee.id; let idx = $index) {
+        <div class="employee-card" @cardEnter [style]="'animation-delay: ' + (idx * 50) + 'ms'">
+          <!-- Card Header with Avatar -->
+          <div class="card-header">
+            <div class="avatar" [class]="'avatar-' + getEmployeeTypeColor(employee.employee_type)">
+              {{ employee.firstName.charAt(0) }}{{ employee.lastName.charAt(0) }}
+            </div>
+            <div class="header-info">
+              <h3 class="employee-name">{{ getFullName(employee) }}</h3>
+              <span class="employee-code">{{ employee.employeeCode }}</span>
+            </div>
+            @if (employee.isCenterAdmin) {
+              <div class="badge-admin"><i class="bi bi-award"></i> Centro Admin</div>
+            }
+          </div>
+
+          <!-- Card Body - Main Info -->
+          <div class="card-body">
+            <div class="info-group">
+              <label class="info-label">Tipo</label>
+              <div class="badge" [class]="'badge-' + getEmployeeTypeColor(employee.employee_type)">
+                {{ getEmployeeTypeLabel(employee.employee_type) }}
+              </div>
+            </div>
+
+            <div class="info-group">
+              <label class="info-label">Email</label>
+              <a href="mailto:{{ employee.email }}" class="info-value email-link">
+                {{ employee.email }}
+              </a>
+            </div>
+
+            <div class="info-row">
+              <div class="info-group half">
+                <label class="info-label">Teléfono</label>
+                <p class="info-value">{{ employee.phone }}</p>
+              </div>
+              <div class="info-group half">
+                <label class="info-label">Género</label>
+                <p class="info-value">
+                  @if (employee.gender === 'Male') {
+                    <i class="bi bi-gender-male"></i>
+                  } @else {
+                    <i class="bi bi-gender-female"></i>
+                  }
+                </p>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-group half">
+                <label class="info-label">Cargo</label>
+                <p class="info-value">{{ employee.jobTitle }}</p>
+              </div>
+              <div class="info-group half">
+                <label class="info-label">Ciudad</label>
+                <p class="info-value">{{ employee.city }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Footer - Actions -->
+          <div class="card-footer">
+            <button 
+              class="btn-action btn-view"
+              (click)="onSelect(employee)"
+              title="Ver detalles"
+            >
+              <span class="btn-icon"><i class="bi bi-eye"></i></span>
+              Ver
+            </button>
+            <button 
+              class="btn-action btn-edit"
+              (click)="onEdit(employee, $event)"
+              title="Editar"
+            >
+              <span class="btn-icon"><i class="bi bi-pencil"></i></span>
+              Editar
+            </button>
+            <!--button 
+              class="btn-action btn-delete"
+              (click)="onDelete(employee, $event)"
+              title="Eliminar"
+            >
+              <span class="btn-icon">🗑️</span>
+              Eliminar
+            </button-->
+          </div>
+
+          <!-- Metadata -->
+          <div class="card-metadata">
+            <small>Creado: {{ employee.createdAt | date: 'short' }}</small>
+            @if (employee.updatedAt) {
+              <small>Actualizado: {{ employee.updatedAt | date: 'short' }}</small>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Contador de resultados filtrados -->
+    @if (filteredItems().length !== items().length) {
+      <div class="results-info">
+        Mostrando {{ filteredItems().length }} de {{ items().length }} empleados
+      </div>
+    }
+  }
+</div>
