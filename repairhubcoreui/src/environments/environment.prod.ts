@@ -17,9 +17,9 @@ export const environment = {
   production: true,
 
   /**
-   * URL base del API backend (CAMBIAR SEGÚN PRODUCCIÓN)
+   * URL base del API backend (Railway)
    */
-  apiUrl: 'https://api.repairhub.com',
+  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app/api',
 
   /**
    * Versión del API
