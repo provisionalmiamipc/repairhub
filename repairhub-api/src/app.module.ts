@@ -42,11 +42,15 @@ import { AuthModule } from './auth/auth.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE'),
+        ...(configService.get('DATABASE_URL')
+          ? { url: configService.get('DATABASE_URL') }
+          : {
+              host: configService.get('DB_HOST'),
+              port: Number(configService.get('DB_PORT') ?? 5432),
+              username: configService.get('DB_USERNAME'),
+              password: configService.get('DB_PASSWORD'),
+              database: configService.get('DB_DATABASE') ?? configService.get('DB_NAME'),
+            }),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
         logging: configService.get('DB_LOGGING') === 'true',
@@ -85,15 +89,23 @@ export class AppModule implements OnModuleInit{
 
   private async createAdminUser() {
     // El mismo código del script anterior aquí
-    const dataSource = new DataSource({
-        type: 'postgres',
-        host: process.env.DB_HOST,
-        port: parseInt(process.env.DB_PORT || '5432'),
-        username: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_DATABASE,
-        entities: [User],
-      });
+    const dataSource = new DataSource(
+      process.env.DATABASE_URL
+        ? {
+            type: 'postgres',
+            url: process.env.DATABASE_URL,
+            entities: [User],
+          }
+        : {
+            type: 'postgres',
+            host: process.env.DB_HOST,
+            port: parseInt(process.env.DB_PORT || '5432'),
+            username: process.env.DB_USERNAME,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_DATABASE ?? process.env.DB_NAME,
+            entities: [User],
+          },
+    );
     
       await dataSource.initialize();
     
