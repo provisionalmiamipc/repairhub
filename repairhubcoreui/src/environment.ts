@@ -1,7 +1,7 @@
 // src/environments/environment.ts (Desarrollo)
 export const environment = {
   production: false,
-  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app/api',
+  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app',
   apiVersion: 'v1',
   appName: 'RepairHub',
   appVersion: '1.0.0',
