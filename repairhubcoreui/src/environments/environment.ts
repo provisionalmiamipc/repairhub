@@ -17,9 +17,9 @@ export const environment = {
   production: false,
 
   /**
-   * URL base del API backend
+   * URL base del API backend (para desarrollo, apunta a Railway)
    */
-  apiUrl: 'http://localhost:3000',
+  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app/api',
 
   /**
    * Versión del API
