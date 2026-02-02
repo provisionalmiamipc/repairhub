@@ -15,24 +15,24 @@ import {
 import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { MockApiInterceptor } from './mock-api.interceptor';
 import { environment } from '../../../environments/environment';
-import {
-  MOCK_USERS,
-  MOCK_CUSTOMERS,
-  MOCK_EMPLOYEES,
-  MOCK_ORDERS,
-  MOCK_DEVICES,
-  MOCK_ITEMS,
-  MOCK_PAYMENT_TYPES,
-  MOCK_DEVICE_BRANDS,
-  MOCK_REPAIR_STATUS,
-  MOCK_SERVICE_ORDERS,
-  MOCK_DATABASE,
-  getMockData,
-  getMockDataById,
-  createMockData,
-  updateMockData,
-  deleteMockData,
-} from '../data/mock-data';
+
+// Mock data stubs - no se importan del archivo inexistente en producción
+const MOCK_USERS = [];
+const MOCK_CUSTOMERS = [];
+const MOCK_EMPLOYEES = [];
+const MOCK_ORDERS = [];
+const MOCK_DEVICES = [];
+const MOCK_ITEMS = [];
+const MOCK_PAYMENT_TYPES = [];
+const MOCK_DEVICE_BRANDS = [];
+const MOCK_REPAIR_STATUS = [];
+const MOCK_SERVICE_ORDERS = [];
+const MOCK_DATABASE = {};
+const getMockData = () => ({});
+const getMockDataById = () => ({});
+const createMockData = () => ({});
+const updateMockData = () => ({});
+const deleteMockData = () => ({});
 
 describe('MockApiInterceptor', () => {
   let httpClient: HttpClient;
