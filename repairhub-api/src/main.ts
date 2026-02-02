@@ -32,6 +32,11 @@ async function bootstrap() {
 
   const corsOptions = {
     origin: (origin: string, callback: Function) => {
+      // Permitir cualquier dominio *.vercel.app en producción
+      if (origin && origin.includes('.vercel.app')) {
+        return callback(null, true);
+      }
+      
       const allowedOrigins = getCorsOrigins();
       
       // ✅ Permitir requests sin origen (mobile apps, curl, postman, etc.)
