@@ -2,7 +2,7 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CentersModule } from './centers/centers.module';
 import { CustomersModule } from './customers/customers.module';
@@ -40,22 +40,34 @@ import { AuthModule } from './auth/auth.module';
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        ...(configService.get('DATABASE_URL')
-          ? { url: configService.get('DATABASE_URL') }
-          : {
-              host: configService.get('DB_HOST'),
-              port: Number(configService.get('DB_PORT') ?? 5432),
-              username: configService.get('DB_USERNAME'),
-              password: configService.get('DB_PASSWORD'),
-              database: configService.get('DB_DATABASE') ?? configService.get('DB_NAME'),
-            }),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
-        logging: configService.get('DB_LOGGING') === 'true',
-        autoLoadEntities: true, // ← Importante para cargar entidades automáticamente
-      }),
+      useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        const baseOptions: TypeOrmModuleOptions = {
+          type: 'postgres',
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
+          logging: configService.get('DB_LOGGING') === 'true',
+          autoLoadEntities: true, // ← Importante para cargar entidades automáticamente
+        };
+
+        if (databaseUrl) {
+          return {
+            ...baseOptions,
+            url: databaseUrl,
+          };
+        }
+
+        return {
+          ...baseOptions,
+          host: configService.get<string>('DB_HOST'),
+          port: Number(configService.get('DB_PORT') ?? 5432),
+          username: configService.get<string>('DB_USERNAME'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database:
+            configService.get<string>('DB_DATABASE') ??
+            configService.get<string>('DB_NAME'),
+        };
+      },
       inject: [ConfigService],
       
     }),
