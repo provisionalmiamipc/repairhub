@@ -17,7 +17,8 @@ async function bootstrap() {
   const getCorsOrigins = () => {
     if (nodeEnv === 'production') {
       return [
-        'https://tudominio.com'
+        'https://repairhubcoreui.vercel.app',
+        'https://repairhubcoreui-c46up6hld-alejandros-projects-ca53de42.vercel.app'
       ];
     } else {
       return [
