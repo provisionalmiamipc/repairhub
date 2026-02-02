@@ -140,16 +140,19 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
-  const port = process.env.PORT ?? 3000;
+  const port = parseInt(process.env.PORT || '3000', 10);
+  const host = process.env.HOST || '0.0.0.0';
+  
+  await app.listen(port, host);
+  
   console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║                   RepairHub API - INICIADO                    ║
 ╠════════════════════════════════════════════════════════════════╣
 ║                                                                ║
-║  🌐 API:          http://localhost:${port}/api                    ║
-║  📚 Swagger Docs: http://localhost:${port}/docs                   ║
-║  🏥 Health:       http://localhost:${port}/api/health             ║
+║  🌐 API:          http://${host}:${port}/api                      ║
+║  📚 Swagger Docs: http://${host}:${port}/docs                     ║
+║  🏥 Health:       http://${host}:${port}/api/health               ║
 ║                                                                ║
 ║  Env: ${nodeEnv}                                                    ║
 ║  Port: ${port}                                                      ║
