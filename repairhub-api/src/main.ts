@@ -1,10 +1,13 @@
 import { NestFactory } from '@nestjs/core';
+import crypto from 'crypto';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
+  // Asegurar crypto global para dependencias que lo usan directamente
+  (global as any).crypto = crypto;
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
