@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build -- --configuration production",
+  "buildCommand": "ng build --configuration production",
   "outputDirectory": "dist/repairhubcoreui/browser",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
