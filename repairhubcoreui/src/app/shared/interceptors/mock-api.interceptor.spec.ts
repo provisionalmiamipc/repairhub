@@ -28,11 +28,11 @@ const MOCK_DEVICE_BRANDS = [];
 const MOCK_REPAIR_STATUS = [];
 const MOCK_SERVICE_ORDERS = [];
 const MOCK_DATABASE = {};
-const getMockData = () => ({});
-const getMockDataById = () => ({});
-const createMockData = () => ({});
-const updateMockData = () => ({});
-const deleteMockData = () => ({});
+const getMockData = (endpoint?: string) => [];
+const getMockDataById = (endpoint?: string, id?: any) => ({});
+const createMockData = (endpoint?: string, body?: any) => ({ id: Math.random() });
+const updateMockData = (endpoint?: string, id?: any, body?: any) => body || {};
+const deleteMockData = (endpoint?: string, id?: any) => ({ success: true });
 
 describe('MockApiInterceptor', () => {
   let httpClient: HttpClient;

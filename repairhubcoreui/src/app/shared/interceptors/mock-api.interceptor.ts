@@ -21,12 +21,12 @@ import { Observable, of, throwError } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
-// Mock data functions - solo se usan si mockApi está habilitado
-const getMockData = () => ({});
-const getMockDataById = () => ({});
-const createMockData = () => ({});
-const updateMockData = () => ({});
-const deleteMockData = () => ({});
+// Mock data functions - solo se usan si mockApi está habilitado en environment
+const getMockData = (endpoint?: string) => [];
+const getMockDataById = (endpoint?: string, id?: any) => ({});
+const createMockData = (endpoint?: string, body?: any) => ({ id: Math.random() });
+const updateMockData = (endpoint?: string, id?: any, body?: any) => body || {};
+const deleteMockData = (endpoint?: string, id?: any) => ({ success: true });
 
 @Injectable()
 export class MockApiInterceptor implements HttpInterceptor {
