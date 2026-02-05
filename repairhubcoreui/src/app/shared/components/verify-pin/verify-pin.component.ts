@@ -63,4 +63,10 @@ export class VerifyPinComponent {
       this.verifyPin();
     }
   }
+
+  onLogout(): void {
+    // Desloguear y redirigir a login
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }

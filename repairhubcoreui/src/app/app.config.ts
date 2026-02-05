@@ -24,7 +24,6 @@ import { jwtInterceptor } from './shared/interceptors/jwt.interceptor';
 import { timeoutInterceptor } from './shared/interceptors/timeout.interceptor';
 
 // Class-based Interceptors
-import { MockApiInterceptor } from './shared/interceptors/mock-api.interceptor';
 import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 
 export const appConfig: ApplicationConfig = {
@@ -58,15 +57,6 @@ export const appConfig: ApplicationConfig = {
         errorInterceptor,      // 5. Manejo centralizado de errores HTTP
         loadingInterceptor     // 6. Indicador de carga global (existente)
       ]),
-    ),
-    // Class-based Interceptors: MockApi SOLO en desarrollo
-    ...(!environment.production && environment.features.mockApi
-      ? [{
-          provide: HTTP_INTERCEPTORS,
-          useClass: MockApiInterceptor,
-          multi: true
-        }]
-      : []
     ),
     // Global Error Handler
     {

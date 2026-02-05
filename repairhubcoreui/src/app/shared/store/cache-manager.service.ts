@@ -50,7 +50,7 @@ export class CacheManagerService {
   constructor() {
     this.enabled = environment.cache?.enabled ?? true;
     this.debug = environment.cache?.debug ?? false;
-    this.defaultTTL = environment.cache?.defaultTtl ?? 5 * 60 * 1000; // 5 minutos por defecto
+    this.defaultTTL = environment.cache?.defaultTTL ?? 5 * 60 * 1000; // 5 minutos por defecto
 
     if (this.debug) {
       console.log('[CacheManager] Inicializado', {

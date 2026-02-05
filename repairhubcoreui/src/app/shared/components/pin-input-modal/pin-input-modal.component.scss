@@ -16,7 +16,7 @@
 
 .pin-modal-container {
   position: relative;
-  background: white;
+  background: var(--cui-body-bg);
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   width: 100%;
@@ -41,8 +41,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: 1px solid var(--cui-border-color);
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
   border-radius: 12px 12px 0 0;
 }
@@ -87,10 +87,10 @@
 .pin-modal-welcome {
   margin: 0 0 12px 0;
   font-size: 16px;
-  color: #333;
+  color: var(--cui-body-color);
   
   strong {
-    color: #667eea;
+    color: var(--cui-primary);
     font-weight: 600;
   }
 }
@@ -98,7 +98,8 @@
 .pin-modal-description {
   margin: 0 0 24px 0;
   font-size: 14px;
-  color: #666;
+  color: var(--cui-body-color);
+  opacity: 0.8;
   line-height: 1.5;
 }
 
@@ -113,14 +114,16 @@
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--cui-body-color);
 }
 
 .pin-input {
   width: 100%;
   padding: 12px 16px;
   font-size: 16px;
-  border: 2px solid #e0e0e0;
+  background: var(--cui-input-bg);
+  color: var(--cui-body-color);
+  border: 2px solid var(--cui-border-color);
   border-radius: 8px;
   transition: all 0.3s ease;
   font-family: 'Courier New', monospace;
@@ -129,18 +132,18 @@
 
   &:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: var(--cui-primary);
+    box-shadow: 0 0 0 3px var(--cui-primary-bg-subtle);
   }
 
   &:disabled {
-    background-color: #f5f5f5;
+    background-color: var(--cui-secondary-bg);
     cursor: not-allowed;
     opacity: 0.6;
   }
 
   &.error {
-    border-color: #ff6b6b;
+    border-color: var(--cui-danger);
   }
 }
 
@@ -148,7 +151,7 @@
 .pin-error {
   display: block;
   font-size: 12px;
-  color: #ff6b6b;
+  color: var(--cui-danger);
   margin-top: 6px;
   font-weight: 500;
 }
@@ -158,8 +161,8 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background-color: #fff5f5;
-  border: 1px solid #ff6b6b;
+  background-color: var(--cui-danger-bg-subtle);
+  border: 1px solid var(--cui-danger);
   border-radius: 8px;
   margin-bottom: 16px;
   animation: shake 0.3s ease-in-out;
@@ -177,14 +180,14 @@
 
 .pin-error-text {
   font-size: 13px;
-  color: #ff6b6b;
+  color: var(--cui-danger);
   font-weight: 500;
 }
 
 // Attempt Counter
 .pin-attempt-counter {
   font-size: 12px;
-  color: #ff9800;
+  color: var(--cui-warning);
   text-align: center;
   margin-bottom: 12px;
   font-weight: 500;
@@ -223,12 +226,12 @@
 }
 
 .pin-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   }
 
   &:active:not(:disabled) {
@@ -237,12 +240,12 @@
 }
 
 .pin-btn-cancel {
-  background-color: #f5f5f5;
-  color: #333;
-  border: 1px solid #e0e0e0;
+  background-color: var(--cui-secondary-bg);
+  color: var(--cui-body-color);
+  border: 1px solid var(--cui-border-color);
 
   &:hover:not(:disabled) {
-    background-color: #eeeeee;
+    background-color: var(--cui-tertiary-bg);
   }
 }
 
@@ -250,12 +253,13 @@
 .pin-help-text {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--cui-border-color);
 
   p {
     margin: 0;
     font-size: 12px;
-    color: #999;
+    color: var(--cui-body-color);
+    opacity: 0.6;
     text-align: center;
     line-height: 1.4;
   }
@@ -268,7 +272,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: var(--cui-body-bg);
+  opacity: 0.9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -279,8 +284,8 @@
 .pin-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #f0f0f0;
-  border-top-color: #667eea;
+  border: 3px solid var(--cui-border-color);
+  border-top-color: var(--cui-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

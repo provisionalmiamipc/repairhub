@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { Items } from '../../shared/models/Items';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
@@ -11,6 +12,7 @@ import { ItemsService } from '../../shared/services/items.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { ItemTypesService } from '../../shared/services/item-types.service';
+import { AuthService } from '../../shared/services/auth.service';
 
 interface FormState {
   isLoading: boolean;
@@ -25,7 +27,15 @@ interface FormState {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './items-form-modern.component.html',
-  styleUrl: './items-form-modern.component.scss',
+  //styleUrl: './items-form-modern.component.scss',
+  animations: [
+    trigger('slideInFrom', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX(-30px)' }),
+        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', style({ opacity: 1, transform: 'translateX(0)' }))
+      ])
+    ])
+  ]
 })
 export class ItemsFormModernComponent implements OnInit, OnDestroy {
   private itemsService = inject(ItemsService);
@@ -35,6 +45,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
+  private authService = inject(AuthService);
 
   // State signals
   readonly formState = signal<FormState>({
@@ -48,6 +59,24 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
   readonly centers = signal<Centers[]>([]);
   readonly stores = signal<Stores[]>([]);
   readonly itemTypes = signal<ItemTypes[]>([]);
+  readonly showItemTypeModal = signal(false);
+  readonly isCreatingItemType = signal(false);
+  readonly itemTypeError = signal<string | null>(null);
+
+  // RBAC signals
+  readonly currentUserType = signal<'user' | 'employee' | null>(null);
+  readonly currentEmployee = computed(() => this.authService.getCurrentEmployee());
+  readonly isCenterAdmin = computed(() => this.currentEmployee()?.isCenterAdmin ?? false);
+  readonly employeeCenterId = computed(() => this.currentEmployee()?.centerId ?? null);
+  readonly employeeStoreId = computed(() => this.currentEmployee()?.storeId ?? null);
+
+  readonly showCenterAndStoreFields = computed(() => this.currentUserType() === 'user');
+  readonly showOnlyStoreField = computed(() =>
+    this.currentUserType() === 'employee' && this.isCenterAdmin()
+  );
+  readonly hideLocationFields = computed(() =>
+    this.currentUserType() === 'employee' && !this.isCenterAdmin()
+  );
 
   private destroy$ = new Subject<void>();
   private costChangeSubject = new Subject<void>();
@@ -60,13 +89,14 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
 
   // Form definitions
   itemForm: FormGroup;
+  itemTypeForm: FormGroup;
   currentItemId: number | null = null;
 
   constructor() {
     this.itemForm = this.fb.group({
       // Step 0: Center & Store & Type
-      centerId: [null, Validators.required],
-      storeId: [null, Validators.required],
+      centerId: [null],
+      storeId: [null],
       itemTypeId: [null, Validators.required],
 
       // Step 1: Basic Info & Prices & Stock
@@ -85,11 +115,28 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       specs: [''],
       image: [''],
     });
+
+    this.itemTypeForm = this.fb.group({
+      name: ['', Validators.required],
+      description: [''],
+      isActive: [true],
+    });
   }
 
   ngOnInit() {
+    this.initializeUserType();
     this.loadData();
     this.setupFormListeners();
+    this.applyUserTypeRules();
+
+    this.authService.employee$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(employee => {
+        if (employee) {
+          this.currentUserType.set('employee');
+          this.applyUserTypeRules();
+        }
+      });
 
     // Check if edit mode
     this.activatedRoute.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -123,6 +170,62 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       });
   }
 
+  private initializeUserType(): void {
+    const userType = this.authService.getUserType();
+    if (userType) {
+      this.currentUserType.set(userType as 'user' | 'employee');
+      return;
+    }
+
+    if (this.authService.getCurrentEmployee()) {
+      this.currentUserType.set('employee');
+      return;
+    }
+
+    this.currentUserType.set('user');
+  }
+
+  private applyUserTypeRules(): void {
+    const isUserType = this.currentUserType() === 'user';
+    const isEmployee = this.currentUserType() === 'employee';
+    const isAdminCenterEmployee = isEmployee && this.isCenterAdmin();
+
+    const centerControl = this.itemForm.get('centerId');
+    const storeControl = this.itemForm.get('storeId');
+
+    if (isUserType) {
+      centerControl?.setValidators([Validators.required]);
+      storeControl?.setValidators([Validators.required]);
+    } else if (isAdminCenterEmployee) {
+      centerControl?.clearValidators();
+      storeControl?.setValidators([Validators.required]);
+
+      const empCenterId = this.employeeCenterId();
+      const empStoreId = this.employeeStoreId();
+      if (empCenterId) {
+        centerControl?.setValue(empCenterId, { emitEvent: false });
+      }
+      if (empStoreId) {
+        storeControl?.setValue(empStoreId, { emitEvent: false });
+      }
+    } else if (isEmployee) {
+      centerControl?.clearValidators();
+      storeControl?.clearValidators();
+
+      const empCenterId = this.employeeCenterId();
+      const empStoreId = this.employeeStoreId();
+      if (empCenterId) {
+        centerControl?.setValue(empCenterId, { emitEvent: false });
+      }
+      if (empStoreId) {
+        storeControl?.setValue(empStoreId, { emitEvent: false });
+      }
+    }
+
+    centerControl?.updateValueAndValidity({ emitEvent: false });
+    storeControl?.updateValueAndValidity({ emitEvent: false });
+  }
+
   private loadItem(id: number) {
     this.itemsService.getById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (item) => {
@@ -147,6 +250,8 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
           specs: item.specs ? JSON.stringify(item.specs) : '',
           image: item.image,
         });
+
+        this.applyUserTypeRulesForEdit();
       },
       error: (err) => {
         this.formState.update(s => ({ ...s, error: 'Error al cargar el artículo' }));
@@ -155,10 +260,38 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
   }
 
   private setupFormListeners() {
-    // Listen for center changes to clear store
+    // Listen for center changes to clear store (solo USER)
     this.itemForm.get('centerId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.itemForm.get('storeId')?.setValue(null);
+      if (this.showCenterAndStoreFields()) {
+        this.itemForm.get('storeId')?.setValue(null);
+      }
     });
+  }
+
+  private applyUserTypeRulesForEdit(): void {
+    if (this.currentUserType() !== 'employee') {
+      return;
+    }
+
+    const centerControl = this.itemForm.get('centerId');
+    const storeControl = this.itemForm.get('storeId');
+
+    const empCenterId = this.employeeCenterId();
+    const empStoreId = this.employeeStoreId();
+
+    if (empCenterId) {
+      centerControl?.setValue(empCenterId, { emitEvent: false });
+    }
+
+    if (this.showOnlyStoreField()) {
+      if (empStoreId) {
+        storeControl?.setValue(empStoreId, { emitEvent: false });
+      }
+    } else {
+      if (empStoreId) {
+        storeControl?.setValue(empStoreId, { emitEvent: false });
+      }
+    }
   }
 
   get filteredStores() {
@@ -175,10 +308,21 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
     const controls = this.itemForm.controls;
 
     if (this.currentStep() === 0) {
-      return controls['centerId'].valid && controls['storeId'].valid && controls['itemTypeId'].valid;
+      if (this.showCenterAndStoreFields()) {
+        return controls['centerId'].valid && controls['storeId'].valid;
+      }
+      if (this.showOnlyStoreField()) {
+        return controls['storeId'].valid;
+      }
+      return true;
     }
     if (this.currentStep() === 1) {
-      return controls['product'].valid && controls['sku'].valid && controls['price'].valid && controls['cost'].valid && controls['stock'].valid;
+      return controls['itemTypeId'].valid
+        && controls['product'].valid
+        && controls['sku'].valid
+        && controls['price'].valid
+        && controls['cost'].valid
+        && controls['stock'].valid;
     }
 
     return true;
@@ -205,10 +349,63 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
     this.formState.update(s => ({ ...s, isSaving: true, error: null }));
 
     const formValue = this.itemForm.value;
-    const payload: Partial<Items> = {
+    const centerId = this.currentUserType() === 'employee'
+      ? (this.employeeCenterId() ?? formValue.centerId)
+      : formValue.centerId;
+    const storeId = this.currentUserType() === 'employee'
+      ? (this.employeeStoreId() ?? formValue.storeId)
+      : formValue.storeId;
+
+    if (centerId == null || storeId == null) {
+      this.formState.update(s => ({ ...s, error: 'Selecciona centro y tienda antes de guardar.', isSaving: false }));
+      return;
+    }
+
+    let parsedSpecs: object = {};
+    if (formValue.specs) {
+      try {
+        parsedSpecs = JSON.parse(formValue.specs);
+      } catch {
+        this.formState.update(s => ({ ...s, error: 'Las especificaciones no tienen un JSON válido.', isSaving: false }));
+        return;
+      }
+    }
+
+    const payload: Partial<Items> & {
+      centerId: number;
+      storeId: number;
+      itemTypeId: number | null;
+    } = {
       ...formValue,
-      specs: formValue.specs ? JSON.parse(formValue.specs) : {},
+      centerId: Number(centerId),
+      storeId: Number(storeId),
+      itemTypeId: formValue.itemTypeId != null ? Number(formValue.itemTypeId) : null,
+      price: Number(formValue.price),
+      cost: Number(formValue.cost),
+      stock: Number(formValue.stock),
+      minimunStock: Number(formValue.minimunStock),
+      discount: Number(formValue.discount ?? 0),
+      warranty: Number(formValue.warranty ?? 0),
+      taxable: !!formValue.taxable,
+      isActive: !!formValue.isActive,
+      specs: parsedSpecs,
     };
+
+    // Aplicar RBAC para empleados
+    if (this.currentUserType() === 'employee') {
+      const empCenterId = this.employeeCenterId();
+      const empStoreId = this.employeeStoreId();
+
+      if (empCenterId != null) {
+        payload.centerId = Number(empCenterId);
+      }
+
+      if (this.showOnlyStoreField()) {
+        payload.storeId = payload.storeId || Number(empStoreId);
+      } else {
+        payload.storeId = Number(empStoreId);
+      }
+    }
 
     const request = this.isEditMode() && this.currentItemId
       ? this.itemsService.update(this.currentItemId, payload)
@@ -222,7 +419,8 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
         }, 1500);
       },
       error: (err) => {
-        this.formState.update(s => ({ ...s, error: err.message, isSaving: false }));
+        const apiMessage = this.getApiErrorMessage(err);
+        this.formState.update(s => ({ ...s, error: apiMessage ?? 'Error al guardar el artículo', isSaving: false }));
       }
     });
   }
@@ -232,6 +430,66 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       return;
     }
     this.router.navigate(['/items']);
+  }
+
+  openItemTypeModal(): void {
+    this.itemTypeError.set(null);
+    this.itemTypeForm.reset({ name: '', description: '', isActive: true });
+    this.showItemTypeModal.set(true);
+  }
+
+  closeItemTypeModal(): void {
+    if (this.isCreatingItemType()) {
+      return;
+    }
+    this.showItemTypeModal.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapePress(): void {
+    if (this.showItemTypeModal()) {
+      this.closeItemTypeModal();
+    }
+  }
+
+  createItemType(): void {
+    if (this.itemTypeForm.invalid) {
+      this.itemTypeForm.markAllAsTouched();
+      return;
+    }
+
+    const centerId = this.itemForm.get('centerId')?.value ?? this.employeeCenterId();
+    const storeId = this.itemForm.get('storeId')?.value ?? this.employeeStoreId();
+
+    if (centerId == null || storeId == null) {
+      this.itemTypeError.set('Selecciona centro y tienda antes de crear el tipo.');
+      return;
+    }
+
+    this.isCreatingItemType.set(true);
+    this.itemTypeError.set(null);
+
+    const payload = {
+      ...this.itemTypeForm.value,
+      centerId: Number(centerId),
+      storeId: Number(storeId),
+    };
+    this.itemTypesService.create(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (created) => {
+          const updated = [...this.itemTypes(), created].sort((a, b) => a.name.localeCompare(b.name));
+          this.itemTypes.set(updated);
+          this.itemForm.get('itemTypeId')?.setValue(created.id);
+          this.showItemTypeModal.set(false);
+          this.itemTypeForm.reset({ name: '', description: '', isActive: true });
+          this.isCreatingItemType.set(false);
+        },
+        error: (err) => {
+          this.itemTypeError.set(this.getApiErrorMessage(err) ?? 'Error al crear el tipo de artículo');
+          this.isCreatingItemType.set(false);
+        }
+      });
   }
 
   getFieldError(fieldName: string): string | null {
@@ -255,5 +513,16 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
 
   getProgressPercentage(): number {
     return ((this.currentStep() + 1) / 2) * 100;
+  }
+
+  private getApiErrorMessage(err: any): string | null {
+    const message = err?.error?.message ?? err?.message;
+    if (Array.isArray(message)) {
+      return message.join(' | ');
+    }
+    if (typeof message === 'string') {
+      return message;
+    }
+    return null;
   }
 }

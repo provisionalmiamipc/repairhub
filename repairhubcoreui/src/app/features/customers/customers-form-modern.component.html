@@ -69,42 +69,76 @@
       <!-- Step 0: Centro y Tienda -->
       @if (currentStep() === 0) {
       <div class="form-step" @fadeInUp>
-        <div class="form-group">
-          <label for="centerId" class="form-label">Centro *</label>
-          <select
-            id="centerId"
-            formControlName="centerId"
-            class="form-control"
-            [class.is-invalid]="isFieldInvalid('centerId')"
-          >
-            <option value="">Selecciona un centro</option>
-            @for (center of centers(); track center.id) {
-            <option [value]="center.id">{{ center.centerName }}</option>
+        
+        <!-- Para USERs: Mostrar centerId y storeId -->
+        @if (showCenterAndStoreFields()) {
+          <div class="form-group">
+            <label for="centerId" class="form-label">Centro *</label>
+            <select
+              id="centerId"
+              formControlName="centerId"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('centerId')"
+            >
+              <option value="">Selecciona un centro</option>
+              @for (center of centers(); track center.id) {
+              <option [value]="center.id">{{ center.centerName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('centerId')) {
+            <span class="error-text">{{ getFieldError('centerId') }}</span>
             }
-          </select>
-          @if (isFieldInvalid('centerId')) {
-          <span class="error-text">{{ getFieldError('centerId') }}</span>
-          }
-        </div>
+          </div>
 
-        <div class="form-group">
-          <label for="storeId" class="form-label">Tienda *</label>
-          <select
-            id="storeId"
-            formControlName="storeId"
-            class="form-control"
-            [class.is-invalid]="isFieldInvalid('storeId')"
-            [disabled]="!selectedCenterId()"
-          >
-            <option value="">Selecciona una tienda</option>
-            @for (store of stores(); track store.id) {
-            <option [value]="store.id">{{ store.storeName }}</option>
+          <div class="form-group">
+            <label for="storeId" class="form-label">Tienda *</label>
+            <select
+              id="storeId"
+              formControlName="storeId"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('storeId')"
+              [disabled]="!selectedCenterId()"
+            >
+              <option value="">Selecciona una tienda</option>
+              @for (store of stores(); track store.id) {
+              <option [value]="store.id">{{ store.storeName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('storeId')) {
+            <span class="error-text">{{ getFieldError('storeId') }}</span>
             }
-          </select>
-          @if (isFieldInvalid('storeId')) {
-          <span class="error-text">{{ getFieldError('storeId') }}</span>
-          }
-        </div>
+          </div>
+        }
+
+        <!-- Para EMPLOYEEs adminCenter: Mostrar solo storeId -->
+        @if (showOnlyStoreField()) {
+          <div class="form-group">
+            <label for="storeId" class="form-label">Tienda</label>
+            <select
+              id="storeId"
+              formControlName="storeId"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('storeId')"
+            >
+              <option value="">Selecciona una tienda</option>
+              @for (store of stores(); track store.id) {
+              <option [value]="store.id">{{ store.storeName }}</option>
+              }
+            </select>
+            @if (isFieldInvalid('storeId')) {
+            <span class="error-text">{{ getFieldError('storeId') }}</span>
+            }
+          </div>
+        }
+
+        <!-- Para EMPLOYEEs normales: No mostrar campos -->
+        @if (hideLocationFields()) {
+          <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>
+            Los datos de centro y tienda se cargan automáticamente con tus credenciales.
+          </div>
+        }
+
       </div>
       }
 

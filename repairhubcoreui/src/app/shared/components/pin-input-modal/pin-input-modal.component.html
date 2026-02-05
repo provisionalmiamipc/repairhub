@@ -1,96 +1,131 @@
-<div class="pin-modal-overlay" *ngIf="isOpen">
-  <div class="pin-modal-container">
-    <!-- Header -->
-    <div class="pin-modal-header">
-      <h2 class="pin-modal-title">Verificación de PIN Requerida</h2>
-      <button 
-        class="pin-modal-close" 
-        (click)="onCancel()"
-        type="button"
-        [disabled]="isLoading"
-        aria-label="Cerrar">
-        ✕
-      </button>
-    </div>
+<div class="modal-backdrop show" *ngIf="isOpen" style="backdrop-filter: blur(4px);"></div>
 
-    <!-- Body -->
-    <div class="pin-modal-body">
-      <!-- Welcome message -->
-      <p class="pin-modal-welcome">
-        Hola, <strong>{{ employeeName }}</strong>
-      </p>
-
-      <!-- Description -->
-      <p class="pin-modal-description">
-        Por favor ingresa tu PIN de seguridad de {{ pinForm.get('pin')?.value?.length || 4 }} dígitos para completar el login.
-      </p>
-
-      <!-- PIN Form -->
-      <form [formGroup]="pinForm" (ngSubmit)="onSubmit()">
-        <!-- PIN Input -->
-        <div class="pin-form-group">
-          <label for="pin-input" class="pin-label">PIN de Seguridad:</label>
-          <input
-            id="pin-input"
-            type="password"
-            class="pin-input"
-            formControlName="pin"
-            placeholder="Ingresa tu PIN"
-            (input)="onPinInput($event)"
-            [disabled]="isLoading || pinForm.disabled"
-            maxlength="6"
-            autocomplete="off"
-            [attr.aria-label]="'PIN de ' + pinForm.get('pin')?.value?.length || 0 + ' dígitos'" />
-          
-          <!-- PIN Error Message -->
-          <span class="pin-error" *ngIf="getPinError()">
-            {{ getPinError() }}
-          </span>
+<div class="modal d-block" tabindex="-1" role="dialog" *ngIf="isOpen">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content shadow-lg border-0">
+      
+      <!-- Header con gradiente profesional -->
+      <div class="modal-header text-white border-0 position-relative" 
+           style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-shield-lock-fill fs-4"></i>
+          <h5 class="modal-title mb-0 fw-semibold">Verificación de PIN</h5>
         </div>
-
-        <!-- Server Error Message -->
-        <div class="pin-error-alert" *ngIf="errorMessage">
-          <span class="pin-error-icon"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i></span>
-          <span class="pin-error-text">{{ errorMessage }}</span>
-        </div>
-
-        <!-- Attempt Counter -->
-        <div class="pin-attempt-counter" *ngIf="attemptCount > 0">
-          Intento {{ attemptCount }} de {{ maxAttempts }}
-        </div>
-
-        <!-- Buttons -->
-        <div class="pin-modal-actions">
-          <button
-            type="button"
-            class="pin-btn pin-btn-cancel"
-            (click)="onCancel()"
-            [disabled]="isLoading || pinForm.disabled"
-            >
-            Cancelar
-          </button>
-          
-          <button
-            type="submit"
-            class="pin-btn pin-btn-primary"
-            [disabled]="!pinForm.valid || isLoading || pinForm.disabled"
-            [class.loading]="isLoading"
-            >
-            <span *ngIf="!isLoading">Verificar PIN</span>
-            <span *ngIf="isLoading">Verificando...</span>
-          </button>
-        </div>
-      </form>
-
-      <!-- Help Text -->
-      <div class="pin-help-text">
-        <p>💡 Tu PIN es personal y confidencial. No lo compartas con nadie.</p>
+        <button 
+          type="button" 
+          class="btn-close btn-close-white"
+          (click)="onCancel()"
+          [disabled]="isLoading"
+          aria-label="Cerrar">
+        </button>
       </div>
-    </div>
 
-    <!-- Loading Overlay -->
-    <div class="pin-loading-overlay" *ngIf="isLoading">
-      <div class="pin-spinner"></div>
+      <!-- Body -->
+      <div class="modal-body p-4">
+        
+        <!-- Welcome message -->
+        <div class="text-center mb-4">
+          <div class="mb-2">
+            <i class="bi bi-person-circle text-primary fs-1 opacity-75"></i>
+          </div>
+          <h6 class="mb-1">
+            Hola, <span class="text-primary fw-semibold">{{ employeeName }}</span>
+          </h6>
+          <p class="text-body-secondary small mb-0">
+            Ingresa tu PIN de seguridad para continuar
+          </p>
+        </div>
+
+        <!-- PIN Form -->
+        <form [formGroup]="pinForm" (ngSubmit)="onSubmit()">
+          
+          <!-- PIN Input Group -->
+          <div class="mb-3">
+            <label for="pin-input" class="form-label fw-semibold small">
+              <i class="bi bi-key-fill me-1"></i>
+              PIN de Seguridad
+            </label>
+            <input
+              id="pin-input"
+              type="password"
+              class="form-control form-control-lg text-center"
+              style="letter-spacing: 0.5rem; font-family: 'Courier New', monospace;"
+              formControlName="pin"
+              placeholder="••••••"
+              (input)="onPinInput($event)"
+              [disabled]="isLoading || pinForm.disabled"
+              maxlength="6"
+              autocomplete="off"
+              [class.is-invalid]="getPinError()"
+              [attr.aria-label]="'PIN de seguridad'" />
+            
+            <!-- Validation Feedback -->
+            <div class="invalid-feedback" *ngIf="getPinError()">
+              <i class="bi bi-exclamation-circle-fill me-1"></i>
+              {{ getPinError() }}
+            </div>
+          </div>
+
+          <!-- Server Error Alert -->
+          <div class="alert alert-danger d-flex align-items-center py-2 mb-3" role="alert" *ngIf="errorMessage">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <div class="small">{{ errorMessage }}</div>
+          </div>
+
+          <!-- Attempt Counter Badge -->
+          <div class="text-center mb-3" *ngIf="attemptCount > 0">
+            <span class="badge bg-warning text-dark">
+              <i class="bi bi-clock-history me-1"></i>
+              Intento {{ attemptCount }} de {{ maxAttempts }}
+            </span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-grid gap-2">
+            <button
+              type="submit"
+              class="btn btn-lg fw-semibold"
+              style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white; border: none;"
+              [disabled]="!pinForm.valid || isLoading || pinForm.disabled">
+              <span *ngIf="!isLoading">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                Verificar PIN
+              </span>
+              <span *ngIf="isLoading">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Verificando...
+              </span>
+            </button>
+            
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              (click)="onCancel()"
+              [disabled]="isLoading || pinForm.disabled">
+              <i class="bi bi-x-circle me-1"></i>
+              Cancelar
+            </button>
+          </div>
+        </form>
+
+        <!-- Help Text -->
+        <div class="border-top mt-4 pt-3">
+          <p class="text-body-secondary small text-center mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            Tu PIN es personal y confidencial. No lo compartas con nadie.
+          </p>
+        </div>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded" 
+           style="background-color: var(--cui-body-bg); opacity: 0.95; z-index: 1050;"
+           *ngIf="isLoading">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+      
     </div>
   </div>
 </div>

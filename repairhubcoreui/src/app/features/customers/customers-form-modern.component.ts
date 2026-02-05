@@ -9,6 +9,8 @@ import { Stores } from '../../shared/models/Stores';
 import { CustomersService } from '../../shared/services/customers.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
+import { AuthService } from '../../shared/services/auth.service';
+import { PermissionsService } from '../../shared/services/permissions.service';
 
 interface FormState {
   isLoading: boolean;
@@ -46,6 +48,24 @@ export class CustomersFormModernComponent implements OnInit {
   private storesService = inject(StoresService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private authService = inject(AuthService);
+  private permissionsService = inject(PermissionsService);
+
+  // RBAC Signals
+  readonly currentUserType = signal<'user' | 'employee' | null>(null);
+  readonly currentEmployee = computed(() => this.authService.getCurrentEmployee());
+  readonly isCenterAdmin = computed(() => this.currentEmployee()?.isCenterAdmin ?? false);
+  readonly employeeCenterId = computed(() => this.currentEmployee()?.centerId ?? null);
+  readonly employeeStoreId = computed(() => this.currentEmployee()?.storeId ?? null);
+  
+  // Computed RBAC visibility
+  readonly showCenterAndStoreFields = computed(() => this.currentUserType() === 'user');
+  readonly showOnlyStoreField = computed(() => 
+    this.currentUserType() === 'employee' && this.isCenterAdmin()
+  );
+  readonly hideLocationFields = computed(() => 
+    this.currentUserType() === 'employee' && !this.isCenterAdmin()
+  );
 
   readonly formState = signal<FormState>({
     isLoading: false,
@@ -94,40 +114,98 @@ export class CustomersFormModernComponent implements OnInit {
 
   currentStep = signal(0);
 
+  private phoneValidator = () => {
+    return (control: { value: unknown }) => {
+      const value = typeof control.value === 'string' ? control.value.trim() : '';
+      if (!value) {
+        return null;
+      }
+
+      const validChars = /^[\d\s\-+().]+$/;
+      if (!validChars.test(value)) {
+        return { invalidPhone: true };
+      }
+
+      const digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length < 10) {
+        return { phoneTooShort: true };
+      }
+
+      return null;
+    };
+  };
+
   ngOnInit(): void {
+    this.initializeUserType();
     this.initForm();
     this.loadCenters();
     this.checkEditMode();
   }
 
+  private initializeUserType(): void {
+    const userType = this.authService.getUserType();
+    this.currentUserType.set(userType as 'user' | 'employee');
+  }
+
   private initForm(): void {
+    const isUserType = this.currentUserType() === 'user';
+    const isEmployee = this.currentUserType() === 'employee';
+    const isAdminCenterEmployee = isEmployee && this.isCenterAdmin();
+
+    // Para USERs: centerId y storeId son requeridos
+    // Para EMPLOYEEs: no se muestran (valores automáticos)
+    // Para EMPLOYEEs adminCenter: solo storeId visible (centerId automático)
+    const centerIdValidators = isUserType ? [Validators.required] : [];
+    const storeIdValidators = (isUserType || isAdminCenterEmployee) ? [] : [];
+
     this.customerForm = this.fb.group({
-      centerId: ['', [Validators.required]],
-      storeId: ['', []],
+      centerId: ['', centerIdValidators],
+      storeId: [isAdminCenterEmployee ? this.employeeStoreId() : '', storeIdValidators],
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       gender: ['', [Validators.required]],
       b2b: [false],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.pattern(/^\+?[\d\s\-\(\)]{10,}$/)]],
-      city: ['', [Validators.required]],
+      phone: ['', [this.phoneValidator()]],
+      city: [''],
       discount: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
       extraInfo: ['']
     });
 
-    // Listener para cambios en centerId
-    this.customerForm.get('centerId')?.valueChanges.subscribe(centerId => {
-      const normalized = this.normalizeId(centerId);
-      if (normalized !== null) {
-        this.selectedCenterId.set(normalized);
-        this.loadStoresForCenter(normalized);
-        this.customerForm.get('storeId')?.reset('');
-      } else {
-        this.selectedCenterId.set(null);
-        this.stores.set([]);
-        this.customerForm.get('storeId')?.reset('');
+    // Listener para cambios en centerId (solo para USERs)
+    if (isUserType) {
+      this.customerForm.get('centerId')?.valueChanges.subscribe(centerId => {
+        const normalized = this.normalizeId(centerId);
+        if (normalized !== null) {
+          this.selectedCenterId.set(normalized);
+          this.loadStoresForCenter(normalized);
+          this.customerForm.get('storeId')?.reset('');
+        } else {
+          this.selectedCenterId.set(null);
+          this.stores.set([]);
+          this.customerForm.get('storeId')?.reset('');
+        }
+      });
+    } else if (isAdminCenterEmployee) {
+      // Para admin center: centerId siempre es el del employee
+      // Cargar stores del centro del employee
+      const empCenterId = this.employeeCenterId();
+      if (empCenterId) {
+        this.selectedCenterId.set(empCenterId);
+        this.customerForm.get('centerId')?.setValue(empCenterId);
+        this.loadStoresForCenter(empCenterId);
       }
-    });
+    } else if (isEmployee) {
+      // Para employee normal: centerId y storeId se completan automáticamente
+      const empCenterId = this.employeeCenterId();
+      const empStoreId = this.employeeStoreId();
+      if (empCenterId) {
+        this.customerForm.get('centerId')?.setValue(empCenterId, { emitEvent: false });
+      }
+      if (empStoreId) {
+        this.customerForm.get('storeId')?.setValue(empStoreId, { emitEvent: false });
+      }
+    }
   }
 
   private checkEditMode(): void {
@@ -196,14 +274,24 @@ export class CustomersFormModernComponent implements OnInit {
     const step = this.currentStep();
     switch (step) {
       case 0:
-        return (this.customerForm.get('centerId')?.valid ?? false) && (this.customerForm.get('storeId')?.valid ?? false);
+        // Si es USER: requiere centerId y storeId
+        // Si es EMPLOYEE normal: sin validación de step (campos ocultos)
+        // Si es EMPLOYEE adminCenter: requiere storeId
+        if (this.showCenterAndStoreFields()) {
+          return (this.customerForm.get('centerId')?.valid ?? false) && 
+                 (this.customerForm.get('storeId')?.valid ?? false);
+        } else if (this.showOnlyStoreField()) {
+          return (this.customerForm.get('storeId')?.valid ?? false);
+        } else {
+          // EMPLOYEE normal: skip location validation
+          return true;
+        }
       case 1:
         return (this.customerForm.get('firstName')?.valid ?? false) && 
                (this.customerForm.get('lastName')?.valid ?? false) &&
                (this.customerForm.get('gender')?.valid ?? false);
       case 2:
-        return (this.customerForm.get('email')?.valid ?? false) && 
-               (this.customerForm.get('city')?.valid ?? false);
+        return (this.customerForm.get('email')?.valid ?? false);
       case 3:
         if (this.isEditMode()) {
           return this.customerForm.valid ?? false;
@@ -246,9 +334,33 @@ export class CustomersFormModernComponent implements OnInit {
     this.formState.update(s => ({ ...s, isSaving: true, error: null }));
 
     const customerData = this.customerForm.value;
-    if (!this.customerForm.get('storeId')?.value) {
+    
+    // Para EMPLOYEEs: inyectar centerId y storeId automáticamente
+    if (this.currentUserType() === 'employee') {
+      customerData.centerId = this.employeeCenterId();
+      if (this.showOnlyStoreField()) {
+        // admin center: usar el storeId seleccionado o el del employee
+        if (!customerData.storeId) {
+          customerData.storeId = this.employeeStoreId();
+        }
+      } else {
+        // employee normal: usar storeId del employee
+        customerData.storeId = this.employeeStoreId();
+      }
+    }
+    
+    // Normalizar campos opcionales
+    const phoneValue = typeof customerData.phone === 'string' ? customerData.phone.trim() : '';
+    const cityValue = typeof customerData.city === 'string' ? customerData.city.trim() : '';
+
+    const phoneDigits = phoneValue ? phoneValue.replace(/\D/g, '') : '';
+    customerData.phone = phoneDigits ? phoneDigits : null;
+    customerData.city = cityValue ? cityValue : null;
+
+    if (!customerData.storeId) {
       delete (customerData as any).storeId;
     }
+    
     const request = this.isEditMode()
       ? this.customersService.update(this.currentCustomerId()!, customerData)
       : this.customersService.create(customerData);
@@ -292,6 +404,8 @@ export class CustomersFormModernComponent implements OnInit {
     if (field.errors['email']) return 'Email inválido';
     if (field.errors['min']) return `Mínimo ${field.errors['min'].min}`;
     if (field.errors['max']) return `Máximo ${field.errors['max'].max}`;
+    if (field.errors['invalidPhone']) return 'El número de teléfono contiene caracteres inválidos';
+    if (field.errors['phoneTooShort']) return 'El número de teléfono debe tener al menos 10 dígitos';
 
     return null;
   }

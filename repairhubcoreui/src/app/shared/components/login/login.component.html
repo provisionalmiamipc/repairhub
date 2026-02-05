@@ -1,91 +1,146 @@
 <!-- components/login/login.component.html -->
-<div class="container vh-100 d-flex align-items-center justify-content-center">
-  <div class="row w-100">
-    <div class="col-12 col-sm-10 col-md-8 col-lg-5 mx-auto">
-      <div class="card shadow-sm" *ngIf="!showPinModal">
-        <div class="card-body p-4">
-          <div class="text-center mb-3">
-            <!-- optional logo placeholder -->
-            <img src="/assets/brand/coreui-signet.svg" alt="logo" class="mb-2" style="height:48px;"/>
-            <h4 class="card-title mb-0">Employee Login</h4>
-            <p class="text-muted small">Please enter your employee credentials to access the system</p>
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: var(--cui-body-bg);">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+        
+        <!-- Login Card -->
+        <div class="card border-0 shadow-lg" *ngIf="!showPinModal">
+          
+          <!-- Header con gradiente profesional -->
+          <div class="card-header text-white text-center border-0 py-4" 
+               style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);">
+            <div class="mb-3">
+              <i class="bi bi-shield-lock-fill" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="mb-1 fw-bold">Iniciar Sesión</h4>
+            <p class="mb-0 small opacity-75">Sistema de Gestión de Empleados</p>
           </div>
 
-          <form (ngSubmit)="onLogin()" #loginForm="ngForm" novalidate>
-            <div class="mb-3">
-              <label for="username" class="form-label">Username</label>
-              <input
-                type="text"
-                id="username"
-                class="form-control"
-                [(ngModel)]="username"
-                name="username"
-                required
-                [disabled]="isLoading"
-                placeholder="Enter your username"
-                aria-label="Username">
-              <div *ngIf="loginAttempted && !loginForm.controls['username'].valid && !isLoading" class="invalid-feedback d-block">
-                Username is required
+          <!-- Body -->
+          <div class="card-body p-4">
+            
+            <form (ngSubmit)="onLogin()" #loginForm="ngForm" novalidate>
+              
+              <!-- Username Field -->
+              <div class="mb-3">
+                <label for="username" class="form-label fw-semibold small">
+                  <i class="bi bi-person-fill me-1"></i>
+                  Usuario
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-transparent">
+                    <i class="bi bi-person text-body-secondary"></i>
+                  </span>
+                  <input
+                    type="text"
+                    id="username"
+                    class="form-control"
+                    [(ngModel)]="username"
+                    name="username"
+                    required
+                    [disabled]="isLoading"
+                    placeholder="Ingresa tu usuario"
+                    autocomplete="off"
+                    [class.is-invalid]="loginAttempted && !loginForm.controls['username'].valid && !isLoading"
+                    aria-label="Usuario">
+                </div>
+                <div *ngIf="loginAttempted && !loginForm.controls['username'].valid && !isLoading" 
+                     class="invalid-feedback d-block">
+                  <i class="bi bi-exclamation-circle-fill me-1"></i>
+                  El usuario es requerido
+                </div>
               </div>
-            </div>
 
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input
-                type="password"
-                id="password"
-                class="form-control"
-                [(ngModel)]="password"
-                name="password"
-                required
-                [disabled]="isLoading"
-                placeholder="Enter your password"
-                aria-label="Password">
-              <div *ngIf="loginAttempted && !loginForm.controls['password'].valid && !isLoading" class="invalid-feedback d-block">
-                Password is required
+              <!-- Password Field -->
+              <div class="mb-3">
+                <label for="password" class="form-label fw-semibold small">
+                  <i class="bi bi-lock-fill me-1"></i>
+                  Contraseña
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-transparent">
+                    <i class="bi bi-key text-body-secondary"></i>
+                  </span>
+                  <input
+                    type="password"
+                    id="password"
+                    class="form-control"
+                    [(ngModel)]="password"
+                    name="password"
+                    required
+                    [disabled]="isLoading"
+                    placeholder="Ingresa tu contraseña"
+                    autocomplete="off"
+                    [class.is-invalid]="loginAttempted && !loginForm.controls['password'].valid && !isLoading"
+                    aria-label="Contraseña">
+                </div>
+                <div *ngIf="loginAttempted && !loginForm.controls['password'].valid && !isLoading" 
+                     class="invalid-feedback d-block">
+                  <i class="bi bi-exclamation-circle-fill me-1"></i>
+                  La contraseña es requerida
+                </div>
               </div>
-            </div>
 
-            <div class="mb-3 d-flex align-items-center justify-content-end">
-              <a class="small" href="#" (click)="$event.preventDefault()">Forgot password?</a>
-            </div>
-
-            <!--
-              Commented admin toggle checkbox for future use. To re-enable, uncomment and restore
-              the `isAdminLogin` property and logic in `login.component.ts`.
-
-            <div class="mb-3 form-check d-flex align-items-center justify-content-between">
-              <div>
-                <input
-                  type="checkbox"
-                  id="isAdminLogin"
-                  class="form-check-input me-2"
-                  [(ngModel)]="isAdminLogin"
-                  name="isAdminLogin"
-                  (change)="toggleLoginType()"
-                  [disabled]="isLoading">
-                <label for="isAdminLogin" class="form-check-label">{{ isAdminLogin ? 'Administrator Mode' : 'Employee Mode' }}</label>
+              <!-- Forgot Password Link -->
+              <div class="mb-4 text-end">
+                <a class="small text-decoration-none" href="#" (click)="$event.preventDefault()">
+                  <i class="bi bi-question-circle me-1"></i>
+                  ¿Olvidaste tu contraseña?
+                </a>
               </div>
-            </div>
-            -->
 
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary btn-lg" [disabled]="!loginForm.form.valid || isLoading">
-                <span *ngIf="!isLoading">Login</span>
-                <span *ngIf="isLoading">
-                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Verifying...
-                </span>
-              </button>
-            </div>
-          </form>
+              <!--
+                Commented admin toggle checkbox for future use. To re-enable, uncomment and restore
+                the `isAdminLogin` property and logic in `login.component.ts`.
 
-          <div *ngIf="errorMessage" class="alert alert-danger mt-3" role="alert">
-            {{ errorMessage }}
+              <div class="mb-3 form-check d-flex align-items-center justify-content-between">
+                <div>
+                  <input
+                    type="checkbox"
+                    id="isAdminLogin"
+                    class="form-check-input me-2"
+                    [(ngModel)]="isAdminLogin"
+                    name="isAdminLogin"
+                    (change)="toggleLoginType()"
+                    [disabled]="isLoading">
+                  <label for="isAdminLogin" class="form-check-label">{{ isAdminLogin ? 'Administrator Mode' : 'Employee Mode' }}</label>
+                </div>
+              </div>
+              -->
+
+              <!-- Login Button -->
+              <div class="d-grid mb-3">
+                <button 
+                  type="submit" 
+                  class="btn btn-lg fw-semibold"
+                  style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white; border: none;"
+                  [disabled]="!loginForm.form.valid || isLoading">
+                  <span *ngIf="!isLoading">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    Iniciar Sesión
+                  </span>
+                  <span *ngIf="isLoading">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Verificando...
+                  </span>
+                </button>
+              </div>
+
+              <!-- Error Alert -->
+              <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center py-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <div class="small">{{ errorMessage }}</div>
+              </div>
+            </form>
           </div>
 
-          <div class="text-center mt-3">
-            <small class="text-muted">Use your employee username and password</small>
+          <!-- Footer -->
+          <div class="card-footer text-center py-3 border-0" style="background: var(--cui-card-cap-bg);">
+            <small class="text-body-secondary">
+              <i class="bi bi-info-circle me-1"></i>
+              Usa tus credenciales de empleado
+            </small>
           </div>
         </div>
       </div>

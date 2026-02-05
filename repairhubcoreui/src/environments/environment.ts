@@ -1,9 +1,11 @@
 /**
- * Environment Configuration - Development
+ * Environment Configuration - Development (Default)
  * 
  * @description
- * Configuración específica para el entorno de desarrollo.
- * Este archivo contiene URLs, timeouts, TTLs y feature flags.
+ * Este es el archivo por defecto. Angular reemplazará este archivo
+ * automáticamente según la configuración de build:
+ * - development: usa environment.development.ts
+ * - production: usa environment.production.ts
  * 
  * @example
  * import { environment } from './environments/environment';
@@ -17,9 +19,9 @@ export const environment = {
   production: false,
 
   /**
-   * URL base del API backend (para desarrollo, apunta a Railway)
+   * URL base del API backend (para desarrollo local)
    */
-  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app/api',
+  apiUrl: 'http://localhost:3000',
 
   /**
    * Versión del API
@@ -61,9 +63,20 @@ export const environment = {
    */
   cache: {
     /**
+     * Habilitar/deshabilitar caché
+     */
+    enabled: true,
+
+    /**
+     * Modo debug para cache
+     */
+    debug: true,
+
+    /**
      * TTL por defecto para caché (en milisegundos)
      */
-    defaultTtl: 180000, // 3 minutos
+    defaultTTL: 180000, // 3 minutos
+    defaultTtl: 180000, // 3 minutos (alias legacy)
 
     /**
      * TTLs específicos por tipo de recurso
@@ -119,12 +132,6 @@ export const environment = {
      * Logs detallados en consola
      */
     verboseLogs: true,
-
-    /**
-     * Mock API interceptor para desarrollo sin backend
-     * DESACTIVADO - usando API real en http://localhost:3000
-     */
-    mockApi: false,
 
     /**
      * Notificaciones push

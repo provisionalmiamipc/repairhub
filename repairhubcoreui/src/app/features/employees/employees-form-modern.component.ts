@@ -29,6 +29,7 @@ import { StoresService } from '../../shared/services/stores.service';
 import { EmployeesService } from '../../shared/services/employees.service';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
+import { AuthService } from '../../shared/services/auth.service';
 
 interface FormState {
   isSubmitting: boolean;
@@ -103,6 +104,12 @@ export class EmployeesFormModernComponent implements OnInit {
   private readonly editMode = signal(false);
   private readonly employeeId = signal<number | null>(null);
 
+  private readonly userType = signal<'employee' | 'user' | null>(null);
+  private readonly isCenterAdmin = signal(false);
+  readonly showCenterAndStoreFields = computed(() => this.userType() === 'user');
+  readonly showOnlyStoreField = computed(() => this.userType() === 'employee' && this.isCenterAdmin());
+  readonly hideLocationFields = computed(() => this.userType() === 'employee' && !this.isCenterAdmin());
+
   isEditMode = computed(() => !!this.employeeInput() || this.editMode());
   isStep1Complete = computed(() => {
     this.formValue();
@@ -171,6 +178,7 @@ export class EmployeesFormModernComponent implements OnInit {
     private centersService: CentersService,
     private storesService: StoresService,
     private employeesService: EmployeesService,
+    private authService: AuthService,
     private destroyRef: DestroyRef,
     private injector: Injector,
     private route: ActivatedRoute,
@@ -181,9 +189,11 @@ export class EmployeesFormModernComponent implements OnInit {
   ngOnInit(): void {
     this.createForm();
     this.loadCentersAndStores();
+    this.initializeUserType();
     this.initFormSignals();
     this.initFormEffects();
     this.initRouteHandling();
+    this.applyUserTypeRules();
   }
 
   private initRouteHandling(): void {
@@ -328,6 +338,59 @@ export class EmployeesFormModernComponent implements OnInit {
     });
   }
 
+  private initializeUserType(): void {
+    const userType = this.authService.getUserType();
+    this.userType.set(userType as 'employee' | 'user' | null);
+    const isCenterAdmin = this.authService.getCurrentEmployee()?.isCenterAdmin ?? false;
+    this.isCenterAdmin.set(isCenterAdmin);
+  }
+
+  private applyUserTypeRules(): void {
+    const centerControl = this.form.get('centerId');
+    const storeControl = this.form.get('storeId');
+
+    if (this.showCenterAndStoreFields()) {
+      centerControl?.setValidators([Validators.required]);
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.enable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
+    } else if (this.showOnlyStoreField()) {
+      centerControl?.clearValidators();
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
+    } else {
+      centerControl?.clearValidators();
+      storeControl?.clearValidators();
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.disable({ emitEvent: false });
+    }
+
+    centerControl?.updateValueAndValidity({ emitEvent: false });
+    storeControl?.updateValueAndValidity({ emitEvent: false });
+
+    this.applyEmployeeDefaults();
+  }
+
+  private applyEmployeeDefaults(): void {
+    if (this.userType() !== 'employee') return;
+
+    const empCenterId = this.authService.getCenterId();
+    const empStoreId = this.authService.getStoreId();
+
+    if (empCenterId != null) {
+      this.form.get('centerId')?.setValue(empCenterId, { emitEvent: false });
+    }
+
+    if (this.showOnlyStoreField()) {
+      if (this.form.get('storeId')?.value == null && empStoreId != null) {
+        this.form.get('storeId')?.setValue(empStoreId, { emitEvent: false });
+      }
+    } else if (empStoreId != null) {
+      this.form.get('storeId')?.setValue(empStoreId, { emitEvent: false });
+    }
+  }
+
   private loadCentersAndStores(): void {
     this.centersService.getAll().subscribe(centers => {
       this.centers = centers;
@@ -356,6 +419,7 @@ export class EmployeesFormModernComponent implements OnInit {
       pinTimeout: employee.pinTimeout,
       pin: employee.pin
     });
+    this.applyEmployeeDefaults();
   }
 
   private loadEmployeeForEdit(id: number): void {
@@ -423,8 +487,19 @@ export class EmployeesFormModernComponent implements OnInit {
       pin: raw.pin,
       password: raw.password
     };
-    payload.centerId = this.normalizeId(this.form.get('centerId')?.value);
-    payload.storeId = this.normalizeId(this.form.get('storeId')?.value);
+    if (this.showCenterAndStoreFields()) {
+      payload.centerId = this.normalizeId(this.form.get('centerId')?.value);
+      payload.storeId = this.normalizeId(this.form.get('storeId')?.value);
+    } else {
+      const empCenterId = this.authService.getCenterId();
+      const empStoreId = this.authService.getStoreId();
+      payload.centerId = empCenterId ?? undefined;
+      if (this.showOnlyStoreField()) {
+        payload.storeId = this.normalizeId(this.form.get('storeId')?.value ?? empStoreId);
+      } else {
+        payload.storeId = empStoreId ?? undefined;
+      }
+    }
     payload.pinTimeout = this.normalizeNumber(this.form.get('pinTimeout')?.value);
     if (!payload.password) {
       delete payload.password;
@@ -481,18 +556,18 @@ export class EmployeesFormModernComponent implements OnInit {
     if (!field || !field.errors || !field.touched) return null;
 
     const errors = field.errors;
-    if (errors['required']) return 'Este campo es requerido';
-    if (errors['minlength']) return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
-    if (errors['maxlength']) return `Máximo ${errors['maxlength'].requiredLength} caracteres`;
-    if (errors['email']) return 'Email inválido';
-    if (errors['pattern']) return 'Formato inválido';
-    if (errors['min']) return `Valor mínimo: ${errors['min'].min}`;
-    if (errors['max']) return `Valor máximo: ${errors['max'].max}`;
+    if (errors['required']) return 'This field is required';
+    if (errors['minlength']) return `Minimum ${errors['minlength'].requiredLength} characters`;
+    if (errors['maxlength']) return `Maximum ${errors['maxlength'].requiredLength} characters`;
+    if (errors['email']) return 'Invalid email';
+    if (errors['pattern']) return 'Invalid format';
+    if (errors['min']) return `Minimum value: ${errors['min'].min}`;
+    if (errors['max']) return `Maximum value: ${errors['max'].max}`;
     if (errors['passwordStrength']) {
-      return 'La contraseña debe tener 8+ caracteres, mayúscula, minúscula, número y símbolo.';
+      return 'Password must have 8+ characters, upper, lower, number and symbol.';
     }
 
-    return 'Campo inválido';
+    return 'Invalid field';
   }
 
   private passwordStrengthValidator(control: AbstractControl) {
@@ -522,9 +597,9 @@ export class EmployeesFormModernComponent implements OnInit {
 
   getEmployeeTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      'Expert': 'Experto',
-      'Accountant': 'Contador',
-      'AdminStore': 'Admin Tienda'
+      'Expert': 'Expert',
+      'Accountant': 'Accountant',
+      'AdminStore': 'Store Admin'
     };
     return labels[type] || type;
   }

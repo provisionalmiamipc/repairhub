@@ -43,8 +43,8 @@ export class EmployeesService {
       employeeCode,
       password: tempPassword,
       pin: uniquePin,
-      pinTimeout: 0,
-      isCenterAdmin: false
+      pinTimeout: createEmployeeDto.pinTimeout ?? 0,
+      isCenterAdmin: createEmployeeDto.isCenterAdmin ?? false
     });
     const savedEmployee = await this.employeeRepository.save(employee);
     

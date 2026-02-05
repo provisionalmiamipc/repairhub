@@ -3,12 +3,12 @@
   <div class="list-header" @slideDown>
     <div class="header-content">
       <div>
-        <h1 class="page-title">Citas</h1>
-        <p class="page-subtitle">Administra las citas y servicios</p>
+        <h1 class="page-title">Appointments</h1>
+        <p class="page-subtitle">Manage appointments and services</p>
       </div>
-      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'Nueva cita'">
+      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'New appointment'">
         <span class="btn-icon"><i class="bi bi-plus"></i></span>
-        Nueva Cita
+        New Appointment
       </button>
     </div>
   </div>
@@ -20,9 +20,9 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Busca por cliente, fecha o notas..."
+        placeholder="Search by customer, date or notes..."
         (input)="onSearchChange($any($event).target.value)"
-        [attr.aria-label]="'Buscar citas'"
+        [attr.aria-label]="'Search appointments'"
       />
     </div>
 
@@ -30,22 +30,22 @@
       <select
         class="select-filter"
         (change)="onFilterChange($any($event).target.value)"
-        [attr.aria-label]="'Filtrar citas'"
+        [attr.aria-label]="'Filter appointments'"
       >
-        <option value="all">Todas</option>
-        <option value="active">Activas</option>
-        <option value="closed">Cerradas</option>
-        <option value="canceled">Canceladas</option>
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="closed">Closed</option>
+        <option value="canceled">Canceled</option>
       </select>
 
       <select
         class="select-filter"
         (change)="onSortChange($any($event).target.value)"
-        [attr.aria-label]="'Ordenar citas'"
+        [attr.aria-label]="'Sort appointments'"
       >
-        <option value="date">Ordenar por: Fecha</option>
-        <option value="customer">Cliente</option>
-        <option value="duration">Duración</option>
+        <option value="date">Sort by: Date</option>
+        <option value="customer">Customer</option>
+        <option value="duration">Duration</option>
       </select>
     </div>
   </div>
@@ -56,10 +56,10 @@
     <div class="error-content">
       <span class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
       <div>
-        <h3>Error al cargar</h3>
+        <h3>Failed to load</h3>
         <p>{{ error() }}</p>
       </div>
-      <button class="btn-retry" (click)="retryLoad()">Reintentar</button>
+      <button class="btn-retry" (click)="retryLoad()">Retry</button>
     </div>
   </div>
   }
@@ -84,9 +84,9 @@
     @if (isEmptyState()) {
     <div class="empty-state" @fadeInUp>
       <div class="empty-icon"><i class="bi bi-calendar2-x"></i></div>
-      <h3>No hay citas</h3>
-      <p>Comienza creando tu primera cita</p>
-      <button class="btn-empty" (click)="onNew()">Crear Cita</button>
+      <h3>No appointments</h3>
+      <p>Start by creating your first appointment</p>
+      <button class="btn-empty" (click)="onNew()">Create Appointment</button>
     </div>
     } @else {
     @for (appointment of filteredAppointments(); track appointment.id) {
@@ -101,18 +101,20 @@
             class="btn-action btn-view"
             (click)="onView(appointment)"
             title="Ver detalles"
-            [attr.aria-label]="'Ver detalles de cita'"
+            [attr.aria-label]="'View appointment details'"
           >
             <i class="bi bi-eye"></i>
           </button>
-          <button
-            class="btn-action btn-edit"
-            (click)="onEdit(appointment)"
-            title="Editar"
-            [attr.aria-label]="'Editar cita'"
-          >
-            <i class="bi bi-pencil"></i>
-          </button>
+          @if (!appointment.cloused && !appointment.canceled) {
+            <button
+              class="btn-action btn-edit"
+              (click)="onEdit(appointment)"
+              title="Edit"
+              [attr.aria-label]="'Edit appointment'"
+            >
+              <i class="bi bi-pencil"></i>
+            </button>
+          }
           <!--button
             class="btn-action btn-delete"
             (click)="onDelete(appointment)"
@@ -133,34 +135,34 @@
       <!-- Details Grid -->
       <div class="details-grid">
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-tools"></i> Servicio</span>
-          <span class="detail-value">{{ appointment.serviceType?.name || 'N/A' }}</span>
+          <span class="detail-label"><i class="bi bi-tools"></i> Service</span>
+          <span class="detail-value">{{ getServiceTypeName(appointment) }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-clock"></i> Duración</span>
+          <span class="detail-label"><i class="bi bi-clock"></i> Duration</span>
           <span class="detail-value">{{ appointment.duration }} min</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-building"></i> Centro</span>
-          <span class="detail-value">{{ appointment.center?.centerName || 'N/A' }}</span>
+          <span class="detail-label"><i class="bi bi-building"></i> Center</span>
+          <span class="detail-value">{{ getCenterName(appointment) }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-shop"></i> Tienda</span>
-          <span class="detail-value">{{ appointment.store?.storeName || 'N/A' }}</span>
+          <span class="detail-label"><i class="bi bi-shop"></i> Store</span>
+          <span class="detail-value">{{ getStoreName(appointment) }}</span>
         </div>
       </div>
 
       <!-- Notes -->
       @if (appointment.notes) {
       <div class="notes-section">
-        <span class="notes-label"><i class="bi bi-card-text"></i> Notas</span>
+        <span class="notes-label"><i class="bi bi-card-text"></i> Notes</span>
         <p class="notes-text">{{ appointment.notes }}</p>
       </div>
       }
 
       <!-- Card Footer -->
       <div class="card-footer">
-        <span class="created-date">Creada: {{ appointment.createdAt | date: 'short' }}</span>
+        <span class="created-date">Created: {{ appointment.createdAt | date: 'short' }}</span>
       </div>
     </div>
     }
@@ -171,7 +173,7 @@
   <!-- Results Counter -->
   @if (!isLoading() && filteredAppointments().length > 0) {
   <div class="results-info">
-    Mostrando {{ filteredAppointments().length }} de {{ appointments().length }} citas
+    Showing {{ filteredAppointments().length }} of {{ appointments().length }} appointments
   </div>
   }
 </div>

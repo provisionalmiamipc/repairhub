@@ -1,0 +1,87 @@
+// Users List Component - Bootstrap + Custom Enhancements
+// Minimal custom styles, maximum Bootstrap utilities
+
+// Avatar styling with gradient
+.avatar-user {
+  background: linear-gradient(135deg, var(--bs-primary), var(--bs-info)) !important;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+// Table row hover effect
+.table tbody tr {
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background-color: var(--bs-gray-100);
+  }
+}
+
+// Badge styling
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.bg-success-subtle {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  color: #10b981 !important;
+}
+
+.bg-secondary-subtle {
+  background-color: rgba(107, 114, 128, 0.1) !important;
+  color: #6b7280 !important;
+}
+
+// Action buttons
+.btn-outline-primary,
+.btn-outline-warning,
+.btn-outline-danger {
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// Link styling
+.link-primary {
+  font-weight: 500;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: var(--bs-primary-hover) !important;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.875rem;
+    
+    th, td {
+      padding: 0.75rem !important;
+    }
+  }
+  
+  .avatar-user {
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .table tbody tr:hover {
+    background-color: var(--bs-gray-800);
+  }
+  
+  .bg-light {
+    background-color: var(--bs-gray-800) !important;
+  }
+}

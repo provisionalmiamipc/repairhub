@@ -38,7 +38,7 @@ export const routes: Routes = [
     data: {
       title: 'Home'
     },
-    canActivate: [authGuard],
+    canActivate: [authGuard, pinVerificationGuard],
     children: [
       {
         path: 'dashboard',
@@ -87,7 +87,7 @@ export const routes: Routes = [
         loadChildren: () => import('./views/pages/routes').then((m) => m.routes)
       },
       { path: 'users', loadComponent: () => import('./features/users/users-list-page.component').then(m => m.UsersListPageComponent), canActivate: [userGuard]},
-      { path: 'users/new', loadComponent: () => import('./features/users/users-form.component').then(m => m.UsersFormComponent), canActivate: [userGuard] },
+      { path: 'users/new', loadComponent: () => import('./features/users/users-form-page.component').then(m => m.UsersFormPageComponent), canActivate: [userGuard] },
       { path: 'users/:id', loadComponent: () => import('./features/users/users-detail-page.component').then(m => m.UsersDetailPageComponent), canActivate: [userGuard] },
       { path: 'users/:id/edit', loadComponent: () => import('./features/users/users-edit-page.component').then(m => m.UsersEditPageComponent), canActivate: [userGuard] },
 

@@ -22,7 +22,7 @@
 
   <!-- Form -->
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modern-form">
-    @if (isUserTypeUser()) {
+    @if (showCenterAndStoreFields()) {
     <!-- Centro (solo para USER) -->
     <div class="form-group">
       <label for="centerId" class="form-label">
@@ -50,27 +50,27 @@
         <i class="bi bi-exclamation-circle"></i> La tienda es requerida
       </div>
     </div>
-    } @else {
-    <!-- Centro (deshabilitado para EMPLOYEE) -->
-    <div class="form-group">
-      <label for="centerId" class="form-label">
-        Centro
-      </label>
-      <select id="centerId" formControlName="centerId" class="form-select" [disabled]="true">
-        <option [ngValue]="null">Auto-asignado</option>
-        <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
-      </select>
-    </div>
+    }
 
-    <!-- Tienda (deshabilitada para EMPLOYEE) -->
+    @if (showOnlyStoreField()) {
+    <!-- Tienda (solo para EMPLOYEE admin centro) -->
     <div class="form-group">
       <label for="storeId" class="form-label">
-        Tienda
+        Tienda <span class="required">*</span>
       </label>
-      <select id="storeId" formControlName="storeId" class="form-select" [disabled]="true">
-        <option [ngValue]="null">Auto-asignada</option>
+      <select id="storeId" formControlName="storeId" class="form-select" [class.is-invalid]="isFieldInvalid('storeId')">
+        <option [ngValue]="null">Selecciona una tienda</option>
         <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
       </select>
+      <div *ngIf="isFieldInvalid('storeId')" class="error-message">
+        <i class="bi bi-exclamation-circle"></i> La tienda es requerida
+      </div>
+    </div>
+    }
+
+    @if (hideLocationFields()) {
+    <div class="form-group">
+      <div class="alert alert-info">Centro y tienda se asignan automáticamente.</div>
     </div>
     }
 

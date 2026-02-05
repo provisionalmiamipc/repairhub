@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { Items } from '../../shared/models/Items';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
@@ -23,6 +24,14 @@ interface ListState {
   imports: [CommonModule, FormsModule],
   templateUrl: './items-list-modern.component.html',
   styleUrl: './items-list-modern.component.scss',
+  animations: [
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class ItemsListModernComponent implements OnInit {
   private itemsService = inject(ItemsService);
@@ -72,10 +81,13 @@ export class ItemsListModernComponent implements OnInit {
         (status === 'inactive' && !item.isActive);
 
       // Center filter
-      const matchesCenter = !centerId || item.centerid === centerId;
+      const itemCenterId = this.getItemCenterId(item);
+      const itemStoreId = this.getItemStoreId(item);
+
+      const matchesCenter = !centerId || itemCenterId === centerId;
 
       // Store filter
-      const matchesStore = !storeId || item.storeid === storeId;
+      const matchesStore = !storeId || itemStoreId === storeId;
 
       // Type filter
       const matchesType = !typeId || item.itemTypeId === typeId;
@@ -183,12 +195,22 @@ export class ItemsListModernComponent implements OnInit {
     this.sortBy.set(field as 'product' | 'sku' | 'price' | 'stock' | 'date');
   }
 
-  getCenterName(centerId: number): string {
+  getCenterName(centerId: number | null | undefined): string {
+    if (!centerId) return 'N/A';
     return this.centers().find(c => c.id === centerId)?.centerName || 'N/A';
   }
 
-  getStoreName(storeId: number): string {
+  getStoreName(storeId: number | null | undefined): string {
+    if (!storeId) return 'N/A';
     return this.stores().find(s => s.id === storeId)?.storeName || 'N/A';
+  }
+
+  getItemCenterId(item: Items): number | null {
+    return Number((item as any).centerId ?? (item as any).centerid ?? (item as any).center?.id ?? null) || null;
+  }
+
+  getItemStoreId(item: Items): number | null {
+    return Number((item as any).storeId ?? (item as any).storeid ?? (item as any).store?.id ?? null) || null;
   }
 
   getTypeName(typeId: number): string {

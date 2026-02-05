@@ -1,44 +1,50 @@
-<div class="form-container" @fadeInUp>
-  <!-- Header Section -->
-  <div class="form-header">
-    <div class="header-content">
-      <h1 class="form-title">
-        {{ isEditMode() ? 'Editar Cita' : 'Nueva Cita' }}
-      </h1>
-      <p class="form-subtitle">Completa los pasos para crear o editar una cita de servicio</p>
-    </div>
-  </div>
+<div class="container-xxl py-4" @fadeInUp>
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4 p-lg-5 form-container">
+          <!-- Header Section -->
+          <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2 mb-4">
+            <div>
+              <h1 class="h3 mb-1">
+                {{ isEditMode() ? 'Edit Appointment' : 'New Appointment' }}
+              </h1>
+              <p class="text-muted mb-0">Complete the steps to create or edit a service appointment</p>
+            </div>
+          </div>
 
-  <!-- Progress Bar -->
-  <div class="progress-section">
-    <div class="progress-bar">
-      <div class="progress-fill" [style.width.%]="getStepProgress()"></div>
-    </div>
-    <p class="progress-text">Paso {{ currentStep() + 1 }} de {{ steps.length }}</p>
-  </div>
+          <!-- Progress Bar -->
+          <div class="mb-4">
+            <div class="progress" role="progressbar" aria-label="Progreso del formulario" [attr.aria-valuenow]="getStepProgress()" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar" [style.width.%]="getStepProgress()"></div>
+            </div>
+            <p class="small text-muted mt-2 mb-0">Step {{ currentStep() + 1 }} of {{ steps.length }}</p>
+          </div>
 
   <!-- Error Message -->
   @if (error()) {
-    <div class="alert alert-error" @slideInFrom>
-      <span class="alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
-      <span class="alert-message">{{ error() }}</span>
-      <button class="alert-close" (click)="clearError()">×</button>
+    <div class="alert alert-danger d-flex align-items-center justify-content-between gap-2" @slideInFrom>
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <span>{{ error() }}</span>
+      </div>
+      <button type="button" class="btn-close" aria-label="Close" (click)="clearError()"></button>
     </div>
   }
 
   <!-- Success Message -->
   @if (success()) {
-    <div class="alert alert-success" @slideInFrom>
-      <span class="alert-icon"><i class="bi bi-check-circle"></i></span>
-      <span class="alert-message">Cita guardada correctamente</span>
+    <div class="alert alert-success d-flex align-items-center gap-2" @slideInFrom>
+      <i class="bi bi-check-circle" aria-hidden="true"></i>
+      <span>Appointment saved successfully</span>
     </div>
   }
 
   <!-- Loading State -->
   @if (isLoading()) {
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p>Cargando información...</p>
+    <div class="d-flex flex-column align-items-center justify-content-center py-5">
+      <div class="spinner-border text-primary" role="status" aria-label="Cargando"></div>
+      <p class="mt-3 text-muted mb-0">Loading information...</p>
     </div>
   } @else {
     <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
@@ -48,51 +54,78 @@
           <h2 class="step-title">{{ steps[0].title }}</h2>
           <p class="step-description">{{ steps[0].description }}</p>
 
-          <div class="form-grid">
-            @if (isUserTypeUser()) {
+          <div class="row g-3">
+            @if (showCenterAndStoreFields()) {
               <!-- Center -->
-              <div class="form-group">
-                <label for="centerId" class="form-label">Centro *</label>
+              <div class="col-12 col-md-6">
+                <label for="centerId" class="form-label">Center *</label>
                   <select class="form-select" formControlName="centerId">
-                    <option value="">Seleccionar centro</option>
+                    <option value="">Select center</option>
                     <option *ngFor="let center of centers()" [ngValue]="center.id">
-                      {{ center.centerName || ('Centro #' + center.id) }}
+                      {{ center.centerName || ('Center #' + center.id) }}
                     </option>
                   </select>
                   <div *ngIf="appointmentForm.get('centerId')?.touched && appointmentForm.get('centerId')?.invalid"
                     class="text-danger small">
-                    Centro requerido
+                    Center required
                   </div>
               </div>
 
               <!-- Store -->
-              <div class="form-group">
-                <label for="storeId" class="form-label">Tienda *</label>
+              <div class="col-12 col-md-6">
+                <label for="storeId" class="form-label">Store *</label>
                   <select class="form-select" formControlName="storeId">
-                    <option value="">Seleccionar tienda</option>
+                    <option value="">Select store</option>
                     <option *ngFor="let store of stores()"
                       [ngValue]="store.id"
                       [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
-                      {{ store.storeName || ('Tienda #' + store.id) }}
+                      {{ store.storeName || ('Store #' + store.id) }}
                     </option>
                   </select>
                   <div *ngIf="appointmentForm.get('storeId')?.touched && appointmentForm.get('storeId')?.invalid"
                     class="text-danger small">
-                    Tienda requerida
+                    Store required
                   </div>
               </div>
             }
 
+            @if (showOnlyStoreField()) {
+              <!-- Store (Admin Center) -->
+              <div class="col-12 col-md-6">
+                <label for="storeId" class="form-label">Store *</label>
+                <select class="form-select" formControlName="storeId">
+                  <option value="">Select store</option>
+                  <option *ngFor="let store of stores()"
+                    [ngValue]="store.id"
+                    [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
+                    {{ store.storeName || ('Store #' + store.id) }}
+                  </option>
+                </select>
+                <div *ngIf="appointmentForm.get('storeId')?.touched && appointmentForm.get('storeId')?.invalid"
+                  class="text-danger small">
+                  Store required
+                </div>
+              </div>
+            }
+
+            @if (hideLocationFields()) {
+              <div class="col-12">
+                <div class="alert alert-info">
+                  Center and store are assigned automatically.
+                </div>
+              </div>
+            }
+
             <!-- Customer Name -->
-            <div class="form-group">
-              <label for="customer" class="form-label">Cliente *</label>
+            <div class="col-12 col-md-6">
+              <label for="customer" class="form-label">Customer *</label>
               <input
                 type="text"
                 id="customer"
                 class="form-control"
                 [class.is-invalid]="isFieldInvalid('customer')"
                 formControlName="customer"
-                placeholder="Nombre del cliente"
+                placeholder="Customer name"
                 autocomplete="off"
               />
               @if (isFieldInvalid('customer')) {
@@ -101,8 +134,8 @@
             </div>
 
             <!-- Date -->
-            <div class="form-group">
-              <label for="date" class="form-label">Fecha *</label>
+            <div class="col-12 col-md-6">
+              <label for="date" class="form-label">Date *</label>
               <input
                 type="date"
                 id="date"
@@ -117,8 +150,8 @@
             </div>
 
             <!-- Time -->
-            <div class="form-group">
-              <label for="time" class="form-label">Hora *</label>
+            <div class="col-12 col-md-6">
+              <label for="time" class="form-label">Time *</label>
               <input
                 type="time"
                 id="time"
@@ -140,40 +173,50 @@
           <h2 class="step-title">{{ steps[1].title }}</h2>
           <p class="step-description">{{ steps[1].description }}</p>
 
-          <div class="form-grid">
+          <div class="row g-3">
             <!-- Device -->
-            <div class="form-group">
-              <label for="deviceId" class="form-label">Dispositivo *</label>
-              <select class="form-select" formControlName="deviceId">
-                <option value="">Seleccionar dispositivo</option>
-                <option *ngFor="let device of devices()" [ngValue]="device.id">
-                  {{ device.name }}
-                </option>
-              </select>
+            <div class="col-12 col-md-4">
+              <label for="deviceId" class="form-label">Device *</label>
+              <div class="input-group">
+                <select class="form-select" formControlName="deviceId">
+                  <option value="">Select device</option>
+                  <option *ngFor="let device of devices()" [ngValue]="device.id">
+                    {{ device.name }}
+                  </option>
+                </select>
+                <button type="button" class="btn btn-outline-primary" (click)="createDevice()" aria-label="Add device">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                </button>
+              </div>
               <div *ngIf="appointmentForm.get('deviceId')?.touched && appointmentForm.get('deviceId')?.invalid"
                 class="text-danger small">
-                Dispositivo requerido
+                Device required
               </div>
             </div>
 
             <!-- Service Type -->
-            <div class="form-group">
-              <label for="serviceTypeId" class="form-label">Tipo de Servicio *</label>
-              <select class="form-select" formControlName="serviceTypeId">
-                <option value="">Seleccionar servicio</option>
-                <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
-                  {{ service.name }}
-                </option>
-              </select>
+            <div class="col-12 col-md-4">
+              <label for="serviceTypeId" class="form-label">Service Type *</label>
+              <div class="input-group">
+                <select class="form-select" formControlName="serviceTypeId">
+                  <option value="">Select service</option>
+                  <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
+                    {{ service.name }}
+                  </option>
+                </select>
+                <button type="button" class="btn btn-outline-primary" (click)="createServiceType()" aria-label="Add service type">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                </button>
+              </div>
               <div *ngIf="appointmentForm.get('serviceTypeId')?.touched && appointmentForm.get('serviceTypeId')?.invalid"
                 class="text-danger small">
-                Tipo de servicio requerido
+                Service type required
               </div>
             </div>
 
             <!-- Duration -->
-            <div class="form-group">
-              <label for="duration" class="form-label">Duración (minutos) *</label>
+            <div class="col-12 col-md-4">
+              <label for="duration" class="form-label">Duration (minutes) *</label>
               <input
                 type="number"
                 id="duration"
@@ -198,53 +241,41 @@
           <h2 class="step-title">{{ steps[2].title }}</h2>
           <p class="step-description">{{ steps[2].description }}</p>
 
-          <div class="form-grid">
+          <div class="row g-3">
             <!-- Notes -->
-            <div class="form-group full-width">
-              <label for="notes" class="form-label">Notas Adicionales</label>
+            <div class="col-12">
+              <label for="notes" class="form-label">Additional Notes</label>
               <textarea
                 id="notes"
                 class="form-control textarea"
                 formControlName="notes"
-                placeholder="Información adicional sobre la cita..."
+                placeholder="Additional information about the appointment..."
                 rows="4"
               ></textarea>
             </div>
 
-            <!-- Status Checkboxes -->
-            <div class="status-section full-width">
-              <h3 class="status-title">Estado de la Cita</h3>
-              <div class="checkbox-group">
-                <label class="checkbox-label">
-                  <input
-                    type="checkbox"
-                    formControlName="cloused"
-                    class="checkbox-input"
-                  />
-                  <span class="checkbox-text">Cerrada</span>
-                </label>
-                <label class="checkbox-label">
-                  <input
-                    type="checkbox"
-                    formControlName="canceled"
-                    class="checkbox-input"
-                  />
-                  <span class="checkbox-text">Cancelada</span>
-                </label>
-              </div>
+            <!-- Status Info -->
+            <div class="col-12 status-section">
+              <h3 class="status-title">Appointment Status</h3>
+              @if (isAppointmentClosed()) {
+                <div class="alert alert-info">The appointment is closed or canceled. It cannot be edited.</div>
+              } @else {
+                <div class="text-muted">You can close or cancel the appointment from the action buttons.</div>
+              }
             </div>
           </div>
         </div>
       }
 
       <!-- Step Indicators -->
-      <div class="steps-indicator">
+      <div class="d-flex justify-content-center gap-2 my-4">
         @for (step of steps; track step.id) {
           <button
             type="button"
-            class="step-indicator"
-            [class.active]="currentStep() === step.id"
-            [class.completed]="currentStep() > step.id"
+            class="step-indicator btn rounded-circle d-inline-flex align-items-center justify-content-center"
+            [class.btn-primary]="currentStep() === step.id"
+            [class.btn-success]="currentStep() > step.id"
+            [class.btn-outline-secondary]="currentStep() < step.id"
             (click)="currentStep.set(step.id)"
             [disabled]="currentStep() < step.id"
           >
@@ -254,52 +285,125 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="form-actions">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="onCancel()"
-          [disabled]="isSaving()"
-        >
-          Cancelar
-        </button>
-
-        @if (currentStep() > 0) {
+      <div class="form-actions d-flex flex-column gap-2">
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
+          @if (isEditMode() && !isAppointmentClosed()) {
+            <div class="d-flex flex-wrap gap-2" role="group" aria-label="Acciones de estado">
+              <button type="button" class="btn btn-outline-success" (click)="openStatusConfirm('close')" [disabled]="isSaving()">
+                Close appointment
+              </button>
+              <button type="button" class="btn btn-outline-danger" (click)="openStatusConfirm('cancel')" [disabled]="isSaving()">
+                Cancel appointment
+              </button>
+            </div>
+          }
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
           <button
             type="button"
             class="btn btn-secondary"
-            (click)="prevStep()"
+            (click)="onCancel()"
             [disabled]="isSaving()"
           >
-            <i class="bi bi-arrow-left"></i>
-            Anterior
+            Cancel
           </button>
-        }
 
-        @if (currentStep() < steps.length - 1) {
-          <button
-            type="button"
-            class="btn btn-primary"
-            (click)="nextStep()"
-            [disabled]="!canProceedToNextStep() || isSaving()"
-          >
-            Siguiente
-            <i class="bi bi-arrow-right"></i>
-          </button>
-        } @else {
-          <button
-            type="submit"
-            class="btn btn-primary"
-            [disabled]="!appointmentForm.valid || isSaving()"
-          >
-            @if (isSaving()) {
-              <span class="button-spinner"></span> Guardando...
-            } @else {
-              {{ isEditMode() ? 'Actualizar' : 'Crear' }} Cita
-            }
-          </button>
-        }
+          @if (currentStep() > 0) {
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="prevStep()"
+              [disabled]="isSaving()"
+            >
+              <i class="bi bi-arrow-left"></i>
+              Previous
+            </button>
+          }
+
+          @if (currentStep() < steps.length - 1) {
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="nextStep()"
+              [disabled]="!canProceedToNextStep() || isSaving()"
+            >
+              Next
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          } @else {
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="!appointmentForm.valid || isSaving()"
+            >
+              @if (isSaving()) {
+                <span class="button-spinner"></span> Saving...
+              } @else {
+                {{ isEditMode() ? 'Update' : 'Create' }} Appointment
+              }
+            </button>
+          }
+        </div>
       </div>
     </form>
   }
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+@if (showDeviceModal()) {
+  <app-devices-form
+    [isModal]="true"
+    [device]="deviceModalDefaults"
+    (save)="onDeviceSaved($event)"
+    (cancel)="closeDeviceModal()"
+  ></app-devices-form>
+}
+
+@if (showServiceTypeModal()) {
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg" role="document" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-body p-0">
+          <app-service-types-form
+            (save)="onServiceTypeSaved($event)"
+            (cancel)="closeServiceTypeModal()"
+          ></app-service-types-form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show" (click)="closeServiceTypeModal()"></div>
+}
+
+@if (showStatusConfirmModal()) {
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            @if (pendingStatusAction() === 'close') { Cerrar cita }
+            @else { Cancelar cita }
+          </h5>
+          <button type="button" class="btn-close" aria-label="Cerrar" (click)="cancelStatusConfirm()"></button>
+        </div>
+        <div class="modal-body">
+          @if (pendingStatusAction() === 'close') {
+            <p>¿Confirmas que deseas cerrar esta cita?</p>
+          } @else {
+            <p>¿Confirmas que deseas cancelar esta cita?</p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelStatusConfirm()">Volver</button>
+          <button type="button" class="btn btn-primary" (click)="confirmStatusChange()" [disabled]="isSaving()">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show" (click)="cancelStatusConfirm()"></div>
+}

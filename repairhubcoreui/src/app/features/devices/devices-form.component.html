@@ -23,7 +23,7 @@
       </div>
     </div>
   </div>
-  <div class="modal-backdrop fade show"></div>
+  <div class="modal-backdrop fade show" (click)="onCancel()"></div>
 </ng-container>
 
 
@@ -50,27 +50,48 @@
 
 <ng-template #formContent>
   <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
-    <!-- Center -->
-    <div class="mb-3">
-      <label class="form-label" for="devicecenterId">Center *</label>
-      <select class="form-select" id="devicecenterId" formControlName="centerId">
-        <option [ngValue]="null">Select center</option>
-        <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
-      </select>
-      <div class="invalid-feedback d-block" *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">
-        Center is required</div>
-    </div>
+    @if (showCenterAndStoreFields()) {
+      <!-- Center -->
+      <div class="mb-3">
+        <label class="form-label" for="devicecenterId">Center *</label>
+        <select class="form-select" id="devicecenterId" formControlName="centerId">
+          <option [ngValue]="null">Select center</option>
+          <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
+        </select>
+        <div class="invalid-feedback d-block" *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">
+          Center is required</div>
+      </div>
 
-    <!-- Store -->
-    <div class="mb-3">
-      <label class="form-label" for="devicestoreId">Store *</label>
-      <select class="form-select" id="devicestoreId" formControlName="storeId"><!--[disabled]="!centerId?.value" -->
-        <option [ngValue]="null">Select store</option>
-        <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
-      </select>
-      <div class="invalid-feedback d-block" *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">Store
-        is required</div>
-    </div>
+      <!-- Store -->
+      <div class="mb-3">
+        <label class="form-label" for="devicestoreId">Store *</label>
+        <select class="form-select" id="devicestoreId" formControlName="storeId">
+          <option [ngValue]="null">Select store</option>
+          <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+        </select>
+        <div class="invalid-feedback d-block" *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">Store
+          is required</div>
+      </div>
+    }
+
+    @if (showOnlyStoreField()) {
+      <!-- Store (Admin Center) -->
+      <div class="mb-3">
+        <label class="form-label" for="devicestoreId">Store *</label>
+        <select class="form-select" id="devicestoreId" formControlName="storeId">
+          <option [ngValue]="null">Select store</option>
+          <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+        </select>
+        <div class="invalid-feedback d-block" *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">Store
+          is required</div>
+      </div>
+    }
+
+    @if (hideLocationFields()) {
+      <div class="mb-3">
+        <div class="alert alert-info">Center and store are assigned automatically.</div>
+      </div>
+    }
     
     <div class="mb-3">
       <label for="name" class="form-label">Name</label>

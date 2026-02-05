@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit, inject } from '@angular/core';
+import { Component, signal, computed, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -14,6 +14,8 @@ import { StoresService } from '../../shared/services/stores.service';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { AuthService } from '../../shared/services/auth.service';
+import { DevicesFormComponent } from '../devices/devices-form.component';
+import { ServiceTypesFormComponent } from '../service-types/service-types-form.component';
 
 interface FormState {
   isLoading: boolean;
@@ -26,9 +28,9 @@ interface FormState {
 @Component({
   selector: 'app-appointments-form-modern',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, DevicesFormComponent, ServiceTypesFormComponent],
   templateUrl: './appointments-form-modern.component.html',
-  styleUrls: ['./appointments-form-modern.component.scss'],
+  //styleUrls: ['./appointments-form-modern.component.scss'],
   animations: [
     trigger('fadeInUp', [
       transition(':enter', [
@@ -71,8 +73,18 @@ export class AppointmentsFormModernComponent implements OnInit {
   readonly selectedCenterId = signal<number | null>(null);
   readonly minDate = signal<string>(this.getTodayDate());
   readonly userType = signal<'employee' | 'user' | null>(this.authService.getUserType());
+  readonly showDeviceModal = signal(false);
+  readonly showServiceTypeModal = signal(false);
+  readonly showStatusConfirmModal = signal(false);
+  readonly pendingStatusAction = signal<'close' | 'cancel' | null>(null);
+  readonly currentEmployee = computed(() => this.authService.getCurrentEmployee());
+  readonly isCenterAdmin = computed(() => this.currentEmployee()?.isCenterAdmin ?? false);
+  readonly showCenterAndStoreFields = computed(() => this.userType() === 'user');
+  readonly showOnlyStoreField = computed(() => this.userType() === 'employee' && this.isCenterAdmin());
+  readonly hideLocationFields = computed(() => this.userType() === 'employee' && !this.isCenterAdmin());
 
   appointmentForm!: FormGroup;
+  deviceModalDefaults: Partial<Devices> | null = null;
 
   isLoading = computed(() => this.formState().isLoading);
   isSaving = computed(() => this.formState().isSaving);
@@ -134,6 +146,8 @@ export class AppointmentsFormModernComponent implements OnInit {
 
   private applyUserTypeRules(): void {
     const isUser = this.userType() === 'user';
+    const isEmployee = this.userType() === 'employee';
+    const isAdminCenter = isEmployee && this.isCenterAdmin();
     const centerControl = this.appointmentForm.get('centerId');
     const storeControl = this.appointmentForm.get('storeId');
 
@@ -142,13 +156,47 @@ export class AppointmentsFormModernComponent implements OnInit {
       storeControl?.setValidators([Validators.required]);
       centerControl?.enable({ emitEvent: false });
       storeControl?.enable({ emitEvent: false });
+    } else if (isAdminCenter) {
+      centerControl?.clearValidators();
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
     } else {
       centerControl?.clearValidators();
       storeControl?.clearValidators();
-      centerControl?.updateValueAndValidity({ emitEvent: false });
-      storeControl?.updateValueAndValidity({ emitEvent: false });
       centerControl?.disable({ emitEvent: false });
       storeControl?.disable({ emitEvent: false });
+    }
+
+    centerControl?.updateValueAndValidity({ emitEvent: false });
+    storeControl?.updateValueAndValidity({ emitEvent: false });
+
+    this.applyEmployeeDefaults();
+  }
+
+  private applyEmployeeDefaults(): void {
+    if (this.userType() !== 'employee') {
+      return;
+    }
+
+    const centerControl = this.appointmentForm.get('centerId');
+    const storeControl = this.appointmentForm.get('storeId');
+    const empCenterId = this.authService.getCenterId();
+    const empStoreId = this.authService.getStoreId();
+
+    if (empCenterId != null) {
+      centerControl?.setValue(empCenterId, { emitEvent: false });
+      this.selectedCenterId.set(empCenterId);
+    }
+
+    if (this.isCenterAdmin()) {
+      if (storeControl && (storeControl.value == null || storeControl.value === '')) {
+        if (empStoreId != null) {
+          storeControl.setValue(empStoreId, { emitEvent: false });
+        }
+      }
+    } else if (empStoreId != null) {
+      storeControl?.setValue(empStoreId, { emitEvent: false });
     }
   }
 
@@ -195,8 +243,13 @@ export class AppointmentsFormModernComponent implements OnInit {
     const userType = this.authService.getUserType();
 
     if (userType !== 'user') {
-      if (centerId) this.appointmentForm.get('centerId')?.setValue(centerId);
-      if (storeId) this.appointmentForm.get('storeId')?.setValue(storeId);
+      if (centerId != null) {
+        this.appointmentForm.get('centerId')?.setValue(centerId, { emitEvent: false });
+        this.selectedCenterId.set(centerId);
+      }
+      if (storeId != null) {
+        this.appointmentForm.get('storeId')?.setValue(storeId, { emitEvent: false });
+      }
       if (createdById) this.appointmentForm.get('createdById')?.setValue(createdById);
     }
   }
@@ -218,7 +271,9 @@ export class AppointmentsFormModernComponent implements OnInit {
         if (normalized !== null) {
           this.selectedCenterId.set(normalized);
         }
+        this.applyEmployeeDefaults();
         this.updateFieldsEnabledState();
+        this.lockFormIfClosed();
         this.formState.update(s => ({ ...s, isLoading: false }));
       },
       error: (err) => {
@@ -312,25 +367,91 @@ export class AppointmentsFormModernComponent implements OnInit {
     }
   }
 
+  createDevice(): void {
+    const userType = this.authService.getUserType();
+    let centerId: number | null = null;
+    let storeId: number | null = null;
+
+    if (userType === 'user') {
+      centerId = this.normalizeId(this.appointmentForm.get('centerId')?.value);
+      storeId = this.normalizeId(this.appointmentForm.get('storeId')?.value);
+    } else {
+      centerId = this.normalizeId(this.authService.getCenterId());
+      if (this.isCenterAdmin()) {
+        storeId = this.normalizeId(this.appointmentForm.get('storeId')?.value ?? this.authService.getStoreId());
+      } else {
+        storeId = this.normalizeId(this.authService.getStoreId());
+      }
+    }
+
+    this.deviceModalDefaults = {
+      centerId: centerId ?? undefined,
+      storeId: storeId ?? undefined,
+    };
+    this.showDeviceModal.set(true);
+  }
+
+  createServiceType(): void {
+    this.showServiceTypeModal.set(true);
+  }
+
+  closeDeviceModal(): void {
+    this.showDeviceModal.set(false);
+  }
+
+  closeServiceTypeModal(): void {
+    this.showServiceTypeModal.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapePress(): void {
+    if (this.showServiceTypeModal()) {
+      this.closeServiceTypeModal();
+      return;
+    }
+    if (this.showDeviceModal()) {
+      this.closeDeviceModal();
+    }
+  }
+
+  onDeviceSaved(device: Devices): void {
+    this.showDeviceModal.set(false);
+    this.loadDevices();
+    if (device?.id) {
+      this.appointmentForm.get('deviceId')?.setValue(device.id);
+    }
+  }
+
+  onServiceTypeSaved(serviceType: ServiceTypes): void {
+    this.showServiceTypeModal.set(false);
+    this.loadServiceTypes();
+    if (serviceType?.id) {
+      this.appointmentForm.get('serviceTypeId')?.setValue(serviceType.id);
+    }
+  }
+
   getStepProgress(): number {
     return ((this.currentStep() + 1) / this.steps.length) * 100;
   }
 
   onSubmit(): void {
+    if (this.isAppointmentClosed()) {
+      return;
+    }
     const userType = this.authService.getUserType();
     if (userType !== 'user') {
-      if (!this.appointmentForm.get('centerId')?.value) {
-        const centerId = this.authService.getCenterId();
-        if (centerId) {
-          this.appointmentForm.get('centerId')?.setValue(centerId);
-        }
+      const centerId = this.authService.getCenterId();
+      const storeId = this.authService.getStoreId();
+      if (centerId != null) {
+        this.appointmentForm.get('centerId')?.setValue(centerId, { emitEvent: false });
       }
 
-      if (!this.appointmentForm.get('storeId')?.value) {
-        const storeId = this.authService.getStoreId();
-        if (storeId) {
-          this.appointmentForm.get('storeId')?.setValue(storeId);
+      if (this.isCenterAdmin()) {
+        if (!this.appointmentForm.get('storeId')?.value && storeId != null) {
+          this.appointmentForm.get('storeId')?.setValue(storeId, { emitEvent: false });
         }
+      } else if (storeId != null) {
+        this.appointmentForm.get('storeId')?.setValue(storeId, { emitEvent: false });
       }
     }
 
@@ -348,7 +469,15 @@ export class AppointmentsFormModernComponent implements OnInit {
 
     this.formState.update(s => ({ ...s, isSaving: true, error: null }));
 
-    const appointmentData = this.appointmentForm.value;
+    const appointmentData = this.appointmentForm.getRawValue();
+    if (userType !== 'user') {
+      appointmentData.centerId = this.normalizeId(this.authService.getCenterId());
+      if (this.isCenterAdmin()) {
+        appointmentData.storeId = this.normalizeId(appointmentData.storeId ?? this.authService.getStoreId());
+      } else {
+        appointmentData.storeId = this.normalizeId(this.authService.getStoreId());
+      }
+    }
     appointmentData.centerId = this.normalizeId(appointmentData.centerId);
     appointmentData.storeId = this.normalizeId(appointmentData.storeId);
     appointmentData.createdById = this.normalizeId(appointmentData.createdById);
@@ -374,9 +503,10 @@ export class AppointmentsFormModernComponent implements OnInit {
   }
 
   onCancel(): void {
-    if (confirm('¿Descartar cambios?')) {
+    
       this.router.navigate(['/appointments']);
-    }
+      return;
+    
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
@@ -407,10 +537,66 @@ export class AppointmentsFormModernComponent implements OnInit {
     this.formState.update(s => ({ ...s, error: null }));
   }
 
+  openStatusConfirm(action: 'close' | 'cancel'): void {
+    if (!this.isEditMode() || this.isAppointmentClosed()) {
+      return;
+    }
+    this.pendingStatusAction.set(action);
+    this.showStatusConfirmModal.set(true);
+  }
+
+  cancelStatusConfirm(): void {
+    this.showStatusConfirmModal.set(false);
+    this.pendingStatusAction.set(null);
+  }
+
+  confirmStatusChange(): void {
+    if (!this.currentAppointmentId()) {
+      return;
+    }
+
+    const action = this.pendingStatusAction();
+    if (!action) {
+      return;
+    }
+
+    this.formState.update(s => ({ ...s, isSaving: true, error: null }));
+
+    const appointmentData = this.appointmentForm.getRawValue();
+    appointmentData.cloused = action === 'close';
+    appointmentData.canceled = action === 'cancel';
+
+    this.appointmentsService.update(this.currentAppointmentId()!, appointmentData).subscribe({
+      next: (updated) => {
+        this.appointmentForm.patchValue(updated);
+        this.updateFieldsEnabledState();
+        this.lockFormIfClosed();
+        this.formState.update(s => ({ ...s, isSaving: false, success: true }));
+        this.cancelStatusConfirm();
+        setTimeout(() => {
+          this.router.navigate(['/appointments']);
+        }, 1000);
+      },
+      error: (err) => {
+        this.formState.update(s => ({
+          ...s,
+          isSaving: false,
+          error: err?.error?.message || 'Error al actualizar la cita'
+        }));
+      }
+    });
+  }
+
   private normalizeId(value: unknown): number | null {
     if (value === null || value === undefined || value === '') return null;
     const parsed = Number(value);
     return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  private lockFormIfClosed(): void {
+    if (this.isAppointmentClosed()) {
+      this.appointmentForm.disable({ emitEvent: false });
+    }
   }
 
   private getTodayDate(): string {

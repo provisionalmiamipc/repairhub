@@ -26,6 +26,7 @@ export class AuthService {
   private employeeSubject = new BehaviorSubject<Employees | null>(null);
   private userSubject = new BehaviorSubject<Users | null>(null);
   private pinVerifiedSubject = new BehaviorSubject<boolean>(false);
+  private returnUrlSubject = new BehaviorSubject<string>('/employee/dashboard');
   private inactivityTimer: any;
   private inactivityTimeoutMinutes = 0;
   private activityListenersAttached = false;
@@ -33,6 +34,7 @@ export class AuthService {
   public employee$ = this.employeeSubject.asObservable();
   public user$ = this.userSubject.asObservable();
   public pinVerified$ = this.pinVerifiedSubject.asObservable();
+  public returnUrl$ = this.returnUrlSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -58,6 +60,28 @@ export class AuthService {
   private resetPinVerification(): void {
     this.pinVerifiedSubject.next(false);
     localStorage.removeItem('pin_verified');
+  }
+
+  // Return URL Management for post-PIN redirect
+  setReturnUrl(url: string): void {
+    this.returnUrlSubject.next(url);
+    localStorage.setItem('return_url', url);
+  }
+
+  getReturnUrl(): string {
+    return this.returnUrlSubject.value;
+  }
+
+  private loadReturnUrl(): void {
+    const stored = localStorage.getItem('return_url');
+    if (stored) {
+      this.returnUrlSubject.next(stored);
+    }
+  }
+
+  clearReturnUrl(): void {
+    this.returnUrlSubject.next('/employee/dashboard');
+    localStorage.removeItem('return_url');
   }
 
   // Employee Login
@@ -223,6 +247,9 @@ export class AuthService {
     // refresh token is now stored in httpOnly cookie (set by server); do not store in localStorage
     localStorage.setItem(this.USER_TYPE_KEY, response.userType);
     
+    // Clear return URL on new login - start fresh
+    this.clearReturnUrl();
+    
     if (response.employee) {
       localStorage.setItem(this.EMPLOYEE_DATA_KEY, JSON.stringify(response.employee));
     }
@@ -250,6 +277,7 @@ export class AuthService {
         const employee: Employees = JSON.parse(employeeData);
         this.employeeSubject.next(employee);
         this.pinVerifiedSubject.next(pinVerified);
+        this.loadReturnUrl();
         this.startInactivityTimer(employee.pinTimeout);
       }
     } else if (token && userType === 'user') {

@@ -1,122 +1,116 @@
 
-<div class="animated fadeIn" style="margin-bottom: 60px">
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="card">
-        <div class="card-header">
-          <h4>Detalles del Empleado</h4>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="mb-3">
-                <strong>Código de Empleado:</strong>
-                <p class="mb-0">{{ employee?.employeeCode }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Nombre Completo:</strong>
-                <p class="mb-0">{{ employee?.firstName }} {{ employee?.lastName }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Género:</strong>
-                <p class="mb-0">{{ employee?.gender === 'Male' ? 'Masculino' : 'Femenino' }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Teléfono:</strong>
-                <p class="mb-0">{{ employee?.phone }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Correo Electrónico:</strong>
-                <p class="mb-0">{{ employee?.email }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Ciudad:</strong>
-                <p class="mb-0">{{ employee?.city }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Tipo de Empleado:</strong>
-                <p class="mb-0">
-                  {{
-                    employee?.employee_type === 'Expert'
-                      ? 'Experto'
-                      : employee?.employee_type === 'Accountant'
-                        ? 'Contador'
-                        : 'Administrador de Tienda'
-                  }}
-                </p>
-              </div>
-            </div>
-
-            <div class="col-md-6">
-              <div class="mb-3">
-                <strong>Puesto:</strong>
-                <p class="mb-0">{{ employee?.jobTitle }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Timeout del PIN (minutos):</strong>
-                <p class="mb-0">{{ employee?.pinTimeout }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>PIN:</strong>
-                <p class="mb-0">••••••</p> <!-- Nunca mostrar el PIN real en UI -->
-              </div>
-
-              <div class="mb-3">
-                <strong>Contraseña:</strong>
-                <p class="mb-0">••••••••</p> <!-- Nunca mostrar la contraseña real -->
-              </div>
-
-              <div class="mb-3">
-                <strong>Centro ID:</strong>
-                <p class="mb-0">{{ employee?.center?.centerName }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Tienda ID:</strong>
-                <p class="mb-0">{{ employee?.store?.storeName }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>¿Es Administrador del Centro?</strong>
-                <p class="mb-0">
-                  {{ employee?.isCenterAdmin ? 'Sí' : 'No' }}
-                </p>
-              </div>
-            </div>
+<div class="container-fluid py-4">
+  <div class="card shadow-sm mb-4">
+    <div class="card-body pb-2">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:72px;height:72px;font-size:1.25rem">
+            {{ (employee?.firstName?.charAt(0) || '') + (employee?.lastName?.charAt(0) || '') }}
           </div>
-
-          <div class="row mt-4">
-            <div class="col-md-12">
-              <div class="mb-3">
-                <strong>Fecha de Creación:</strong>
-                <p class="mb-0">{{ employee?.createdAt | date:'medium' }}</p>
-              </div>
-
-              <div class="mb-3">
-                <strong>Última Actualización:</strong>
-                <p class="mb-0">{{ employee?.updatedAt | date:'medium' }}</p>
-              </div>
+          <div>
+            <h5 class="mb-0">{{ employee?.firstName }} {{ employee?.lastName }}</h5>
+            <div class="small text-muted">{{ employee?.employeeCode }}</div>
+            <div class="mt-1">
+              <span class="badge bg-success me-1">{{ employee?.employee_type || 'N/A' }}</span>
+              <span *ngIf="employee?.isCenterAdmin" class="badge bg-info text-dark">Center Admin</span>
             </div>
           </div>
         </div>
 
-        <div class="card-footer text-end">
-          <button class="btn btn-secondary me-2" (click)="goBack()">
-            <i class="cil-arrow-circle-left me-1"></i> Volver
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary" (click)="goBack()">
+            <i class="cil-arrow-circle-left me-1"></i> Back
           </button>
           <button class="btn btn-primary" (click)="editEmployee()">
-            <i class="cil-pencil me-1"></i> Editar
+            <i class="cil-pencil me-1"></i> Edit
           </button>
         </div>
       </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card mb-3">
+            <div class="card-body p-3">
+              <h6 class="mb-3">Contact & Profile</h6>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                  <div class="text-muted">Phone</div>
+                  <div>{{ employee?.phone || '-' }}</div>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                  <div class="text-muted">Email</div>
+                  <div>{{ employee?.email || '-' }}</div>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                  <div class="text-muted">City</div>
+                  <div>{{ employee?.city || '-' }}</div>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                  <div class="text-muted">Gender</div>
+                  <div>{{ employee?.gender === 'Male' ? 'Male' : 'Female' }}</div>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                  <div class="text-muted">Job Title</div>
+                  <div>{{ employee?.jobTitle || '-' }}</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body p-3">
+              <h6 class="mb-3">Security</h6>
+              <div class="row">
+                <div class="col-sm-6 mb-2">
+                  <div class="text-muted small">PIN Timeout (min)</div>
+                  <div>{{ employee?.pinTimeout ?? '-' }}</div>
+                </div>
+                <div class="col-sm-6 mb-2">
+                  <div class="text-muted small">PIN</div>
+                  <div>••••••</div>
+                </div>
+                <div class="col-sm-6 mb-2">
+                  <div class="text-muted small">Password</div>
+                  <div>••••••••</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card mb-3">
+            <div class="card-body p-3">
+              <h6 class="mb-3">Assignment</h6>
+              <ul class="list-unstyled small">
+                <li class="mb-2"><span class="text-muted">Center:</span> <div class="fw-semibold">{{ employee?.center?.centerName || '-' }}</div></li>
+                <li class="mb-2"><span class="text-muted">Store:</span> <div class="fw-semibold">{{ employee?.store?.storeName || '-' }}</div></li>
+                <li class="mb-2"><span class="text-muted">Employee Type:</span> <div class="fw-semibold">{{ employee?.employee_type || '-' }}</div></li>
+                <li class="mb-2"><span class="text-muted">Is Center Admin:</span> <div class="fw-semibold">{{ employee?.isCenterAdmin ? 'Yes' : 'No' }}</div></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body p-3">
+              <h6 class="mb-3">Metadata</h6>
+              <div class="small text-muted">Created</div>
+              <div class="mb-2">{{ employee?.createdAt | date:'medium' }}</div>
+              <div class="small text-muted">Updated</div>
+              <div>{{ employee?.updatedAt | date:'medium' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer border-0 d-flex justify-content-end">
+      <button class="btn btn-outline-secondary me-2" (click)="goBack()">
+        <i class="cil-arrow-circle-left me-1"></i> Back
+      </button>
+      <button class="btn btn-primary" (click)="editEmployee()">
+        <i class="cil-pencil me-1"></i> Edit
+      </button>
     </div>
   </div>
 </div>

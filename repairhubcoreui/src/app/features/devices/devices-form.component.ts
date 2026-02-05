@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Devices } from '../../shared/models/Devices';
 import { CommonModule } from '@angular/common';
@@ -8,6 +8,7 @@ import { Stores } from '../../shared/models/Stores';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { DevicesService } from '../../shared/services/devices.service';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-devices-form',
@@ -36,8 +37,19 @@ export class DevicesFormComponent {
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
-  constructor(private fb: FormBuilder, private centerService: CentersService,
-    private storeService: StoresService, private devicesService: DevicesService) {
+  readonly userType = signal<'employee' | 'user' | null>(null);
+  readonly isCenterAdmin = signal(false);
+  readonly showCenterAndStoreFields = computed(() => this.userType() === 'user');
+  readonly showOnlyStoreField = computed(() => this.userType() === 'employee' && this.isCenterAdmin());
+  readonly hideLocationFields = computed(() => this.userType() === 'employee' && !this.isCenterAdmin());
+
+  constructor(
+    private fb: FormBuilder,
+    private centerService: CentersService,
+    private storeService: StoresService,
+    private devicesService: DevicesService,
+    private authService: AuthService
+  ) {
     this.form = this.fb.group({
       centerId: [null, Validators.required],
       storeId: [null, Validators.required],
@@ -54,10 +66,11 @@ export class DevicesFormComponent {
   }
 
   ngOnInit(): void {  
-    
-    
     this.centerService.getAll().subscribe((c) => (this.centers = c));
     this.storeService.getAll().subscribe((s) => (this.stores = s));
+
+    this.initializeUserType();
+    this.applyUserTypeRules();
 
     // Cuando cambia el center, limpiar storeId
     this.form.get('centerId')?.valueChanges.subscribe(() => {
@@ -67,7 +80,7 @@ export class DevicesFormComponent {
   }
 
   get filteredStores() {
-    const rawCenter = this.form.get('centerId')?.value;
+    const rawCenter = this.form.get('centerId')?.value ?? this.authService.getCenterId();
     const centerId = rawCenter !== null && rawCenter !== undefined ? Number(rawCenter) : null;
     if (!centerId) return [];
 
@@ -81,10 +94,12 @@ export class DevicesFormComponent {
   onSubmit() {
     if (!this.form.valid || this.isLoading) return;
 
+    this.applyEmployeeDefaults();
+
     this.isLoading = true;
     this.successMessage = null;
     this.errorMessage = null;
-    const payload = this.form.value as Partial<Devices>;
+    const payload = this.form.getRawValue() as Partial<Devices>;
 
     if (this.device && this.device.id) {
       // Update
@@ -117,5 +132,58 @@ export class DevicesFormComponent {
 
   onCancel() {
     this.cancel.emit();
+  }
+
+  private initializeUserType(): void {
+    const userType = this.authService.getUserType();
+    this.userType.set(userType as 'employee' | 'user' | null);
+    const isCenterAdmin = this.authService.getCurrentEmployee()?.isCenterAdmin ?? false;
+    this.isCenterAdmin.set(isCenterAdmin);
+  }
+
+  private applyUserTypeRules(): void {
+    const centerControl = this.form.get('centerId');
+    const storeControl = this.form.get('storeId');
+
+    if (this.showCenterAndStoreFields()) {
+      centerControl?.setValidators([Validators.required]);
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.enable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
+    } else if (this.showOnlyStoreField()) {
+      centerControl?.clearValidators();
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
+    } else {
+      centerControl?.clearValidators();
+      storeControl?.clearValidators();
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.disable({ emitEvent: false });
+    }
+
+    centerControl?.updateValueAndValidity({ emitEvent: false });
+    storeControl?.updateValueAndValidity({ emitEvent: false });
+
+    this.applyEmployeeDefaults();
+  }
+
+  private applyEmployeeDefaults(): void {
+    if (this.userType() !== 'employee') return;
+
+    const empCenterId = this.authService.getCenterId();
+    const empStoreId = this.authService.getStoreId();
+
+    if (empCenterId != null) {
+      this.form.get('centerId')?.setValue(empCenterId, { emitEvent: false });
+    }
+
+    if (this.showOnlyStoreField()) {
+      if (this.form.get('storeId')?.value == null && empStoreId != null) {
+        this.form.get('storeId')?.setValue(empStoreId, { emitEvent: false });
+      }
+    } else if (empStoreId != null) {
+      this.form.get('storeId')?.setValue(empStoreId, { emitEvent: false });
+    }
   }
 }

@@ -36,7 +36,10 @@ export class ServiceTypesFormComponent implements OnInit, OnChanges {
   errorMessage: string | null = null;
 
   private userType = signal<string | null>(null);
-  isUserTypeUser = computed(() => this.userType() === 'user');
+  readonly isCenterAdmin = signal(false);
+  readonly showCenterAndStoreFields = computed(() => this.userType() === 'user');
+  readonly showOnlyStoreField = computed(() => this.userType() === 'employee' && this.isCenterAdmin());
+  readonly hideLocationFields = computed(() => this.userType() === 'employee' && !this.isCenterAdmin());
 
   constructor() {
     this.form = this.fb.group({
@@ -77,28 +80,57 @@ export class ServiceTypesFormComponent implements OnInit, OnChanges {
 
   private loadUserType(): void {
     this.userType.set(this.authService.getUserType());
+    const isCenterAdmin = this.authService.getCurrentEmployee()?.isCenterAdmin ?? false;
+    this.isCenterAdmin.set(isCenterAdmin);
   }
 
   private applyUserTypeRules(): void {
     const userTypeValue = this.authService.getUserType();
-    
-    if (userTypeValue !== 'user') {
-      // Para EMPLOYEE: auto-rellenar desde datos autenticados
-      const centerId = this.authService.getCenterId();
-      const storeId = this.authService.getStoreId();
-      
-      if (centerId) this.form.get('centerId')?.setValue(centerId);
-      if (storeId) this.form.get('storeId')?.setValue(storeId);
-      
-      // Deshabilitar campos para que no se editen
-      this.form.get('centerId')?.disable();
-      this.form.get('storeId')?.disable();
+    const isEmployee = userTypeValue !== 'user';
+    const isAdminCenter = isEmployee && this.isCenterAdmin();
+
+    const centerControl = this.form.get('centerId');
+    const storeControl = this.form.get('storeId');
+
+    if (!isEmployee) {
+      centerControl?.setValidators([Validators.required]);
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.enable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
+    } else if (isAdminCenter) {
+      centerControl?.clearValidators();
+      storeControl?.setValidators([Validators.required]);
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.enable({ emitEvent: false });
     } else {
-      // Para USER: campos requeridos y habilitados
-      this.form.get('centerId')?.setValidators([Validators.required]);
-      this.form.get('storeId')?.setValidators([Validators.required]);
-      this.form.get('centerId')?.updateValueAndValidity();
-      this.form.get('storeId')?.updateValueAndValidity();
+      centerControl?.clearValidators();
+      storeControl?.clearValidators();
+      centerControl?.disable({ emitEvent: false });
+      storeControl?.disable({ emitEvent: false });
+    }
+
+    centerControl?.updateValueAndValidity({ emitEvent: false });
+    storeControl?.updateValueAndValidity({ emitEvent: false });
+
+    this.applyEmployeeDefaults();
+  }
+
+  private applyEmployeeDefaults(): void {
+    if (this.userType() !== 'employee') return;
+
+    const empCenterId = this.authService.getCenterId();
+    const empStoreId = this.authService.getStoreId();
+
+    if (empCenterId != null) {
+      this.form.get('centerId')?.setValue(empCenterId, { emitEvent: false });
+    }
+
+    if (this.showOnlyStoreField()) {
+      if (this.form.get('storeId')?.value == null && empStoreId != null) {
+        this.form.get('storeId')?.setValue(empStoreId, { emitEvent: false });
+      }
+    } else if (empStoreId != null) {
+      this.form.get('storeId')?.setValue(empStoreId, { emitEvent: false });
     }
   }
 
@@ -121,15 +153,21 @@ export class ServiceTypesFormComponent implements OnInit, OnChanges {
     
     // Agregar centerId y storeId solo si está habilitado (para USER) o si es creación
     if (!this.serviceType?.id) {
-      // Creación: incluir centerId y storeId si están presentes
-      if (this.isUserTypeUser()) {
+      if (this.showCenterAndStoreFields()) {
         if (rawValue.centerId) payload.centerId = rawValue.centerId;
         if (rawValue.storeId) payload.storeId = rawValue.storeId;
+      } else {
+        const empCenterId = this.authService.getCenterId();
+        const empStoreId = this.authService.getStoreId();
+        if (empCenterId != null) payload.centerId = empCenterId;
+        if (this.showOnlyStoreField()) {
+          if (rawValue.storeId || empStoreId != null) payload.storeId = rawValue.storeId ?? empStoreId;
+        } else if (empStoreId != null) {
+          payload.storeId = empStoreId;
+        }
       }
     } else {
-      // Actualización: solo incluir campos modificables
-      // Para EMPLOYEE, centerId y storeId están deshabilitados, no se envían
-      if (this.isUserTypeUser()) {
+      if (this.showCenterAndStoreFields()) {
         if (rawValue.centerId) payload.centerId = rawValue.centerId;
         if (rawValue.storeId) payload.storeId = rawValue.storeId;
       }

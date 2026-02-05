@@ -35,7 +35,7 @@ import { PinInputModalComponent } from '../pin-input-modal/pin-input-modal.compo
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--cui-body-bg);
     }
   `]
 })
@@ -58,9 +58,23 @@ export class VerifyPinPageComponent implements OnInit {
     this.authService.unlockSession(pin).subscribe({
       next: (response) => {
         if (response.verified) {
-          // PIN válido - marcar como verificado y navegar al dashboard
+          // PIN válido - marcar como verificado
           this.authService.setPinVerified(true);
-          this.router.navigate(['/employee/dashboard']);
+          
+          // Obtener URL de retorno ANTES de limpiar
+          const returnUrl = this.authService.getReturnUrl();
+          console.log('PIN verified, returnUrl:', returnUrl);
+          
+          // Navegar a la URL guardada
+          // Usar setTimeout para asegurar que se procesa después del PIN verify
+          setTimeout(() => {
+            this.authService.clearReturnUrl();
+            if (returnUrl && returnUrl !== '/employee/dashboard') {
+              this.router.navigateByUrl(returnUrl);
+            } else {
+              this.router.navigate(['/employee/dashboard']);
+            }
+          }, 100);
         } else {
           // PIN inválido
           this.handlePinError(response.error || 'Invalid PIN. Please try again.');

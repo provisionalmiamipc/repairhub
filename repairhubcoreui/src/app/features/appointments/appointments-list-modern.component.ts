@@ -12,7 +12,13 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Appointments } from '../../shared/models/Appointments';
+import { Centers } from '../../shared/models/Centers';
+import { Stores } from '../../shared/models/Stores';
+import { ServiceTypes } from '../../shared/models/ServiceTypes';
 import { AppointmentsService } from '../../shared/services/appointments.service';
+import { CentersService } from '../../shared/services/centers.service';
+import { StoresService } from '../../shared/services/stores.service';
+import { ServiceTypesService } from '../../shared/services/service-types.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
@@ -45,9 +51,15 @@ import { trigger, transition, style, animate } from '@angular/animations';
 export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private appointmentsService = inject(AppointmentsService);
+  private centersService = inject(CentersService);
+  private storesService = inject(StoresService);
+  private serviceTypesService = inject(ServiceTypesService);
 
   // Signals State Management
   appointments = signal<Appointments[]>([]);
+  centers = signal<Centers[]>([]);
+  stores = signal<Stores[]>([]);
+  serviceTypes = signal<ServiceTypes[]>([]);
   isLoading = signal(false);
   error = signal<string | null>(null);
   searchQuery = signal('');
@@ -94,6 +106,9 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadAppointments();
+    this.loadCenters();
+    this.loadStores();
+    this.loadServiceTypes();
     this.setupSearchListener();
   }
 
@@ -120,6 +135,27 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
           this.isLoading.set(false);
         }
       });
+  }
+
+  private loadCenters() {
+    this.centersService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => this.centers.set(data || []),
+      error: () => this.centers.set([])
+    });
+  }
+
+  private loadStores() {
+    this.storesService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => this.stores.set(data || []),
+      error: () => this.stores.set([])
+    });
+  }
+
+  private loadServiceTypes() {
+    this.serviceTypesService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => this.serviceTypes.set(data || []),
+      error: () => this.serviceTypes.set([])
+    });
   }
 
   private setupSearchListener() {
@@ -189,5 +225,35 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
     if (appointment.canceled) return 'canceled';
     if (appointment.cloused) return 'closed';
     return 'active';
+  }
+
+  getServiceTypeName(appointment: Appointments): string {
+    const id = this.getServiceTypeId(appointment);
+    if (!id) return 'N/A';
+    return this.serviceTypes().find(t => t.id === id)?.name || 'N/A';
+  }
+
+  getCenterName(appointment: Appointments): string {
+    const id = this.getCenterId(appointment);
+    if (!id) return 'N/A';
+    return this.centers().find(c => c.id === id)?.centerName || 'N/A';
+  }
+
+  getStoreName(appointment: Appointments): string {
+    const id = this.getStoreId(appointment);
+    if (!id) return 'N/A';
+    return this.stores().find(s => s.id === id)?.storeName || 'N/A';
+  }
+
+  private getServiceTypeId(appointment: Appointments): number | null {
+    return Number((appointment as any).serviceTypeId ?? (appointment as any).serviceType?.id ?? null) || null;
+  }
+
+  private getCenterId(appointment: Appointments): number | null {
+    return Number((appointment as any).centerId ?? (appointment as any).centerid ?? (appointment as any).center?.id ?? null) || null;
+  }
+
+  private getStoreId(appointment: Appointments): number | null {
+    return Number((appointment as any).storeId ?? (appointment as any).storeid ?? (appointment as any).store?.id ?? null) || null;
   }
 }

@@ -200,4 +200,23 @@ export class CustomValidators {
       return date >= minDate && date <= maxDate ? null : { dateOutOfRange: true };
     };
   }
+
+  /**
+   * Validador de formato de email más estricto
+   * Requiere que haya un dominio con al menos un punto (ej: gmail.com, hotmail.es)
+   */
+  static validEmailFormat(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.value) {
+        return null;
+      }
+
+      const email = control.value.toLowerCase().trim();
+      // Regex que requiere: algo@algo.algo
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+      return emailRegex.test(email) ? null : { invalidEmailFormat: true };
+    };
+  }
 }
+
