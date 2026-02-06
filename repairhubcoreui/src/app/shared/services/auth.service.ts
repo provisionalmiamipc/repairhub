@@ -11,7 +11,7 @@ import { VerifyPinRequest, VerifyPinResponse } from '../models/pin-verification.
 import { Employees } from '../models/Employees';
 import { Users } from '../models/Users';
 import { of } from 'rxjs';
-import { environment } from '../../../environment';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

@@ -1,7 +1,7 @@
 import { ErrorHandler, Injectable, Injector } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { environment } from '../../../environment';
+import { environment } from '../../../environments/environment';
 
 /**
  * GlobalErrorHandler: Maneja todos los errores no capturados
