@@ -189,6 +189,7 @@
                 <i class="bi bi-eye"></i> View
               </button>
               <button
+                *ngIf="!(order.cloused || order.canceled)"
                 class="action-btn edit"
                 (click)="goToEdit(order)"
                 title="Edit order"

@@ -10,7 +10,7 @@
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" />
             <!-- Center -->
-            <div class="mb-3">
+            <div class="mb-3" *ngIf="showCenterField">
               <label class="form-label" for="devicecenterId">Center *</label>
               <select class="form-select" id="devicecenterId" formControlName="centerId"
                 [class.is-invalid]="form.get('centerId')?.invalid && form.get('centerId')?.touched">
@@ -23,7 +23,7 @@
             </div>
 
             <!-- Store -->
-            <div class="mb-3">
+            <div class="mb-3" *ngIf="showStoreField">
               <label class="form-label" for="devicestoreId">Store *</label>
               <select class="form-select" id="devicestoreId"
                 formControlName="storeId"
@@ -47,6 +47,9 @@
                 </select>
                 <button class="btn btn-outline-secondary" type="button" (click)="openItemSearch()">
                   <i class="bi bi-search"></i>
+                </button>
+                <button class="btn btn-outline-secondary ms-1" type="button" (click)="openCreateItem()" title="Create item">
+                  <i class="bi bi-plus-lg"></i>
                 </button>
               </div>
               <div class="invalid-feedback"
@@ -122,6 +125,9 @@
             <button class="btn btn-outline-secondary" type="button" (click)="openItemSearch()">
               <i class="bi bi-search"></i>
             </button>
+            <button class="btn btn-outline-secondary ms-1" type="button" (click)="openCreateItem()" title="Create item">
+              <i class="bi bi-plus-lg"></i>
+            </button>
           </div>
           <div class="invalid-feedback"
             *ngIf="form.get('itemId')?.invalid && form.get('itemId')?.touched">Item is required</div>
@@ -171,3 +177,23 @@
   (select)="onItemSelected($event)"
   (cancel)="closeItemSearch()"
 ></app-items-search>
+
+<ng-container *ngIf="showCreateItem">
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Item</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeCreateItem()"></button>
+        </div>
+        <div class="modal-body">
+          <app-items-form (save)="onItemCreated($event)"></app-items-form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeCreateItem()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
+</ng-container>

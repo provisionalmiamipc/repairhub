@@ -11,7 +11,7 @@
             <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" />
             <input *ngIf="isModal" type="hidden" formControlName="createdById" />
             <!-- Center -->
-            <div class="mb-3">
+            <div class="mb-3" *ngIf="showCenterField">
               <label class="form-label" for="devicecenterId">Center *</label>
               <select class="form-select" id="devicecenterId" formControlName="centerId">
                 <option [ngValue]="null">Select center</option>
@@ -23,7 +23,7 @@
             </div>
 
             <!-- Store -->
-            <div class="mb-3">
+            <div class="mb-3" *ngIf="showStoreField">
               <label class="form-label" for="devicestoreId">Store *</label>
               <select class="form-select" id="devicestoreId"
                 formControlName="storeId"><!--[disabled]="!centerId?.value" -->

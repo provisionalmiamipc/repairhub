@@ -11,7 +11,7 @@
             <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" />
             <input *ngIf="isModal" type="hidden" formControlName="createdById" />
             <!-- Center -->
-            <div class="mb-3">
+            <div class="mb-3" *ngIf="showCenterField">
               <label class="form-label" for="devicecenterId">Center *</label>
               <select class="form-select" id="devicecenterId" formControlName="centerId">
                 <option [ngValue]="null">Select center</option>
@@ -23,7 +23,7 @@
             </div>
 
             <!-- Store -->
-            <div class="mb-3">
+            <div class="mb-3" *ngIf="showStoreField">
               <label class="form-label" for="devicestoreId">Store *</label>
               <select class="form-select" id="devicestoreId"
                 formControlName="storeId"><!--[disabled]="!centerId?.value" -->
@@ -37,10 +37,36 @@
 
             <div class="mb-3">
               <label class="form-label">Status</label>
-              <input type="text" formControlName="status" class="form-control" />
+              <div class="input-group">
+                <input type="text" formControlName="status" class="form-control" readonly (click)="openStatusPicker()" />
+                <button type="button" class="btn btn-outline-secondary" (click)="openStatusPicker()" aria-label="Choose status">
+                  <i class="bi bi-list"></i>
+                </button>
+              </div>
               <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched" class="text-danger small">Estado
                 requerido</div>
             </div>
+
+            <!-- Status picker modal -->
+            <div *ngIf="showStatusPicker" class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+              <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Choose status</h5>
+                    <button type="button" class="btn-close" aria-label="Close" (click)="showStatusPicker = false"></button>
+                  </div>
+                  <div class="modal-body">
+                    <ul class="list-group">
+                      <li class="list-group-item d-flex align-items-center" *ngFor="let opt of statusOptions" (click)="selectStatus(opt)" style="cursor:pointer">
+                        <i [class]="opt.icon + ' me-2'"></i>
+                        <span>{{ opt.label }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="showStatusPicker" class="modal-backdrop fade show"></div>
             <div class="d-flex justify-content-end">
               <button type="button" class="btn btn-secondary me-2" (click)="cancel.emit()">Cancel</button>
               <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>

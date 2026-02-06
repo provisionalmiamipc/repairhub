@@ -6,6 +6,7 @@ import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { ItemTypes } from '../../shared/models/ItemTypes';
 import { CentersService } from '../../shared/services/centers.service';
+import { AuthService } from '../../shared/services/auth.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { ItemTypesService } from '../../shared/services/item-types.service';
 import { ItemsService } from '../../shared/services/items.service';
@@ -21,6 +22,9 @@ export class ItemsFormComponent {
   @Input() item: Items | null = null;
   @Output() save = new EventEmitter<Partial<Items>>();
   form: FormGroup;
+  // UI state for center/store visibility
+  showCenterField: boolean = true;
+  showStoreField: boolean = true;
   centers: Centers[] = [];
   stores: Stores[] = [];
   itemTypes: ItemTypes[] = [];
@@ -37,7 +41,8 @@ export class ItemsFormComponent {
     private centersService: CentersService,
     private storesService: StoresService,
     private itemTypesService: ItemTypesService,
-    private itemsService: ItemsService
+    private itemsService: ItemsService,
+    private auth: AuthService
   ) {
     this.form = this.fb.group({
       centerId: [null, Validators.required],
@@ -61,8 +66,8 @@ export class ItemsFormComponent {
   }
 
   ngOnInit(): void {
-    this.centersService.getAll().subscribe((c) => (this.centers = c || []));
-    this.storesService.getAll().subscribe((s) => (this.stores = s || []));
+    this.centersService.getAll().subscribe((c) => { this.centers = c || []; this.applyUserBasedDefaults(); });
+    this.storesService.getAll().subscribe((s) => { this.stores = s || []; this.applyUserBasedDefaults(); });
     this.loadItemTypes();
 
     this.form.get('centerId')?.valueChanges.subscribe(() => {
@@ -91,8 +96,50 @@ export class ItemsFormComponent {
         discount: this.item.discount,
         isActive: this.item.isActive,
       });
+        this.applyUserBasedDefaults();
     }
   }
+
+    private applyUserBasedDefaults() {
+      const userType = this.auth.getUserType();
+
+      if (this.item && this.item.id) {
+        // editing existing item: leave values as-is
+        return;
+      }
+
+      if (userType === 'user') {
+        this.showCenterField = true;
+        this.showStoreField = true;
+        return;
+      }
+
+      if (userType === 'employee') {
+        const emp = this.auth.getCurrentEmployee();
+        if (!emp) {
+          this.showCenterField = true;
+          this.showStoreField = true;
+          return;
+        }
+
+        // Default: hide both and set values from employee
+        this.showCenterField = false;
+        this.showStoreField = false;
+
+        if (!this.form.get('centerId')?.value) {
+          this.form.get('centerId')?.setValue(emp.centerId, { emitEvent: false });
+        }
+        if (!this.form.get('storeId')?.value) {
+          this.form.get('storeId')?.setValue(emp.storeId, { emitEvent: false });
+        }
+
+        // If employee is center admin, show only store selector and fix center to employee center
+        if (emp.isCenterAdmin) {
+          this.showStoreField = true;
+          this.form.get('centerId')?.setValue(emp.centerId, { emitEvent: false });
+        }
+      }
+    }
 
   private loadItemTypes() {
     this.itemTypesService.getAll().subscribe((t) => (this.itemTypes = t || []));
@@ -170,9 +217,20 @@ export class ItemsFormComponent {
           setTimeout(() => {
             this.saveMessage = '';
             this.save.emit(created);
+            // Reset form but preserve defaults according to user type
+            const userType = this.auth.getUserType();
+            let defaultCenter: any = null;
+            let defaultStore: any = null;
+            if (userType === 'employee') {
+              const emp = this.auth.getCurrentEmployee();
+              if (emp) {
+                defaultCenter = emp.centerId ?? null;
+                defaultStore = emp.storeId ?? null;
+              }
+            }
             this.form.reset({
-              centerId: null,
-              storeId: null,
+              centerId: defaultCenter,
+              storeId: defaultStore,
               itemTypeId: null,
               taxable: false,
               isActive: true,
@@ -182,6 +240,7 @@ export class ItemsFormComponent {
               stock: 0,
               minimunStock: 0
             });
+            this.applyUserBasedDefaults();
           }, 1500);
         },
         error: (err) => {

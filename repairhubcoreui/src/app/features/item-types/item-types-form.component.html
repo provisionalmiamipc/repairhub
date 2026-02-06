@@ -1,6 +1,6 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <div class="row g-3">
-    <div class="col-md-4">
+    <div class="col-md-4" *ngIf="showCenterField">
       <label class="form-label">Center *</label>
       <select class="form-select" [class.is-invalid]="form.get('centerId')?.invalid && form.get('centerId')?.touched" formControlName="centerId">
         <option [ngValue]="null">Select center</option>
@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-4" *ngIf="showStoreField">
       <label class="form-label">Store *</label>
       <select class="form-select" [class.is-invalid]="form.get('storeId')?.invalid && form.get('storeId')?.touched" formControlName="storeId">
         <option [ngValue]="null">Select store</option>

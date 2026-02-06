@@ -9,7 +9,7 @@
   <tbody>
     <tr *ngFor="let soNotes of soNotesList">
       <td>{{ soNotes.note }}</td>
-      <td>{{ soNotes.createdAt | date }}</td>
+      <td>{{ soNotes.createdAt | date:'short' }}</td>
       <td>
         <button (click)="select.emit(soNotes)">Ver</button>
         <button (click)="edit.emit(soNotes)">Editar</button>

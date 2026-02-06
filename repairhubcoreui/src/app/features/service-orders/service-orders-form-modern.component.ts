@@ -380,12 +380,16 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
-        const price = this.toNumber(this.serviceOrderForm.get('price')?.value);
         const repairCost = this.toNumber(this.serviceOrderForm.get('repairCost')?.value);
-        const discount = this.toNumber(this.serviceOrderForm.get('costdiscount')?.value);
-        const tax = this.toNumber(this.serviceOrderForm.get('tax')?.value);
 
-        const total = price + repairCost - discount + tax;
+        // Sum of item costs = sum(item.cost * quantity)
+        const itemsSum = (this.soItems || []).reduce((acc, it) => {
+          const itemCost = this.toNumber((it as any).cost);
+          const qty = Number((it as any).quantity) || 0;
+          return acc + (itemCost * qty);
+        }, 0);
+
+        const total = repairCost + itemsSum;
         const safeTotal = Number.isFinite(total) ? Number(total.toFixed(2)) : 0;
         this.serviceOrderForm.get('totalCost')?.setValue(safeTotal, { emitEvent: false });
       });
@@ -897,6 +901,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       this.soDiagnostics = [];
       this.soItems = [];
       this.repairStatuses = [];
+      this.costChangeSubject.next();
       return;
     }
 
@@ -910,6 +915,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
     this.soItemsService.getAll().subscribe(all => {
       this.soItems = (all || []).filter(i => (i.serviceOrderId ?? (i.serviceOrder && (i.serviceOrder as any).id)) === id);
+      // Recalculate totals when items change
+      this.costChangeSubject.next();
     });
 
     this.repairStatusService.getAll().subscribe(all => {

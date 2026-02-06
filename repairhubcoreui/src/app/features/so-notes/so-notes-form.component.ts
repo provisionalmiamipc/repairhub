@@ -7,6 +7,7 @@ import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-so-notes-form',
@@ -29,9 +30,12 @@ export class SONotesFormComponent {
   // Data for selects
   centers: Centers[] = [];
   stores: Stores[] = [];
+  // UI state
+  showCenterField: boolean = true;
+  showStoreField: boolean = true;
 
   constructor(private fb: FormBuilder, private centerService: CentersService,
-    private storeService: StoresService) {
+    private storeService: StoresService, private auth: AuthService) {
     this.form = this.fb.group({
       centerId: [null, Validators.required],
       storeId: [null, Validators.required],
@@ -61,19 +65,89 @@ export class SONotesFormComponent {
     if (this.createdById && !this.form.get('createdById')?.value) {
       this.form.patchValue({ createdById: Number(this.createdById) });
     }
+    // Re-evaluate visibility/defaults when inputs change
+    this.applyUserBasedDefaults();
   }
 
   ngOnInit(): void {
 
 
-    this.centerService.getAll().subscribe((c) => (this.centers = c));
-    this.storeService.getAll().subscribe((s) => (this.stores = s));
+    this.centerService.getAll().subscribe((c) => {
+      this.centers = c;
+      this.applyUserBasedDefaults();
+    });
+
+    this.storeService.getAll().subscribe((s) => {
+      this.stores = s;
+      this.applyUserBasedDefaults();
+    });
 
     // Cuando cambia el center, limpiar storeId
     this.form.get('centerId')?.valueChanges.subscribe(() => {
       this.form.get('storeId')?.setValue(null);
     });
 
+    // Apply visibility/defaults based on current user
+    this.applyUserBasedDefaults();
+
+  }
+
+  private applyUserBasedDefaults() {
+    const userType = this.auth.getUserType();
+
+    // Priority: if parent provided a storeId (e.g. client/service order selected), use it
+    if (this.storeId) {
+      const found = this.stores.find(s => Number(s.id) === Number(this.storeId));
+      if (found) {
+        // set center according to the store's center (if available)
+        const sCenter = (found as any).centerid ?? (found as any).centerId ?? (found as any).center;
+        if (sCenter && !this.form.get('centerId')?.value) {
+          this.form.get('centerId')?.setValue(Number(sCenter), { emitEvent: false });
+        }
+        // set store value
+        this.form.get('storeId')?.setValue(Number(this.storeId), { emitEvent: false });
+        // show store field; center field only for regular `user`
+        this.showCenterField = userType === 'user';
+        this.showStoreField = true;
+        return;
+      }
+    }
+
+    if (userType === 'user') {
+      // Regular users: always show both fields
+      this.showCenterField = true;
+      this.showStoreField = true;
+      return;
+    }
+
+    if (userType === 'employee') {
+      const emp = this.auth.getCurrentEmployee();
+      if (!emp) {
+        // fallback: hide center (only visible to 'user'), allow selecting store
+        this.showCenterField = false;
+        this.showStoreField = true;
+        return;
+      }
+
+      // Employees: by default hide both center and store and use employee's values
+      this.showCenterField = false;
+      this.showStoreField = false;
+
+      // set center/store from employee if not already set
+      if (!this.form.get('centerId')?.value) {
+        this.form.get('centerId')?.setValue(emp.centerId, { emitEvent: false });
+      }
+      if (!this.form.get('storeId')?.value) {
+        this.form.get('storeId')?.setValue(emp.storeId, { emitEvent: false });
+      }
+
+      // If employee is center admin, show only store selector (center fixed)
+      if (emp.isCenterAdmin) {
+        this.showStoreField = true;
+        // ensure center is the employee's center (and not editable)
+        this.form.get('centerId')?.setValue(emp.centerId, { emitEvent: false });
+      }
+    }
   }
 
   get filteredStores() {

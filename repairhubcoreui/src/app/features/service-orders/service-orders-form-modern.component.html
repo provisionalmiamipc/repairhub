@@ -129,7 +129,7 @@
                     <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()">
                       <i class="bi bi-search"></i>
                     </button>
-                    <button class="btn btn-outline-primary" type="button" (click)="openCustomerForm()">
+                    <button class="btn btn-outline-primary" type="button" (click)="openCustomerForm()" [disabled]="isOrderFinalized()">
                       <i class="bi bi-person-plus"></i>
                     </button>
                   </div>
@@ -335,7 +335,7 @@
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Notes</span>
-                <button class="btn btn-sm btn-outline-primary" type="button" (click)="openAddNote()">+</button>
+                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button" (click)="openAddNote()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -343,7 +343,7 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ n.note }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button class="btn btn-link" type="button" (click)="openEditNote(n)">Edit</button>
+                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button" (click)="openEditNote(n)">Edit</button>
                       <button class="btn btn-link text-danger" type="button" (click)="deleteNote(n.id)">Delete</button>
                     </div>
                   </li>
@@ -358,7 +358,7 @@
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Diagnostics</span>
-                <button class="btn btn-sm btn-outline-primary" type="button" (click)="openAddDiagnostic()">+</button>
+                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button" (click)="openAddDiagnostic()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -366,7 +366,7 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ d.diagnostic }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button class="btn btn-link" type="button" (click)="openEditDiagnostic(d)">Edit</button>
+                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button" (click)="openEditDiagnostic(d)">Edit</button>
                       <button class="btn btn-link text-danger" type="button"
                         (click)="deleteDiagnostic(d.id)">Delete</button>
                     </div>
@@ -382,7 +382,7 @@
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Statuses</span>
-                <button class="btn btn-sm btn-outline-primary" type="button" (click)="openAddStatus()">+</button>
+                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button" (click)="openAddStatus()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -390,7 +390,7 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ s.status }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button class="btn btn-link" type="button" (click)="openEditStatus(s)">Edit</button>
+                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button" (click)="openEditStatus(s)">Edit</button>
                       <button class="btn btn-link text-danger" type="button"
                         (click)="deleteStatus(s.id)">Delete</button>
                     </div>
@@ -406,7 +406,7 @@
             <div class="card">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Items</span>
-                <button class="btn btn-sm btn-outline-primary" type="button" (click)="openAddItem()">+</button>
+                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button" (click)="openAddItem()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -417,7 +417,7 @@
                       <small class="text-muted">Qty: {{ i.quantity }} — Price: {{ i.price }}</small>
                     </div>
                     <div class="btn-group btn-group-sm">
-                      <button class="btn btn-link" type="button" (click)="openEditItem(i)">Edit</button>
+                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button" (click)="openEditItem(i)">Edit</button>
                       <button class="btn btn-link text-danger" type="button" (click)="deleteItem(i.id)">Delete</button>
                     </div>
                   </li>
