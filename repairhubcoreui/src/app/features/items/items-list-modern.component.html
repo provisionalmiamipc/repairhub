@@ -3,11 +3,11 @@
   <div class="header-section">
     <div class="header-content">
       <div>
-        <h1><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Gestión de Artículos</h1>
-        <p class="subtitle">{{ filteredItems().length }} artículos encontrados</p>
+        <h1><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Item Management</h1>
+        <p class="subtitle">{{ filteredItems().length }} items found</p>
       </div>
       <button class="btn-primary" (click)="createNew()">
-        <span>+</span> Nuevo Artículo
+        <span>+</span> New Item
       </button>
     </div>
   </div>
@@ -20,45 +20,45 @@
       </svg>
       <input
         type="text"
-        placeholder="Buscar por nombre, SKU o código de barras..."
+        placeholder="Search by name, SKU or barcode..."
         (input)="onSearchChange($event.target.value)"
       />
     </div>
 
     <div class="filter-group">
       <select (change)="onFilterChange('status', $any($event).target.value)">
-        <option value="all">Todos los estados</option>
-        <option value="active">Activos</option>
-        <option value="inactive">Inactivos</option>
+        <option value="all">All statuses</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
       </select>
 
       <select (change)="onFilterChange('center', $any($event).target.value)">
-        <option value="0">Todos los centros</option>
+        <option value="0">All centers</option>
         <option *ngFor="let center of centers()" [value]="center.id">
           {{ center.centerName }}
         </option>
       </select>
 
       <select (change)="onFilterChange('store', $any($event).target.value)">
-        <option value="0">Todas las tiendas</option>
+        <option value="0">All stores</option>
         <option *ngFor="let store of stores()" [value]="store.id">
           {{ store.storeName }}
         </option>
       </select>
 
       <select (change)="onFilterChange('type', $any($event).target.value)">
-        <option value="0">Todos los tipos</option>
+        <option value="0">All types</option>
         <option *ngFor="let type of itemTypes()" [value]="type.id">
           {{ type.name }}
         </option>
       </select>
 
       <select (change)="onSortChange($any($event).target.value)">
-        <option value="date">Más recientes</option>
-        <option value="product">Nombre (A-Z)</option>
+        <option value="date">Most recent</option>
+        <option value="product">Name (A-Z)</option>
         <option value="sku">SKU (A-Z)</option>
-        <option value="price">Precio (Mayor)</option>
-        <option value="stock">Stock (Mayor)</option>
+        <option value="price">Price (Highest)</option>
+        <option value="stock">Stock (Highest)</option>
       </select>
     </div>
   </div>
@@ -67,7 +67,7 @@
   @if (listState().isLoading) {
     <div class="loading-state">
       <div class="loader"></div>
-      <p>Cargando artículos...</p>
+      <p>Loading items...</p>
     </div>
   }
 
@@ -79,9 +79,9 @@
         <line x1="12" y1="8" x2="12" y2="12"></line>
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
-      <h3>Error al cargar</h3>
+      <h3>Error loading</h3>
       <p>{{ listState().error }}</p>
-      <button class="btn-secondary" (click)="retryLoad()">Reintentar</button>
+      <button class="btn-secondary" (click)="retryLoad()">Retry</button>
     </div>
   }
 
@@ -91,9 +91,9 @@
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M9 2h6m-3 16v3m-8-8h16m-16 0a2 2 0 012-2h12a2 2 0 012 2v6H3v-6z"></path>
       </svg>
-      <h3>Sin artículos</h3>
-      <p>No hay artículos que coincidan con los filtros seleccionados</p>
-      <button class="btn-primary" (click)="createNew()">Crear primer artículo</button>
+      <h3>No items</h3>
+      <p>There are no items matching the selected filters</p>
+      <button class="btn-primary" (click)="createNew()">Create first item</button>
     </div>
   }
 
@@ -104,13 +104,13 @@
         <div class="item-card" [@fadeInUp]>
           <div class="card-header">
             <div class="status-badge" [class]="item.isActive ? 'active' : 'inactive'">
-              {{ item.isActive ? '✓ Activo' : '✗ Inactivo' }}
+              {{ item.isActive ? '✓ Active' : '✗ Inactive' }}
             </div>
             @if (getStockStatus(item) === 'critical') {
-              <div class="stock-badge critical">🔴 Sin stock</div>
+              <div class="stock-badge critical">🔴 Out of stock</div>
             }
             @if (getStockStatus(item) === 'low') {
-              <div class="stock-badge low">🟡 Stock bajo</div>
+              <div class="stock-badge low">🟡 Low stock</div>
             }
           </div>
 
@@ -123,23 +123,23 @@
                 <span class="value">{{ item.sku }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Código</span>
+                <span class="label">Barcode</span>
                 <span class="value">{{ item.barcode || '-' }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Centro</span>
+                <span class="label">Center</span>
                 <span class="value">{{ getCenterName(getItemCenterId(item)) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Tienda</span>
+                <span class="label">Store</span>
                 <span class="value">{{ getStoreName(getItemStoreId(item)) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Tipo</span>
+                <span class="label">Type</span>
                 <span class="value">{{ getTypeName(item.itemTypeId) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Descripción</span>
+                <span class="label">Description</span>
                 <span class="value">{{ item.shortTitleDesc || '-' }}</span>
               </div>
             </div>
@@ -147,15 +147,15 @@
             <!-- Price & Margin -->
             <div class="price-section">
               <div class="price-row">
-                <span class="label">Costo</span>
+                <span class="label">Cost</span>
                 <span class="value">{{ formatCurrency(item.cost) }}</span>
               </div>
               <div class="price-row">
-                <span class="label">Precio</span>
+                <span class="label">Price</span>
                 <span class="value amount">{{ formatCurrency(item.price) }}</span>
               </div>
               <div class="price-row">
-                <span class="label">Margen</span>
+                <span class="label">Margin</span>
                 <span class="value" [class]="getPriceMargin(item) > 0 ? 'positive' : 'negative'">
                   {{ getPriceMargin(item).toFixed(1) }}%
                 </span>
@@ -165,49 +165,49 @@
             <!-- Stock Info -->
             <div class="stock-section">
               <div class="stock-item">
-                <span class="label">Stock Actual</span>
+                <span class="label">Current Stock</span>
                 <span class="value" [class]="getStockStatus(item)">{{ item.stock }}</span>
               </div>
               <div class="stock-item">
-                <span class="label">Stock Mínimo</span>
+                <span class="label">Minimum Stock</span>
                 <span class="value">{{ item.minimunStock }}</span>
               </div>
               <div class="stock-item">
-                <span class="label">Descuento</span>
+                <span class="label">Discount</span>
                 <span class="value">{{ item.discount }}%</span>
               </div>
               <div class="stock-item">
-                <span class="label">Garantía</span>
-                <span class="value">{{ item.warranty }} meses</span>
+                <span class="label">Warranty</span>
+                <span class="value">{{ item.warranty }} months</span>
               </div>
             </div>
 
             <!-- Taxable & Warranty -->
             <div class="features-section">
               @if (item.taxable) {
-                <span class="feature-badge taxable">Gravable</span>
+                <span class="feature-badge taxable">Taxable</span>
               }
               @if (item.warranty > 0) {
-                <span class="feature-badge warranty">Garantía</span>
+                <span class="feature-badge warranty">Warranty</span>
               }
             </div>
 
             <!-- Dates -->
             <div class="dates-info">
-              <small>Creado: {{ item.createdAt | date: 'short' }}</small>
-              <small>Actualizado: {{ item.updatedAt | date: 'short' }}</small>
+              <small>Created: {{ item.createdAt | date: 'short' }}</small>
+              <small>Updated: {{ item.updatedAt | date: 'short' }}</small>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="card-actions">
-            <button class="action-btn view" (click)="viewItem(item)" title="Ver detalles">
+            <button class="action-btn view" (click)="viewItem(item)" title="View details">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
-            <button class="action-btn edit" (click)="editItem(item)" title="Editar">
+            <button class="action-btn edit" (click)="editItem(item)" title="Edit">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L21 7z"></path>
               </svg>

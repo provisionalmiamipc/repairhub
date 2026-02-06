@@ -59,35 +59,55 @@
             <div class="section-group mb-4">
               <h2 class="step-title h3 fw-bold text-primary border-bottom border-2 border-primary pb-2 mb-3">{{ steps[0].title }}</h2>
               <div class="row g-3">
-                <!-- Center -->
-                <div class="col-md-6 col-xl-6">
-                  <label for="centerId" class="form-label">Center *</label>
-                  <select id="centerId" class="form-select form-select-lg mb-3"
-                    [class.is-invalid]="isFieldInvalid('centerId')" formControlName="centerId">
-                    <option value="" selected>Select center</option>
-                    @for (center of centers(); track center.id) {
-                    <option [value]="center.id">{{ center.centerName }}</option>
+                <!-- Center & Store fields visibility by user type -->
+                @if (showCenterAndStoreFields()) {
+                  <!-- USER: Mostrar ambos campos -->
+                  <div class="col-md-6 col-xl-6">
+                    <label for="centerId" class="form-label">Center *</label>
+                    <select id="centerId" class="form-select form-select-lg mb-3"
+                      [class.is-invalid]="isFieldInvalid('centerId')" formControlName="centerId">
+                      <option value="" selected>Select center</option>
+                      @for (center of centers(); track center.id) {
+                        <option [value]="center.id">{{ center.centerName }}</option>
+                      }
+                    </select>
+                    @if (isFieldInvalid('centerId')) {
+                      <div class="invalid-feedback d-block">{{ getFieldError('centerId') }}</div>
                     }
-                  </select>
-                  @if (isFieldInvalid('centerId')) {
-                  <div class="invalid-feedback d-block">{{ getFieldError('centerId') }}</div>
-                  }
-                </div>
-
-                <!-- Store (filtered by center) -->
-                <div class="col-md-6 col-xl-6">
-                  <label for="storeId" class="form-label">Store *</label>
-                  <select id="storeId" class="form-select form-select-lg mb-3" [class.is-invalid]="isFieldInvalid('storeId')"
-                    formControlName="storeId">
-                    <option value="" selected>Select store...</option>
-                    @for (store of filteredStores(); track store.id) {
-                    <option [value]="store.id">{{ store.storeName }}</option>
+                  </div>
+                  <div class="col-md-6 col-xl-6">
+                    <label for="storeId" class="form-label">Store *</label>
+                    <select id="storeId" class="form-select form-select-lg mb-3" [class.is-invalid]="isFieldInvalid('storeId')"
+                      formControlName="storeId">
+                      <option value="" selected>Select store...</option>
+                      @for (store of filteredStores(); track store.id) {
+                        <option [value]="store.id">{{ store.storeName }}</option>
+                      }
+                    </select>
+                    @if (isFieldInvalid('storeId')) {
+                      <span class="error-message">{{ getFieldError('storeId') }}</span>
                     }
-                  </select>
-                  @if (isFieldInvalid('storeId')) {
-                  <span class="error-message">{{ getFieldError('storeId') }}</span>
-                  }
-                </div>
+                  </div>
+                } @else if (showOnlyStoreField()) {
+                  <!-- EMPLOYEE isCenterAdmin: Solo mostrar storeId -->
+                  <div class="col-md-6 col-xl-6">
+                    <label for="storeId" class="form-label">Store *</label>
+                    <select id="storeId" class="form-select form-select-lg mb-3" [class.is-invalid]="isFieldInvalid('storeId')"
+                      formControlName="storeId">
+                      <option value="" selected>Select store...</option>
+                      @for (store of filteredStores(); track store.id) {
+                        <option [value]="store.id">{{ store.storeName }}</option>
+                      }
+                    </select>
+                    @if (isFieldInvalid('storeId')) {
+                      <span class="error-message">{{ getFieldError('storeId') }}</span>
+                    }
+                  </div>
+                } @else if (hideLocationFields()) {
+                  <!-- EMPLOYEE normal: ocultar ambos campos, usar valores por defecto -->
+                  <input type="hidden" formControlName="centerId" />
+                  <input type="hidden" formControlName="storeId" />
+                }
               </div>
             </div>
 
@@ -101,13 +121,16 @@
                   <div class="input-group">
                     <select id="customerId" class="form-select" [class.is-invalid]="isFieldInvalid('customerId')"
                       formControlName="customerId">
-                      <option value="" disabled>Select customer</option>
+                      <option [ngValue]="null" disabled>Select customer</option>
                       @for (customer of customers(); track customer.id) {
                       <option [value]="customer.id">{{ customer.firstName }} {{ customer.lastName }}</option>
                       }
                     </select>
                     <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()">
                       <i class="bi bi-search"></i>
+                    </button>
+                    <button class="btn btn-outline-primary" type="button" (click)="openCustomerForm()">
+                      <i class="bi bi-person-plus"></i>
                     </button>
                   </div>
                   @if (isFieldInvalid('customerId')) {
@@ -121,7 +144,7 @@
                   <div class="input-group">
                     <select id="deviceId" class="form-select" [class.is-invalid]="isFieldInvalid('deviceId')"
                       formControlName="deviceId">
-                      <option value="" disabled>Select device</option>
+                      <option [ngValue]="null" disabled>Select device</option>
                       @for (device of devices(); track device.id) {
                       <option [value]="device.id">{{ device.name }}</option>
                       }
@@ -139,7 +162,7 @@
                   <div class="input-group">
                     <select id="deviceBrandId" class="form-select" [class.is-invalid]="isFieldInvalid('deviceBrandId')"
                       formControlName="deviceBrandId">
-                      <option value="" disabled>Select brand</option>
+                      <option [ngValue]="null" disabled>Select brand</option>
                       @for (brand of deviceBrands(); track brand.id) {
                       <option [value]="brand.id">{{ brand.name }}</option>
                       }
@@ -161,7 +184,7 @@
                   <label for="assignedTechId" class="form-label">Assigned Technician *</label>
                   <select id="assignedTechId" class="form-select" [class.is-invalid]="isFieldInvalid('assignedTechId')"
                     formControlName="assignedTechId">
-                    <option value="" disabled>Select technician</option>
+                    <option [ngValue]="null" disabled>Select technician</option>
                     @for (employee of employees(); track employee.id) {
                     <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
                     }
@@ -171,19 +194,21 @@
                   }
                 </div>
 
-                <div class="col-md-6">
-                  <label for="createdById" class="form-label">Created By *</label>
-                  <select id="createdById" class="form-select" [class.is-invalid]="isFieldInvalid('createdById')"
-                    formControlName="createdById">
-                    <option value="" disabled>Select user</option>
-                    @for (employee of employees(); track employee.id) {
-                    <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
+                @if (showCenterAndStoreFields()) {
+                  <div class="col-md-6">
+                    <label for="createdById" class="form-label">Created By *</label>
+                    <select id="createdById" class="form-select" [class.is-invalid]="isFieldInvalid('createdById')"
+                      formControlName="createdById">
+                      <option value="" disabled>Select user</option>
+                      @for (employee of employees(); track employee.id) {
+                        <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
+                      }
+                    </select>
+                    @if (isFieldInvalid('createdById')) {
+                      <span class="error-message">{{ getFieldError('createdById') }}</span>
                     }
-                  </select>
-                  @if (isFieldInvalid('createdById')) {
-                  <span class="error-message">{{ getFieldError('createdById') }}</span>
-                  }
-                </div>
+                  </div>
+                }
               </div>
             </div>
 
@@ -222,21 +247,11 @@
                     placeholder="Additional notes..." rows="3"></textarea>
                 </div>
 
-                <!-- Status Checkboxes -->
+                <!-- Status (edit only) -->
                 <div class="col-12">
-                  <div class="d-flex flex-wrap gap-3">
                   <div class="form-check">
                     <input id="lock" type="checkbox" formControlName="lock" class="form-check-input" />
                     <label class="form-check-label" for="lock">Lock order</label>
-                  </div>
-                  <div class="form-check">
-                    <input id="cloused" type="checkbox" formControlName="cloused" class="form-check-input" />
-                    <label class="form-check-label" for="cloused">Mark as completed</label>
-                  </div>
-                  <div class="form-check">
-                    <input id="canceled" type="checkbox" formControlName="canceled" class="form-check-input" />
-                    <label class="form-check-label" for="canceled">Cancel order</label>
-                  </div>
                   </div>
                 </div>
               </div>
@@ -285,7 +300,7 @@
                   <label for="paymentTypeId" class="form-label">Payment Type</label>
                   <div class="input-group">
                     <select id="paymentTypeId" class="form-select" formControlName="paymentTypeId">
-                      <option value="">Select payment type</option>
+                      <option [ngValue]="null">Select payment type</option>
                       @for (paymentType of paymentTypes(); track paymentType.id) {
                       <option [value]="paymentType.id">{{ paymentType.type }}</option>
                       }
@@ -428,35 +443,54 @@
           <p class="step-description text-muted mb-4">{{ steps[0].description }}</p>
 
           <div class="row g-3">
-            <!-- Center -->
-            <div class="col-md-6">
-              <label for="centerId" class="form-label">Center *</label>
-              <select id="centerId" class="form-select form-select-lg mb-3"
-                [class.is-invalid]="isFieldInvalid('centerId')" formControlName="centerId">
-                <option value="" selected>Select...</option>
-                @for (center of centers(); track center.id) {
-                <option [value]="center.id">{{ center.centerName }}</option>
+            @if (showCenterAndStoreFields()) {
+              <!-- USER: Mostrar ambos campos -->
+              <div class="col-md-6">
+                <label for="centerId" class="form-label">Center *</label>
+                <select id="centerId" class="form-select form-select-lg mb-3"
+                  [class.is-invalid]="isFieldInvalid('centerId')" formControlName="centerId">
+                  <option value="" selected>Select...</option>
+                  @for (center of centers(); track center.id) {
+                    <option [value]="center.id">{{ center.centerName }}</option>
+                  }
+                </select>
+                @if (isFieldInvalid('centerId')) {
+                  <span class="error-message">{{ getFieldError('centerId') }}</span>
                 }
-              </select>
-              @if (isFieldInvalid('centerId')) {
-              <span class="error-message">{{ getFieldError('centerId') }}</span>
-              }
-            </div>
-
-            <!-- Store (filtered by center) -->
-            <div class="col-md-6">
-              <label for="storeId" class="form-label">Store *</label>
-              <select id="storeId" class="form-select form-select-lg mb-3"
-                [class.is-invalid]="isFieldInvalid('storeId')" formControlName="storeId">
-                <option value="" selected>Select store...</option>
-                @for (store of filteredStores(); track store.id) {
-                <option [value]="store.id">{{ store.storeName }}</option>
+              </div>
+              <div class="col-md-6">
+                <label for="storeId" class="form-label">Store *</label>
+                <select id="storeId" class="form-select form-select-lg mb-3"
+                  [class.is-invalid]="isFieldInvalid('storeId')" formControlName="storeId">
+                  <option value="" selected>Select store...</option>
+                  @for (store of filteredStores(); track store.id) {
+                    <option [value]="store.id">{{ store.storeName }}</option>
+                  }
+                </select>
+                @if (isFieldInvalid('storeId')) {
+                  <span class="error-message">{{ getFieldError('storeId') }}</span>
                 }
-              </select>
-              @if (isFieldInvalid('storeId')) {
-              <span class="error-message">{{ getFieldError('storeId') }}</span>
-              }
-            </div>
+              </div>
+            } @else if (showOnlyStoreField()) {
+              <!-- EMPLOYEE isCenterAdmin: Solo mostrar storeId -->
+              <div class="col-md-6">
+                <label for="storeId" class="form-label">Store *</label>
+                <select id="storeId" class="form-select form-select-lg mb-3"
+                  [class.is-invalid]="isFieldInvalid('storeId')" formControlName="storeId">
+                  <option value="" selected>Select store...</option>
+                  @for (store of filteredStores(); track store.id) {
+                    <option [value]="store.id">{{ store.storeName }}</option>
+                  }
+                </select>
+                @if (isFieldInvalid('storeId')) {
+                  <span class="error-message">{{ getFieldError('storeId') }}</span>
+                }
+              </div>
+            } @else if (hideLocationFields()) {
+              <!-- EMPLOYEE normal: ocultar ambos campos, usar valores por defecto -->
+              <input type="hidden" formControlName="centerId" />
+              <input type="hidden" formControlName="storeId" />
+            }
           </div>
         </div>
         }
@@ -474,7 +508,7 @@
               <div class="input-group">
                 <select id="customerId" class="form-select" [class.is-invalid]="isFieldInvalid('customerId')"
                   formControlName="customerId">
-                  <option value="" disabled>Select customer</option>
+                  <option [ngValue]="null" disabled>Select customer</option>
                   @for (customer of customers(); track customer.id) {
                   <option [value]="customer.id">{{ customer.firstName }} {{ customer.lastName }}</option>
                   }
@@ -494,7 +528,7 @@
               <div class="input-group">
                 <select id="deviceId" class="form-select" [class.is-invalid]="isFieldInvalid('deviceId')"
                   formControlName="deviceId">
-                  <option value="" disabled>Select device</option>
+                  <option [ngValue]="null" disabled>Select device</option>
                   @for (device of devices(); track device.id) {
                   <option [value]="device.id">{{ device.name }}</option>
                   }
@@ -512,7 +546,7 @@
               <div class="input-group">
                 <select id="deviceBrandId" class="form-select" [class.is-invalid]="isFieldInvalid('deviceBrandId')"
                   formControlName="deviceBrandId">
-                  <option value="" disabled>Select brand</option>
+                  <option [ngValue]="null" disabled>Select brand</option>
                   @for (brand of deviceBrands(); track brand.id) {
                   <option [value]="brand.id">{{ brand.name }}</option>
                   }
@@ -565,23 +599,6 @@
                 placeholder="Additional notes..." rows="3"></textarea>
             </div>
 
-            <!-- Status Checkboxes -->
-            <div class="col-12">
-              <div class="d-flex flex-wrap gap-3">
-              <div class="form-check">
-                <input id="lock-create" type="checkbox" formControlName="lock" class="form-check-input" />
-                <label class="form-check-label" for="lock-create">Lock order</label>
-              </div>
-              <div class="form-check">
-                <input id="cloused-create" type="checkbox" formControlName="cloused" class="form-check-input" />
-                <label class="form-check-label" for="cloused-create">Mark as completed</label>
-              </div>
-              <div class="form-check">
-                <input id="canceled-create" type="checkbox" formControlName="canceled" class="form-check-input" />
-                <label class="form-check-label" for="canceled-create">Cancel order</label>
-              </div>
-              </div>
-            </div>
           </div>
         </div>
         }
@@ -639,7 +656,7 @@
               <div class="input-group">
                 <select id="paymentTypeId" class="form-select" [class.is-invalid]="isFieldInvalid('paymentTypeId')"
                   formControlName="paymentTypeId">
-                  <option value="" disabled>Select payment type</option>
+                  <option [ngValue]="null" disabled>Select payment type</option>
                   @for (type of paymentTypes(); track type.id) {
                   <option [value]="type.id">{{ type.type }}</option>
                   }
@@ -656,7 +673,7 @@
               <label for="assignedTechId" class="form-label">Assigned Technician *</label>
               <select id="assignedTechId" class="form-select" [class.is-invalid]="isFieldInvalid('assignedTechId')"
                 formControlName="assignedTechId">
-                <option value="" disabled>Select technician</option>
+                <option [ngValue]="null" disabled>Select technician</option>
                 @for (employee of employees(); track employee.id) {
                 <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
                 }
@@ -667,19 +684,21 @@
             </div>
 
             <!-- Created By -->
-            <div class="col-md-6 col-xl-4">
-              <label for="createdById" class="form-label">Created By *</label>
-              <select id="createdById" class="form-select" [class.is-invalid]="isFieldInvalid('createdById')"
-                formControlName="createdById">
-                <option value="" disabled>Select user</option>
-                @for (employee of employees(); track employee.id) {
-                <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
+            @if (showCenterAndStoreFields()) {
+              <div class="col-md-6 col-xl-4">
+                <label for="createdById" class="form-label">Created By *</label>
+                <select id="createdById" class="form-select" [class.is-invalid]="isFieldInvalid('createdById')"
+                  formControlName="createdById">
+                  <option value="" disabled>Select user</option>
+                  @for (employee of employees(); track employee.id) {
+                    <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
+                  }
+                </select>
+                @if (isFieldInvalid('createdById')) {
+                  <span class="error-message">{{ getFieldError('createdById') }}</span>
                 }
-              </select>
-              @if (isFieldInvalid('createdById')) {
-              <span class="error-message">{{ getFieldError('createdById') }}</span>
-              }
-            </div>
+              </div>
+            }
 
             <!-- Total Cost (Calculated) -->
             <div class="col-12">
@@ -695,10 +714,16 @@
 
         <!-- Step Indicators (only in create mode) -->
         @if (showSteps()) {
-        <div class="steps-indicator">
+        <div class="steps-indicator d-flex flex-wrap gap-2 justify-content-center mt-3 mb-4">
           @for (step of steps; track step.id) {
-          <button type="button" class="step-indicator" [class.active]="currentStep() === step.id"
-            [class.completed]="currentStep() > step.id" (click)="currentStep.set(step.id)"
+          <button type="button" class="btn btn-sm rounded-circle fw-semibold"
+            [ngClass]="{
+              'btn-primary text-white': currentStep() === step.id,
+              'btn-success text-white': currentStep() > step.id,
+              'btn-outline-secondary': currentStep() < step.id
+            }"
+            style="width: 36px; height: 36px;"
+            (click)="currentStep.set(step.id)"
             [disabled]="currentStep() < step.id">
             {{ step.id + 1 }}
           </button>
@@ -710,8 +735,16 @@
     }
 
     <div class="d-flex flex-wrap gap-2 justify-content-end mt-4 pt-3 border-top">
+      @if (isEditMode() && !isOrderFinalized()) {
+      <button type="button" class="btn btn-outline-success" (click)="completeOrder()" [disabled]="isSaving()">
+        <i class="bi bi-check-circle me-1"></i> Complete
+      </button>
+      <button type="button" class="btn btn-outline-danger" (click)="cancelOrder()" [disabled]="isSaving()">
+        <i class="bi bi-x-circle me-1"></i> Cancel Order
+      </button>
+      }
       <button type="button" class="btn btn-outline-secondary" (click)="onCancel()" [disabled]="isSaving()">
-        <i class="bi bi-x-circle me-1"></i> Cancel
+        <i class="bi bi-x-circle me-1"></i> Close
       </button>
 
       <!-- Navigation buttons (only in create mode) -->
@@ -732,7 +765,7 @@
 
         <!-- Submit button -->
         @if (!showSteps() || currentStep() === steps.length - 1) {
-        <button type="submit" class="btn btn-success" [disabled]="!serviceOrderForm.valid || isSaving()">
+        <button type="submit" class="btn btn-success" [disabled]="!serviceOrderForm.valid || isSaving() || isOrderFinalized()">
           @if (isSaving()) {
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...
           } @else {
@@ -762,6 +795,33 @@
   @if (showCustomerSearch) {
   <app-customer-search [isModal]="true" (select)="onCustomerSelected($event)"
     (cancel)="closeCustomerSearch()"></app-customer-search>
+  }
+
+  @if (showCustomerModal) {
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title">New Customer</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeCustomerForm()"></button>
+        </div>
+        <div class="modal-body">
+          <app-customers-form
+            [customer]="editingCustomer"
+            [centers]="centers()"
+            [stores]="stores()"
+            [role]="userType() === 'employee' ? 'EMPLOYEE' : 'USER'"
+            [isAdminCenter]="isCenterAdmin()"
+            [employeeCenterId]="authService.getCurrentEmployee()?.centerId ?? null"
+            [employeeStoreId]="authService.getCurrentEmployee()?.storeId ?? null"
+            (save)="onCustomerSaved($event)"
+            (cancel)="closeCustomerForm()">
+          </app-customers-form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
   }
 
   @if (showNoteModal) {

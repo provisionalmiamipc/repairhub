@@ -12,10 +12,12 @@ import { ServiceOrdersService } from '../../shared/services/service-orders.servi
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { CustomersService } from '../../shared/services/customers.service';
+import { Customers } from '../../shared/models/Customers';
 import { DevicesService } from '../../shared/services/devices.service';
 import { DeviceBrandsService } from '../../shared/services/device-brands.service';
 import { PaymentTypesService } from '../../shared/services/payment-types.service';
 import { EmployeesService } from '../../shared/services/employees.service';
+import { AuthService } from '../../shared/services/auth.service';
 import { SONotesService } from '../../shared/services/so-notes.service';
 import { SODiagnosticService } from '../../shared/services/so-diagnostic.service';
 import { SOItemsService } from '../../shared/services/so-items.service';
@@ -25,6 +27,7 @@ import { DevicesFormComponent } from '../devices/devices-form.component';
 import { DeviceBrandsFormComponent } from '../device-brands/device-brands-form.component';
 import { PaymentTypesFormComponent } from '../payment-types/payment-types-form.component';
 import { CustomerSearchComponent } from '../customers/customer-search.component';
+import { CustomersFormComponent } from '../customers/customers-form.component';
 import { SONotesFormComponent } from '../so-notes/so-notes-form.component';
 import { SODiagnosticFormComponent } from '../so-diagnostic/so-diagnostic-form.component';
 import { SOItemsFormComponent } from '../so-items/so-items-form.component';
@@ -52,6 +55,7 @@ interface FormState {
     DeviceBrandsFormComponent,
     PaymentTypesFormComponent,
     CustomerSearchComponent,
+    CustomersFormComponent,
     SONotesFormComponent,
     SODiagnosticFormComponent,
     SOItemsFormComponent,
@@ -89,9 +93,62 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   private soItemsService = inject(SOItemsService);
   private repairStatusService = inject(RepairStatusService);
   private toastService = inject(ToastService);
+  public authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroy$ = new Subject<void>();
+
+  // Lógica de visibilidad y valores por tipo de usuario
+  userType = signal<'user' | 'employee' | null>(null);
+  isCenterAdmin = signal<boolean>(false);
+  showCenterAndStoreFields = computed(() => this.userType() === 'user');
+  showOnlyStoreField = computed(() => this.userType() === 'employee' && this.isCenterAdmin());
+  hideLocationFields = computed(() => this.userType() === 'employee' && !this.isCenterAdmin());
+
+  private initializeUserType() {
+    const type = this.authService.getUserType();
+    this.userType.set(type);
+    const employee = this.authService.getCurrentEmployee();
+    this.isCenterAdmin.set(!!employee?.isCenterAdmin);
+  }
+
+  private applyUserTypeRules() {
+    // USER: campos visibles, sin cambios
+    if (this.userType() === 'user') {
+      this.serviceOrderForm.get('centerId')?.enable();
+      this.serviceOrderForm.get('storeId')?.enable();
+      this.serviceOrderForm.get('createdById')?.enable();
+      return;
+    }
+    // EMPLOYEE: ocultar ambos campos y setear valores por defecto
+    if (this.userType() === 'employee') {
+      const employee = this.authService.getCurrentEmployee();
+      const createdByControl = this.serviceOrderForm.get('createdById');
+      // Solo setear createdById al crear (no en edición) y si está vacío
+      if (!this.isEditMode() && employee?.id && !createdByControl?.value) {
+        createdByControl?.setValue(employee.id);
+      }
+      createdByControl?.disable();
+      if (employee?.isCenterAdmin) {
+        // Solo mostrar storeId, centerId fijo
+        this.serviceOrderForm.get('centerId')?.setValue(employee.centerId);
+        this.selectedCenterId.set(employee.centerId ?? null);
+        this.serviceOrderForm.get('centerId')?.disable();
+        this.serviceOrderForm.get('storeId')?.enable();
+        // Si el empleado tiene storeId, seleccionarlo por defecto
+        if (employee.storeId) {
+          this.serviceOrderForm.get('storeId')?.setValue(employee.storeId);
+        }
+      } else {
+        // Ocultar ambos campos, setear ambos por defecto y deshabilitar
+        this.serviceOrderForm.get('centerId')?.setValue(employee?.centerId ?? '');
+        this.selectedCenterId.set(employee?.centerId ?? null);
+        this.serviceOrderForm.get('centerId')?.disable();
+        this.serviceOrderForm.get('storeId')?.setValue(employee?.storeId ?? '');
+        this.serviceOrderForm.get('storeId')?.disable();
+      }
+    }
+  }
 
   readonly formState = signal<FormState>({
     isLoading: false,
@@ -127,6 +184,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   showDeviceBrandModal = false;
   showPaymentTypeModal = false;
   showCustomerSearch = false;
+  showCustomerModal = false;
 
   // Editing models
   editingNote: Partial<SONotes> | null = null;
@@ -136,6 +194,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   editingDevice: Partial<any> | null = null;
   editingDeviceBrand: Partial<any> | null = null;
   editingPaymentType: Partial<any> | null = null;
+  editingCustomer: Customers | null = null;
 
   serviceOrderForm!: FormGroup;
   private costChangeSubject = new Subject<void>();
@@ -166,6 +225,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initForm();
+    this.initializeUserType();
+    this.applyUserTypeRules();
     this.loadAllData();
     this.checkEditMode();
     this.setupCostCalculation();
@@ -179,8 +240,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
   private initForm(): void {
     this.serviceOrderForm = this.fb.group({
-      centerId: ['', Validators.required],
-      storeId: ['', Validators.required],
+      centerId: [{ value: '', disabled: false }, Validators.required],
+      storeId: [{ value: '', disabled: false }, Validators.required],
       customerId: [null, Validators.required],
       deviceId: [null, Validators.required],
       deviceBrandId: [null, Validators.required],
@@ -249,6 +310,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         next: (order) => {
           this.serviceOrderForm.patchValue(order);
           this.serviceOrder.set(order);
+          this.lockFormIfFinalized();
           // Initialize selectedCenterId signal after patching form
           const centerId = this.serviceOrderForm.get('centerId')?.value;
           if (centerId) {
@@ -263,6 +325,50 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
             isLoading: false,
             error: err?.error?.message || 'Error cargando la orden'
           }));
+        }
+      });
+  }
+
+  private lockFormIfFinalized(): void {
+    if (this.isOrderFinalized()) {
+      this.serviceOrderForm.disable({ emitEvent: false });
+    }
+  }
+
+  isOrderFinalized(): boolean {
+    return !!this.serviceOrderForm.get('cloused')?.value || !!this.serviceOrderForm.get('canceled')?.value;
+  }
+
+  completeOrder(): void {
+    if (!this.currentServiceOrderId()) return;
+    this.formState.update(s => ({ ...s, isSaving: true, error: null }));
+    const payload = { ...this.serviceOrderForm.getRawValue(), cloused: true, canceled: false };
+    this.serviceOrdersService.update(this.currentServiceOrderId()!, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Orden de servicio completada');
+          this.router.navigate(['/service-orders']);
+        },
+        error: (err) => {
+          this.formState.update(s => ({ ...s, isSaving: false, error: err?.error?.message || 'Error completando la orden' }));
+        }
+      });
+  }
+
+  cancelOrder(): void {
+    if (!this.currentServiceOrderId()) return;
+    this.formState.update(s => ({ ...s, isSaving: true, error: null }));
+    const payload = { ...this.serviceOrderForm.getRawValue(), canceled: true, cloused: false };
+    this.serviceOrdersService.update(this.currentServiceOrderId()!, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toastService.success('Orden de servicio cancelada');
+          this.router.navigate(['/service-orders']);
+        },
+        error: (err) => {
+          this.formState.update(s => ({ ...s, isSaving: false, error: err?.error?.message || 'Error cancelando la orden' }));
         }
       });
   }
@@ -317,8 +423,17 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     const step = this.currentStep();
     switch (step) {
       case 0:
-        return (this.serviceOrderForm.get('centerId')?.valid ?? false) &&
-               (this.serviceOrderForm.get('storeId')?.valid ?? false);
+        if (this.showCenterAndStoreFields()) {
+          return (this.serviceOrderForm.get('centerId')?.valid ?? false) &&
+                 (this.serviceOrderForm.get('storeId')?.valid ?? false);
+        }
+        if (this.showOnlyStoreField()) {
+          return (this.serviceOrderForm.get('storeId')?.valid ?? false);
+        }
+        if (this.hideLocationFields()) {
+          return true;
+        }
+        return false;
       case 1:
         return (this.serviceOrderForm.get('customerId')?.valid ?? false) &&
                (this.serviceOrderForm.get('deviceId')?.valid ?? false) &&
@@ -365,6 +480,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.formState.update(s => ({ ...s, isSaving: false, success: true }));
+          const msg = this.isEditMode() ? 'Orden de servicio actualizada' : 'Orden de servicio creada';
+          this.toastService.success(msg);
           setTimeout(() => {
             this.router.navigate(['/service-orders']);
           }, 1500);
@@ -380,14 +497,22 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    if (confirm('¿Descartar cambios?')) {
-      this.router.navigate(['/service-orders']);
-    }
+    this.router.navigate(['/service-orders']);
   }
 
   openCustomerSearch(): void {
     this.showCustomerSearch = true;
   }
+
+  openCustomerForm(): void {
+    this.editingCustomer = null;
+    this.showCustomerModal = true;
+  }
+
+  closeCustomerForm(): void {
+    this.showCustomerModal = false;
+  }
+
 
   closeCustomerSearch(): void {
     this.showCustomerSearch = false;
@@ -400,6 +525,23 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       this.toastService.success('Cliente seleccionado');
     }
     this.closeCustomerSearch();
+  }
+
+  onCustomerSaved(payload: Customers): void {
+    this.customersService.create(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (created) => {
+          this.toastService.success('Cliente creado');
+          const list = this.customers();
+          this.customers.set([...(list || []), created as any]);
+          if ((created as any)?.id) {
+            this.serviceOrderForm.get('customerId')?.setValue((created as any).id);
+          }
+          this.closeCustomerForm();
+        },
+        error: () => this.toastService.error('Error creando cliente')
+      });
   }
 
   openAddDevice(): void {

@@ -2,11 +2,11 @@
   <!-- Header Section -->
   <div class="list-header">
     <div class="header-content">
-      <h1 class="list-title">Órdenes de Servicio</h1>
-      <p class="list-subtitle">Gestiona y monitorea todas las órdenes de reparación</p>
+      <h1 class="list-title">Service Orders</h1>
+      <p class="list-subtitle">Manage and monitor all repair orders</p>
     </div>
     <button class="btn btn-primary" (click)="goToNew()">
-      <span>+</span> Nueva Orden
+      <span>+</span> New Order
     </button>
   </div>
 
@@ -16,7 +16,7 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Buscar por código, cliente, serie..."
+        placeholder="Search by code, customer, serial..."
         (keyup)="onSearchChange($any($event).target.value)"
       />
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -27,43 +27,43 @@
 
     <div class="filters-container">
       <div class="filter-group">
-        <label class="filter-label">Estado</label>
+        <label class="filter-label">Status</label>
         <select
           class="filter-select"
           [value]="filterStatus()"
           (change)="onFilterChange($any($event).target.value)"
         >
-          <option value="all">Todas</option>
-          <option value="active">Activas</option>
-          <option value="completed">Completadas</option>
-          <option value="canceled">Canceladas</option>
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="canceled">Canceled</option>
         </select>
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Bloqueo</label>
+        <label class="filter-label">Lock</label>
         <select
           class="filter-select"
           [value]="filterLock()"
           (change)="onLockFilterChange($any($event).target.value)"
         >
-          <option value="all">Todas</option>
-          <option value="locked">Bloqueadas</option>
-          <option value="unlocked">No bloqueadas</option>
+          <option value="all">All</option>
+          <option value="locked">Locked</option>
+          <option value="unlocked">Unlocked</option>
         </select>
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Ordenar por</label>
+        <label class="filter-label">Sort by</label>
         <select
           class="filter-select"
           [value]="sortBy()"
           (change)="onSortChange($any($event).target.value)"
         >
-          <option value="date">Fecha (Más reciente)</option>
-          <option value="orderCode">Código de Orden</option>
-          <option value="customer">Cliente</option>
-          <option value="totalCost">Costo Total</option>
+          <option value="date">Date (Most recent)</option>
+          <option value="orderCode">Order Code</option>
+          <option value="customer">Customer</option>
+          <option value="totalCost">Total Cost</option>
         </select>
       </div>
     </div>
@@ -73,7 +73,7 @@
   @if (isLoading()) {
     <div class="loading-container">
       <div class="spinner"></div>
-      <p>Cargando órdenes de servicio...</p>
+      <p>Loading service orders...</p>
     </div>
   } @else if (error()) {
     <div class="alert alert-error" @slideDown>
@@ -83,10 +83,10 @@
   } @else if (isEmptyState()) {
     <div class="empty-state">
       <div class="empty-icon"><i class="bi bi-clipboard-list"></i></div>
-      <h2>Sin órdenes de servicio</h2>
-      <p>No hay órdenes de servicio para mostrar. Crea una nueva para comenzar.</p>
+      <h2>No service orders</h2>
+      <p>There are no service orders to display. Create a new one to get started.</p>
       <button class="btn btn-primary" (click)="goToNew()">
-        <span>+</span> Crear Orden
+        <span>+</span> Create Order
       </button>
     </div>
   } @else {
@@ -106,18 +106,18 @@
               </span>
             </div>
             <div class="lock-indicator" *ngIf="order.lock">
-              <span class="lock-icon"><i class="bi bi-lock-fill"></i></span> Bloqueada
+              <span class="lock-icon"><i class="bi bi-lock-fill"></i></span> Locked
             </div>
           </div>
 
           <!-- Customer Info -->
           <div class="card-section">
             <div class="info-row">
-              <span class="label">Cliente</span>
+              <span class="label">Customer</span>
               <span class="value">{{ order.customer?.firstName }} {{ order.customer?.lastName }}</span>
             </div>
             <div class="info-row">
-              <span class="label">Centro</span>
+              <span class="label">Center</span>
               <span class="value">{{ order.center?.centerName || 'N/A' }}</span>
             </div>
           </div>
@@ -125,15 +125,15 @@
           <!-- Device Info -->
           <div class="card-section">
             <div class="info-row">
-              <span class="label">Dispositivo</span>
+              <span class="label">Device</span>
               <span class="value">{{ order.device?.name || 'N/A' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">Modelo</span>
+              <span class="label">Model</span>
               <span class="value">{{ order.model || '-' }}</span>
             </div>
             <div class="info-row">
-              <span class="label">Serie</span>
+              <span class="label">Serial</span>
               <span class="value">{{ order.serial || '-' }}</span>
             </div>
           </div>
@@ -141,7 +141,7 @@
           <!-- Repair Info -->
           <div class="card-section">
             <div class="info-row">
-              <span class="label">Parte Defectiva</span>
+              <span class="label">Defective Part</span>
               <span class="value">{{ order.defectivePart || '-' }}</span>
             </div>
           </div>
@@ -149,18 +149,18 @@
           <!-- Cost Section -->
           <div class="cost-section">
             <div class="cost-row">
-              <span class="label">Costo Total</span>
+              <span class="label">Total Cost</span>
               <span class="amount highlight">{{ formatCurrency(order.totalCost) }}</span>
             </div>
             <div class="cost-details">
               <div class="detail">
-                <span>Precio: {{ formatCurrency(order.price) }}</span>
+                <span>Price: {{ formatCurrency(order.price) }}</span>
               </div>
               <div class="detail">
-                <span>Reparación: {{ formatCurrency(order.repairCost) }}</span>
+                <span>Repair: {{ formatCurrency(order.repairCost) }}</span>
               </div>
               <div class="detail">
-                <span>Adelanto: {{ formatCurrency(order.advancePayment) }}</span>
+                <span>Advance: {{ formatCurrency(order.advancePayment) }}</span>
               </div>
             </div>
           </div>
@@ -168,12 +168,12 @@
           <!-- Dates -->
           <div class="card-footer">
             <div class="date-info">
-              <span class="label">Creada</span>
+              <span class="label">Created</span>
               <span class="value">{{ order.createdAt | date: 'short' }}</span>
             </div>
             @if (order.updatedAt) {
               <div class="date-info">
-                <span class="label">Actualizada</span>
+                <span class="label">Updated</span>
                 <span class="value">{{ order.updatedAt | date: 'short' }}</span>
               </div>
             }
@@ -184,17 +184,17 @@
             <button
               class="action-btn view"
               (click)="goToDetail(order)"
-              title="Ver detalles"
+              title="View details"
             >
-              <i class="bi bi-eye"></i> Ver
-            </button>
-            <button
-              class="action-btn edit"
-              (click)="goToEdit(order)"
-              title="Editar orden"
-            >
-              <i class="bi bi-pencil"></i> Editar
-            </button>
+                <i class="bi bi-eye"></i> View
+              </button>
+              <button
+                class="action-btn edit"
+                (click)="goToEdit(order)"
+                title="Edit order"
+              >
+                <i class="bi bi-pencil"></i> Edit
+              </button>
             <!--button
               class="action-btn delete"
               (click)="deleteServiceOrder(order)"
@@ -209,7 +209,7 @@
 
     <!-- Results Info -->
     <div class="results-info">
-      <span>Mostrando {{ filteredServiceOrders().length }} de {{ serviceOrders().length }} órdenes</span>
+      <span>Showing {{ filteredServiceOrders().length }} of {{ serviceOrders().length }} orders</span>
     </div>
   }
 </div>

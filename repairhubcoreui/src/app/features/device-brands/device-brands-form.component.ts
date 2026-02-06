@@ -6,6 +6,7 @@ import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-device-brands-form',
@@ -27,8 +28,15 @@ export class DeviceBrandsFormComponent {
   centers: Centers[] = [];
   stores: Stores[] = [];
 
-  constructor(private fb: FormBuilder, private centerService: CentersService,
-    private storeService: StoresService) {
+  userType: 'user' | 'employee' | null = null;
+  isCenterAdmin = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private centerService: CentersService,
+    private storeService: StoresService,
+    private authService: AuthService
+  ) {
     this.form = this.fb.group({
       centerId: [null, Validators.required],
       storeId: [null, Validators.required],
@@ -48,10 +56,11 @@ export class DeviceBrandsFormComponent {
         description: this.deviceBrand.description,
       });
     }
+    this.applyUserTypeRules();
   }
 
   ngOnInit(): void {
-
+    this.initializeUserType();
     this.centerService.getAll().subscribe((c) => (this.centers = c));
     this.storeService.getAll().subscribe((s) => (this.stores = s));
 
@@ -59,7 +68,60 @@ export class DeviceBrandsFormComponent {
     this.form.get('centerId')?.valueChanges.subscribe(() => {
       this.form.get('storeId')?.setValue(null);
     });
+    this.applyUserTypeRules();
+  }
 
+  private initializeUserType() {
+    this.userType = this.authService.getUserType();
+    const employee = this.authService.getCurrentEmployee();
+    this.isCenterAdmin = !!employee?.isCenterAdmin;
+  }
+
+  showCenterAndStoreFields(): boolean {
+    return this.userType === 'user';
+  }
+
+  showOnlyStoreField(): boolean {
+    return this.userType === 'employee' && this.isCenterAdmin;
+  }
+
+  hideLocationFields(): boolean {
+    return this.userType === 'employee' && !this.isCenterAdmin;
+  }
+
+  private applyUserTypeRules() {
+    if (!this.form) return;
+
+    // USER: mostrar ambos campos
+    if (this.userType === 'user') {
+      this.form.get('centerId')?.enable();
+      this.form.get('storeId')?.enable();
+      return;
+    }
+
+    const employee = this.authService.getCurrentEmployee();
+
+    if (this.userType === 'employee') {
+      // center fijo para empleado
+      if (employee?.centerId != null) {
+        this.form.get('centerId')?.setValue(employee.centerId);
+      }
+      this.form.get('centerId')?.disable();
+
+      if (employee?.isCenterAdmin) {
+        // Solo mostrar storeId, centerId fijo
+        this.form.get('storeId')?.enable();
+        if (employee?.storeId != null) {
+          this.form.get('storeId')?.setValue(employee.storeId);
+        }
+      } else {
+        // Ocultar ambos campos y setear storeId
+        if (employee?.storeId != null) {
+          this.form.get('storeId')?.setValue(employee.storeId);
+        }
+        this.form.get('storeId')?.disable();
+      }
+    }
   }
 
   get filteredStores() {
@@ -76,7 +138,7 @@ export class DeviceBrandsFormComponent {
 
   onSubmit() {
     if (this.form.valid) {
-      this.save.emit(this.form.value);
+      this.save.emit(this.form.getRawValue());
     }
   }
 

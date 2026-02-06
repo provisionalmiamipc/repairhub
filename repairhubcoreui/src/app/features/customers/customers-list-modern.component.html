@@ -3,12 +3,12 @@
   <div class="list-header" @slideDown>
     <div class="header-content">
       <div>
-        <h1 class="page-title">Clientes</h1>
-        <p class="page-subtitle">Administra tus clientes y sus órdenes</p>
+        <h1 class="page-title">Customers</h1>
+        <p class="page-subtitle">Manage your customers and their orders</p>
       </div>
-      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'Nuevo cliente'">
+      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'New customer'">
         <span class="btn-icon"><i class="bi bi-plus"></i></span>
-        Nuevo Cliente
+        New Customer
       </button>
     </div>
   </div>
@@ -20,9 +20,9 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Busca por nombre, código, email o teléfono..."
+        placeholder="Search by name, code, email or phone..."
         (input)="onSearchChange($any($event).target.value)"
-        [attr.aria-label]="'Buscar clientes'"
+        [attr.aria-label]="'Search customers'"
       />
     </div>
 
@@ -32,7 +32,7 @@
         (change)="onFilterChange($any($event).target.value)"
         [attr.aria-label]="'Filtrar clientes'"
       >
-        <option value="all">Todos</option>
+        <option value="all">All</option>
         <option value="b2b">B2B</option>
         <option value="b2c">B2C</option>
       </select>
@@ -42,9 +42,9 @@
         (change)="onSortChange($any($event).target.value)"
         [attr.aria-label]="'Ordenar clientes'"
       >
-        <option value="name">Ordenar por: Nombre</option>
-        <option value="code">Código</option>
-        <option value="city">Ciudad</option>
+        <option value="name">Sort by: Name</option>
+        <option value="code">Code</option>
+        <option value="city">City</option>
       </select>
     </div>
   </div>
@@ -55,10 +55,10 @@
     <div class="error-content">
       <span class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
       <div>
-        <h3>Error al cargar</h3>
+        <h3>Error loading</h3>
         <p>{{ error() }}</p>
       </div>
-      <button class="btn-retry" (click)="retryLoad()">Reintentar</button>
+      <button class="btn-retry" (click)="retryLoad()">Retry</button>
     </div>
   </div>
   }
@@ -83,9 +83,9 @@
     @if (isEmptyState()) {
     <div class="empty-state" @fadeInUp>
       <div class="empty-icon"><i class="bi bi-people"></i></div>
-      <h3>No hay clientes</h3>
-      <p>Comienza creando tu primer cliente</p>
-      <button class="btn-empty" (click)="onNew()">Crear Cliente</button>
+      <h3>No customers</h3>
+      <p>Start by creating your first customer</p>
+      <button class="btn-empty" (click)="onNew()">Create Customer</button>
     </div>
     } @else {
     @for (customer of filteredCustomers(); track customer.id) {
@@ -97,16 +97,16 @@
           <button
             class="btn-action btn-view"
             (click)="onView(customer)"
-            title="Ver detalles"
-            [attr.aria-label]="'Ver detalles de ' + customer.firstName + ' ' + customer.lastName"
+            title="View details"
+            [attr.aria-label]="'View details of ' + customer.firstName + ' ' + customer.lastName"
           >
             <i class="bi bi-eye"></i>
           </button>
           <button
             class="btn-action btn-edit"
             (click)="onEdit(customer)"
-            title="Editar"
-            [attr.aria-label]="'Editar cliente ' + customer.firstName + ' ' + customer.lastName"
+            title="Edit"
+            [attr.aria-label]="'Edit customer ' + customer.firstName + ' ' + customer.lastName"
           >
             <i class="bi bi-pencil"></i>
           </button>
@@ -134,30 +134,30 @@
           <span class="stat-value">{{ customer.email }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-telephone"></i> Teléfono</span>
+          <span class="stat-label"><i class="bi bi-telephone"></i> Phone</span>
           <span class="stat-value">{{ customer.phone || 'N/A' }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-geo-alt"></i> Ciudad</span>
+          <span class="stat-label"><i class="bi bi-geo-alt"></i> City</span>
           <span class="stat-value">{{ customer.city }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-person"></i> Género</span>
+          <span class="stat-label"><i class="bi bi-person"></i> Gender</span>
           <span class="stat-value">{{ customer.gender }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-percent"></i> Descuento</span>
+          <span class="stat-label"><i class="bi bi-percent"></i> Discount</span>
           <span class="stat-value">{{ customer.discount }}%</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-card-text"></i> Información Extra</span>
+          <span class="stat-label"><i class="bi bi-card-text"></i> Extra Info</span>
           <span class="stat-value">{{ customer.extraInfo || 'N/A' }}</span>
         </div>
       </div>
 
       <!-- Card Footer -->
       <div class="card-footer">
-        <span class="created-date">Desde: {{ customer.createdAt | date: 'short' }}</span>
+        <span class="created-date">Since: {{ customer.createdAt | date: 'short' }}</span>
       </div>
     </div>
     }
@@ -168,7 +168,7 @@
   <!-- Results Counter -->
   @if (!isLoading() && filteredCustomers().length > 0) {
   <div class="results-info">
-    Mostrando {{ filteredCustomers().length }} de {{ customers().length }} clientes
+    Showing {{ filteredCustomers().length }} of {{ customers().length }} customers
   </div>
   }
 </div>

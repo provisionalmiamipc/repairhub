@@ -1,66 +1,34 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Customers, Gender } from '../../shared/models/Customers';
-import { CommonModule } from '@angular/common';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
-import { CentersService } from '../../shared/services/centers.service';
-import { StoresService } from '../../shared/services/stores.service';
-
-// CoreUI Standalone Imports
-import { 
-  CardComponent, 
-  CardHeaderComponent, 
-  CardBodyComponent,   
-  SpinnerComponent,
-  FormFeedbackComponent,
-  FormCheckComponent,
-  FormControlDirective,
-  FormLabelDirective,
-  ButtonDirective, 
-  FormSelectDirective,
-  FormCheckLabelDirective,
-  FormCheckInputDirective,
-  InputGroupComponent,
-  
-  
-} from '@coreui/angular';
 
 @Component({
   selector: 'app-customers-form',
-  templateUrl: './customers-form.component.html',
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    CardComponent,
-    CardHeaderComponent,
-    CardBodyComponent,
-    FormControlDirective,
-    FormLabelDirective,
-    FormCheckComponent,
-    FormFeedbackComponent,
-    ButtonDirective,
-    SpinnerComponent,
-    InputGroupComponent,
-    FormSelectDirective,
-    FormCheckLabelDirective,
-    FormCheckInputDirective,
-    
-    
-  ]
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './customers-form.component.html'
 })
-export class CustomersFormComponent implements OnInit {
-  @Input() customer: Customers | null = null;  
+export class CustomersFormComponent implements OnInit, OnChanges {
+  @Input() customer: Customers | null = null;
   @Input() centers: Centers[] = [];
   @Input() stores: Stores[] = [];
+  @Input() role: 'USER' | 'EMPLOYEE' = 'USER';
+  @Input() isAdminCenter: boolean = false;
+  @Input() employeeCenterId: number | null = null;
+  @Input() employeeStoreId: number | null = null;
   @Output() save = new EventEmitter<Customers>();
   @Output() cancel = new EventEmitter<void>();
 
+  centerIdDefault: number | null = null;
+  storeIdDefault: number | null = null;
+
   customerForm!: FormGroup;
   isSubmitting = false;
-  //centers: Centers[] = [];
-  //stores: Stores[] = [];
+  backendError: string | null = null;
 
+  // Filtered stores based on selected center
   // Filtered stores based on selected center
   filteredStores: any[] = [];
 
@@ -68,27 +36,40 @@ export class CustomersFormComponent implements OnInit {
 
   constructor(private fb: FormBuilder) {}
 
-   ngOnChanges() {
-
+  ngOnChanges() {
     if (this.customer) {
       this.loadCustomerData(this.customer);
     }
+  }
 
-   }
-
-  ngOnInit(): void {   
-
+  ngOnInit(): void {
     this.initForm();
 
-    console.log('El customer es: ', this.customer);
-
-    
+    // Asignar valores por defecto según el rol
+    if (this.role === 'EMPLOYEE') {
+      this.centerIdDefault = this.employeeCenterId ?? null;
+      this.storeIdDefault = this.employeeStoreId ?? null;
+      // Si no es admin center, ambos ocultos y fijos
+      if (!this.isAdminCenter) {
+        this.customerForm.get('centerId')?.setValue(this.centerIdDefault);
+        this.customerForm.get('storeId')?.setValue(this.storeIdDefault);
+      } else {
+        // Si es admin center, solo centerId fijo y storeId autoseleccionado si existe
+        this.customerForm.get('centerId')?.setValue(this.centerIdDefault);
+        if (this.storeIdDefault) {
+          this.customerForm.get('storeId')?.setValue(this.storeIdDefault);
+        }
+      }
+    }
 
     // Cuando cambia el center, limpiar storeId
-    this.customerForm.get('centerId')?.valueChanges.subscribe(() => {
+    this.customerForm.get('centerId')?.valueChanges.subscribe(centerId => {
       this.customerForm.get('storeId')?.setValue(null);
+      // Si es admin center, autoseleccionar storeId del empleado si corresponde
+      if (this.role === 'EMPLOYEE' && this.isAdminCenter && this.employeeStoreId && Number(centerId) === this.employeeCenterId) {
+        this.customerForm.get('storeId')?.setValue(this.employeeStoreId);
+      }
     });
-    
   }
 
   private initForm(): void {
@@ -97,19 +78,17 @@ export class CustomersFormComponent implements OnInit {
       storeId: [null, [Validators.required, Validators.min(1)]],
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      phone: ['', [Validators.required, Validators.pattern(/^[0-9+\-\s()]{10,15}$/)]],
+      phone: ['', [Validators.pattern(/^[0-9+\-\s()]{10,15}$/)]],
       email: ['', [Validators.required, Validators.email]],
-      city: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
+      city: ['', [Validators.minLength(2), Validators.maxLength(50)]],
       gender: ['', Validators.required],
       extraInfo: [null, [Validators.maxLength(500)]],
-      b2b: [false],
+      b2b: [null],
       discount: [0, [Validators.min(0), Validators.max(100)]]
     });
   }
 
   private filterStoresByCenter(centerId: number | null): void {
-    console.log('El centerId es:', centerId );
-    console.log('los Stores son:', this.stores)
     if (centerId && this.stores) {
       this.filteredStores = this.stores.filter(store => 
         store.centerId === centerId
@@ -152,22 +131,33 @@ export class CustomersFormComponent implements OnInit {
   onSubmit() {
     if (this.customerForm.valid) {
       this.isSubmitting = true;
-      
-      const formData = this.customerForm.value;
+      this.backendError = null;
+      let formData = this.customerForm.value;
+      // Si es EMPLOYEE, forzar centerId al del empleado
+      if (this.role === 'EMPLOYEE' && this.employeeCenterId) {
+        formData = { ...formData, centerId: this.employeeCenterId };
+      }
+      // Asegurar que b2b sea booleano
+      let b2bValue = formData.b2b;
+      if (b2bValue === null || b2bValue === undefined) b2bValue = false;
+      else b2bValue = !!b2bValue;
+      // Limpiar phone si es string vacío
+      let phoneValue = formData.phone;
+      if (typeof phoneValue === 'string' && phoneValue.trim() === '') phoneValue = undefined;
       const customerData: Customers = {
         ...formData,
-        //id: this.customer?.id,
-        //createdAt: this.customer?.createdAt || new Date(),
-        //updatedAt: new Date()
+        b2b: b2bValue,
+        phone: phoneValue
       };
-
-      this.save.emit(customerData);
+      // Emitir el objeto y esperar que el padre maneje el error
+      try {
+        this.save.emit(customerData);
+      } catch (err: any) {
+        this.backendError = err?.message || 'Error desconocido al guardar.';
+      }
     } else {
       this.markFormGroupTouched(this.customerForm);
     }
-    /*if (this.customerForm.valid) {
-      this.save.emit({ ...this.customer, ...this.customerForm.value });
-    }*/
   }
 
   onCancel(): void {

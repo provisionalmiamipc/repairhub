@@ -44,23 +44,43 @@
 
 <ng-template #formContent>
   <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
-    <div class="mb-3">
-      <label class="form-label" for="centerId">Center *</label>
-      <select class="form-select" id="centerId" formControlName="centerId">
-        <option [ngValue]="null">Select center</option>
-        <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
-      </select>
-      <div class="invalid-feedback d-block" *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">Center is required</div>
-    </div>
+    <!-- Location fields by role -->
+    <ng-container *ngIf="showCenterAndStoreFields(); else employeeLocation">
+      <div class="mb-3">
+        <label class="form-label" for="centerId">Center *</label>
+        <select class="form-select" id="centerId" formControlName="centerId">
+          <option [ngValue]="null">Select center</option>
+          <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
+        </select>
+        <div class="invalid-feedback d-block" *ngIf="form.get('centerId')?.invalid && form.get('centerId')?.touched">Center is required</div>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label" for="storeId">Store *</label>
-      <select class="form-select" id="storeId" formControlName="storeId">
-        <option [ngValue]="null">Select store</option>
-        <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
-      </select>
-      <div class="invalid-feedback d-block" *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">Store is required</div>
-    </div>
+      <div class="mb-3">
+        <label class="form-label" for="storeId">Store *</label>
+        <select class="form-select" id="storeId" formControlName="storeId">
+          <option [ngValue]="null">Select store</option>
+          <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+        </select>
+        <div class="invalid-feedback d-block" *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">Store is required</div>
+      </div>
+    </ng-container>
+
+    <ng-template #employeeLocation>
+      <ng-container *ngIf="showOnlyStoreField(); else hideLocation">
+        <div class="mb-3">
+          <label class="form-label" for="storeId">Store *</label>
+          <select class="form-select" id="storeId" formControlName="storeId">
+            <option [ngValue]="null">Select store</option>
+            <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+          </select>
+          <div class="invalid-feedback d-block" *ngIf="form.get('storeId')?.invalid && form.get('storeId')?.touched">Store is required</div>
+        </div>
+      </ng-container>
+      <ng-template #hideLocation>
+        <input type="hidden" formControlName="centerId" />
+        <input type="hidden" formControlName="storeId" />
+      </ng-template>
+    </ng-template>
 
     <div class="mb-3">
       <label class="form-label" for="name">Name *</label>
