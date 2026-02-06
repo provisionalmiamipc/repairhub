@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SODiagnostic } from '../models/SODiagnostic';
-import { environment  } from '../../../environment';
+import { environment  } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SODiagnosticService {

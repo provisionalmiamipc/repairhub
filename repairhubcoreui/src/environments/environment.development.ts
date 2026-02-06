@@ -56,6 +56,12 @@ export const environment = {
     retryDelay: 1000,
   },
 
+  logging: {
+    level: 'debug', // debug | info | warn | error
+    enableConsole: true
+  },
+  
+
   /**
    * Configuración de caché HTTP
    */

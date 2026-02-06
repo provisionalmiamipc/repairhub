@@ -58,6 +58,12 @@ export const environment = {
     retryDelay: 1000, // 1 segundo
   },
 
+  logging: {
+    level: 'debug', // debug | info | warn | error
+    enableConsole: true
+  },
+  
+
   /**
    * Configuración del sistema de caché
    */
