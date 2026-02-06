@@ -1,6 +1,6 @@
 {
   "buildCommand": "ng build --configuration=production",
-  "outputDirectory": "dist/repairhubcoreui",
+  "outputDirectory": "dist/repairhubcoreui/browser",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
   "routes": [

@@ -1,8 +1,8 @@
 // src/environment.ts (Desarrollo Local - Default)
 // Este archivo se usa por defecto en desarrollo
 export const environment = {
-  production: true,
-  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app',
+  production: false,
+  apiUrl: 'http://localhost:3000',
   apiVersion: 'v1',
   appName: 'RepairHub',
   appVersion: '1.0.0',
