@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "https://empowering-elegance-production-38dc.up.railway.app/",
+    "target": "http://localhost:3000",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
