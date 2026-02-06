@@ -91,17 +91,7 @@ export const environment = {
       appointments: 180000, // 3 minutos
       notifications: 60000, // 1 minuto
       reports: 300000, // 5 minutos
-    },
-
-    /**
-     * Habilitar/deshabilitar caché globalmente
-     */
-    enabled: true,
-
-    /**
-     * Modo debug para caché (logs en consola)
-     */
-    debug: true,
+    }
   },
 
   /**
