@@ -6,7 +6,7 @@
         <h1><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Item Management</h1>
         <p class="subtitle">{{ filteredItems().length }} items found</p>
       </div>
-      <button class="btn-primary" (click)="createNew()">
+      <button class="btn btn-primary" (click)="createNew()">
         <span>+</span> New Item
       </button>
     </div>
@@ -81,7 +81,7 @@
       </svg>
       <h3>Error loading</h3>
       <p>{{ listState().error }}</p>
-      <button class="btn-secondary" (click)="retryLoad()">Retry</button>
+      <button class="btn btn-secondary" (click)="retryLoad()">Retry</button>
     </div>
   }
 
@@ -93,7 +93,7 @@
       </svg>
       <h3>No items</h3>
       <p>There are no items matching the selected filters</p>
-      <button class="btn-primary" (click)="createNew()">Create first item</button>
+      <button class="btn btn-primary" (click)="createNew()">Create first item</button>
     </div>
   }
 
