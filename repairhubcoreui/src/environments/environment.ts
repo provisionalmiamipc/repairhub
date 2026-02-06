@@ -16,12 +16,12 @@ export const environment = {
   /**
    * Indica si la aplicación está en modo producción
    */
-  production: false,
+  production: true,
 
   /**
    * URL base del API backend (para desarrollo local)
    */
-  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app',
+  apiUrl: 'https://empowering-elegance-production-38dc.up.railway.app/',
 
   /**
    * Versión del API
