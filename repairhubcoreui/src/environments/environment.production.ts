@@ -111,6 +111,14 @@ export const environment = {
   },
 
   /**
+   * Logging configuration (kept for parity with development environment)
+   */
+  logging: {
+    level: 'info',
+    enableConsole: false,
+  },
+
+  /**
    * Configuración de seguridad
    */
   security: {
