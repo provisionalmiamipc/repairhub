@@ -1,4 +1,4 @@
-@import '../../../scss/_modern-design-system.scss';
+@use '../../../scss/_modern-design-system.scss' as *;
 
 .sale-items-container {
   width: 100%;

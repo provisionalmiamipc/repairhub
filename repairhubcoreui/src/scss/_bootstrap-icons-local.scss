@@ -3,4 +3,4 @@
  * Importa los estilos de bootstrap-icons desde assets/fonts
  */
 
-@import 'assets/fonts/bootstrap-icons.css';
+@use 'assets/fonts/bootstrap-icons.css' as *;
