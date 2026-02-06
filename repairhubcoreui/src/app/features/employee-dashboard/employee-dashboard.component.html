@@ -18,6 +18,53 @@
     </div>
   </div>
 
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-6" *ngIf="canAccessStoreManagement()">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="mb-3">Gestión de tienda</h5>
+            <div class="row g-2">
+              <div class="col-6">
+                <a class="btn btn-light w-100" routerLink="/employees"><i class="bi bi-people me-2"></i>Equipo</a>
+              </div>
+              <div class="col-6">
+                <a class="btn btn-light w-100" routerLink="/items"><i class="bi bi-box-seam me-2"></i>Inventario</a>
+              </div>
+              <div class="col-6">
+                <a class="btn btn-light w-100" routerLink="/customers"><i class="bi bi-person-vcard me-2"></i>Clientes</a>
+              </div>
+              <div class="col-6">
+                <a class="btn btn-light w-100" routerLink="/service-orders"><i class="bi bi-clipboard-data me-2"></i>Órdenes</a>
+              </div>
+            </div>
+            <div class="mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-body-secondary small">Nivel de cumplimiento SLA</span>
+                <span class="fw-semibold text-success">96%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-success" style="width: 96%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="mb-3">Acciones rápidas</h5>
+            <div class="d-grid gap-2">
+              <ng-container *ngFor="let action of quickActions">
+                <a *appHasPermission="action.permission" class="btn btn-light text-start" [routerLink]="action.route">
+                  <i class="bi me-2" [ngClass]="action.icon"></i>{{ action.label }}
+                </a>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+
   <div *ngIf="isLoading" class="row g-3">
     <div class="col-12 col-md-6 col-xl-4" *ngFor="let i of [1,2,3,4,5,6]">
       <div class="card shadow-sm">
@@ -136,20 +183,7 @@
     </div>
 
     <div class="row g-3 mb-4">
-      <div class="col-12 col-lg-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h5 class="mb-3">Acciones rápidas</h5>
-            <div class="d-grid gap-2">
-              <ng-container *ngFor="let action of quickActions">
-                <a *appHasPermission="action.permission" class="btn btn-light text-start" [routerLink]="action.route">
-                  <i class="bi me-2" [ngClass]="action.icon"></i>{{ action.label }}
-                </a>
-              </ng-container>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       <div class="col-12 col-lg-4">
         <div class="card shadow-sm h-100">
@@ -239,36 +273,7 @@
         </div>
       </div>
 
-      <div class="col-12 col-lg-6" *ngIf="canAccessStoreManagement()">
-        <div class="card shadow-sm h-100">
-          <div class="card-body">
-            <h5 class="mb-3">Gestión de tienda</h5>
-            <div class="row g-2">
-              <div class="col-6">
-                <a class="btn btn-light w-100" routerLink="/employees"><i class="bi bi-people me-2"></i>Equipo</a>
-              </div>
-              <div class="col-6">
-                <a class="btn btn-light w-100" routerLink="/items"><i class="bi bi-box-seam me-2"></i>Inventario</a>
-              </div>
-              <div class="col-6">
-                <a class="btn btn-light w-100" routerLink="/customers"><i class="bi bi-person-vcard me-2"></i>Clientes</a>
-              </div>
-              <div class="col-6">
-                <a class="btn btn-light w-100" routerLink="/service-orders"><i class="bi bi-clipboard-data me-2"></i>Órdenes</a>
-              </div>
-            </div>
-            <div class="mt-3">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-body-secondary small">Nivel de cumplimiento SLA</span>
-                <span class="fw-semibold text-success">96%</span>
-              </div>
-              <div class="progress" style="height: 8px;">
-                <div class="progress-bar bg-success" style="width: 96%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
     </div>
   </ng-template>
 </div>

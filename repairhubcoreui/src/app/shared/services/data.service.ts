@@ -3,11 +3,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { AuthService } from './auth.service';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
+  private readonly apiBaseUrl = `${environment.apiUrl}/api`;
 
   constructor(
     private http: HttpClient, 
@@ -23,7 +25,7 @@ export class DataService {
     if (centerId) params = params.set('centerId', centerId.toString());
     if (storeId) params = params.set('storeId', storeId.toString());
     
-    return this.http.get('/api/store-data', { params });
+    return this.http.get(`${this.apiBaseUrl}/store-data`, { params });
   }
 
   getCenterData(): Observable<any> {
@@ -32,7 +34,7 @@ export class DataService {
     let params = new HttpParams();
     if (centerId) params = params.set('centerId', centerId.toString());
     
-    return this.http.get('/api/center-data', { params });
+    return this.http.get(`${this.apiBaseUrl}/center-data`, { params });
   }
 
   getFinancialReports(): Observable<any> {
@@ -43,7 +45,7 @@ export class DataService {
     if (centerId) params = params.set('centerId', centerId.toString());
     if (storeId) params = params.set('storeId', storeId.toString());
     
-    return this.http.get('/api/financial/reports', { params });
+    return this.http.get(`${this.apiBaseUrl}/financial/reports`, { params });
   }
 
   getInventoryData(): Observable<any> {
@@ -54,6 +56,6 @@ export class DataService {
     if (centerId) params = params.set('centerId', centerId.toString());
     if (storeId) params = params.set('storeId', storeId.toString());
     
-    return this.http.get('/api/inventory', { params });
+    return this.http.get(`${this.apiBaseUrl}/inventory`, { params });
   }
 }
