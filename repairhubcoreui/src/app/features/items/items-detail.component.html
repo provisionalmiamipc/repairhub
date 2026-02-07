@@ -1,19 +1,71 @@
-<div *ngIf="item">
-  <h2>Item #{{ item.id }}</h2>
-  <p><strong>Producto:</strong> {{ item.product }}</p>
-  <p><strong>SKU:</strong> {{ item.sku }}</p>
-  <p><strong>Precio:</strong> {{ item.price }}</p>
-  <p><strong>Costo:</strong> {{ item.cost }}</p>
-  <p><strong>Descripción corta:</strong> {{ item.shortTitleDesc }}</p>
-  <p><strong>Stock:</strong> {{ item.stock }}</p>
-  <p><strong>Stock mínimo:</strong> {{ item.minimunStock }}</p>
-  <p><strong>Especificaciones:</strong> {{ item.specs }}</p>
-  <p><strong>Imagen:</strong> <img *ngIf="item.image" [src]="item.image" alt="Imagen" style="max-width:100px;max-height:100px;" /></p>
-  <p><strong>Código de barras:</strong> {{ item.barcode }}</p>
-  <p><strong>Gravable:</strong> {{ item.taxable ? 'Sí' : 'No' }}</p>
-  <p><strong>Garantía:</strong> {{ item.warranty }} meses</p>
-  <p><strong>Descuento:</strong> {{ item.discount }}</p>
-  <p><strong>Activo:</strong> {{ item.isActive ? 'Sí' : 'No' }}</p>
-  <p><strong>Creado:</strong> {{ item.createdAt | date:'short' }}</p>
-  <p><strong>Actualizado:</strong> {{ item.updatedAt | date:'short' }}</p>
+<div *ngIf="item" class="container py-4">
+  <div class="card shadow-sm">
+    <div class="row g-0">
+      <div class="col-md-4 d-flex align-items-center justify-content-center p-4 bg-light">
+        <img *ngIf="item.image; else noImage" [src]="item.image" alt="{{ item.product }}" class="img-fluid rounded" style="max-height:260px; object-fit:contain;" />
+        <ng-template #noImage>
+          <div class="border rounded d-flex align-items-center justify-content-center bg-white" style="width:100%;height:220px;">
+            <i class="bi bi-box-seam fs-1 text-secondary"></i>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="col-md-8">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <h3 class="card-title mb-1">{{ item.product }}</h3>
+              <div class="small text-muted">SKU: {{ item.sku }} · Barcode: {{ item.barcode || '-' }}</div>
+            </div>
+            <div class="text-end">
+              <span class="badge fs-6" [ngClass]="item.isActive ? 'bg-success' : 'bg-secondary'">{{ item.isActive ? 'Active' : 'Inactive' }}</span>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-sm-6" *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)">
+              <ul class="list-unstyled mb-0">
+                <li><strong class="text-muted">Price: </strong> <span class="fw-semibold">{{ formatCurrency(item.price) }}</span></li>
+                <li><strong class="text-muted">Cost: </strong> <span class="fw-semibold">{{ formatCurrency(item.cost) }}</span></li>
+                <li><strong class="text-muted">Margin: </strong> <span class="fw-semibold">{{ getPriceMargin(item).toFixed(1) }}%</span></li>
+              </ul>
+            </div>
+            <div class="col-sm-6">
+              <ul class="list-unstyled mb-0">
+                <li><strong class="text-muted">Stock: </strong> <span class="fw-semibold">{{ item.stock }}</span></li>
+                <li><strong class="text-muted">Minimum: </strong> <span class="fw-semibold">{{ item.minimunStock }}</span></li>
+                <li *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)"><strong class="text-muted">Discount: </strong> <span class="fw-semibold">{{ item.discount }}%</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="mb-1">Description</h6>
+            <p class="text-muted mb-0">{{ item.shortTitleDesc || item.specs || '-' }}</p>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge bg-info text-dark">Type: {{ getTypeName(item.itemTypeId) }}</span>
+            <span class="badge bg-secondary">Center: {{ getCenterName(getItemCenterId(item)) }}</span>
+            <span class="badge bg-secondary">Store: {{ getStoreName(getItemStoreId(item)) }}</span>
+            <ng-container *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)">
+              <span class="badge" [ngClass]="item.taxable ? 'bg-primary text-white' : 'bg-secondary text-muted'">{{ item.taxable ? 'Taxable' : 'Not Taxable' }}</span>
+            </ng-container>
+            <span class="badge" [ngClass]="item.warranty > 0 ? 'bg-success text-white' : 'bg-secondary text-muted'">Warranty: {{ item.warranty }}m</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="text-muted small">
+              <div>Created: {{ item.createdAt | date:'short' }}</div>
+              <div>Updated: {{ item.updatedAt | date:'short' }}</div>
+            </div>
+            <div>
+              <button class="btn btn-outline-secondary me-2" (click)="goBack()"><i class="bi bi-arrow-left me-1"></i> Back</button>
+              <button class="btn btn-primary" (click)="editItem(item)"><i class="bi bi-pencil me-1"></i> Edit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

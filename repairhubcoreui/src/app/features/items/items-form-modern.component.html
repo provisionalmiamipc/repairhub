@@ -8,12 +8,11 @@
             <div>
               <h1 class="h3 mb-1">
                 @if (isEditMode()) {
-                  <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Editar Artículo
+                  <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Edit Item
                 } @else {
-                  <i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Crear Artículo
+                  <i class="bi bi-plus-circle me-2" aria-hidden="true"></i>Create Item
                 }
               </h1>
-              <p class="text-muted mb-0">Paso {{ currentStep() + 1 }} de 2</p>
             </div>
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
@@ -22,320 +21,295 @@
             </div>
           </div>
 
-          <!-- Progress -->
-          <div class="mb-4">
-            <div class="progress" role="progressbar" aria-label="Progreso del formulario" [attr.aria-valuenow]="getProgressPercentage()" aria-valuemin="0" aria-valuemax="100">
-              <div class="progress-bar" [style.width.%]="getProgressPercentage()"></div>
-            </div>
-            <div class="d-flex justify-content-between mt-2 small">
-              <span class="d-inline-flex align-items-center gap-2" [class.text-primary]="currentStep() >= 0" [class.fw-semibold]="currentStep() >= 0">
-                <span class="badge rounded-pill" [class.bg-primary]="currentStep() >= 0" [class.bg-success]="currentStep() > 0">
-                  @if (currentStep() > 0) {
-                    <i class="bi bi-check-lg" aria-hidden="true"></i>
-                  } @else {
-                    1
-                  }
-                </span>
-                Centro
-              </span>
-              <span class="d-inline-flex align-items-center gap-2" [class.text-primary]="currentStep() >= 1" [class.fw-semibold]="currentStep() >= 1">
-                <span class="badge rounded-pill" [class.bg-primary]="currentStep() >= 1">2</span>
-                Información
-              </span>
-            </div>
-          </div>
-
           <!-- Loading State -->
           @if (isLoading()) {
             <div class="d-flex flex-column align-items-center justify-content-center py-5">
-              <div class="spinner-border text-primary" role="status" aria-label="Cargando"></div>
-              <p class="mt-3 text-muted mb-0">Cargando datos...</p>
+              <div class="spinner-border text-primary" role="status" aria-label="Loading"></div>
+              <p class="mt-3 text-muted mb-0">Loading data...</p>
             </div>
           }
 
-          <!-- Form Content -->
-          @if (!isLoading()) {
-            <form [formGroup]="itemForm" class="needs-validation" novalidate>
-              <!-- Step 0: Center, Store & Type -->
-              @if (currentStep() === 0) {
-                <div class="vstack gap-4" [@slideInFrom]>
-                  <div>
-                    <h2 class="h5 mb-1">Selecciona Centro, Tienda y Tipo</h2>
-                    <p class="text-muted mb-0">Define la ubicación antes de completar la información del artículo.</p>
+          <!-- Single-step Form -->
+          <form [formGroup]="itemForm" class="needs-validation" novalidate>
+            <div class="vstack gap-4" [@slideInFrom]>
+              <div>
+                <h2 class="h5 mb-1">Select Center, Store and Type</h2>
+                <p class="text-muted mb-0">Set location before completing item details.</p>
+              </div>
+
+              @if (showCenterAndStoreFields()) {
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <label for="centerId" class="form-label">Centro <span class="text-danger">*</span></label>
+                    <select id="centerId" formControlName="centerId" class="form-select">
+                      <option [ngValue]="null">Select a center</option>
+                      <option *ngFor="let center of centers()" [ngValue]="center.id">{{ center.centerName }}</option>
+                    </select>
+                    @if (getFieldError('centerId')) {
+                      <div class="invalid-feedback d-block">{{ getFieldError('centerId') }}</div>
+                    }
                   </div>
 
-                  @if (showCenterAndStoreFields()) {
-                    <div class="row g-3">
-                      <!-- Center Selection -->
-                      <div class="col-12 col-md-6">
-                        <label for="centerId" class="form-label">Centro <span class="text-danger">*</span></label>
-                        <select id="centerId" formControlName="centerId" class="form-select">
-                          <option [ngValue]="null">Selecciona un centro</option>
-                          <option *ngFor="let center of centers()" [ngValue]="center.id">
-                            {{ center.centerName }}
-                          </option>
-                        </select>
-                        @if (getFieldError('centerId')) {
-                          <div class="invalid-feedback d-block">{{ getFieldError('centerId') }}</div>
-                        }
-                      </div>
-
-                      <!-- Store Selection (filtered by center) -->
-                      <div class="col-12 col-md-6">
-                        <label for="storeId" class="form-label">Tienda <span class="text-danger">*</span></label>
-                        <select id="storeId" formControlName="storeId" class="form-select" [disabled]="!itemForm.get('centerId')?.value">
-                          <option [ngValue]="null">Selecciona una tienda</option>
-                          <option *ngFor="let store of filteredStores" [ngValue]="store.id">
-                            {{ store.storeName }}
-                          </option>
-                        </select>
-                        @if (!itemForm.get('centerId')?.value) {
-                          <div class="form-text">Primero selecciona un centro.</div>
-                        }
-                        @if (getFieldError('storeId')) {
-                          <div class="invalid-feedback d-block">{{ getFieldError('storeId') }}</div>
-                        }
-                      </div>
-                    </div>
-                  }
-
-                  @if (showOnlyStoreField()) {
-                    <!-- Store Selection (admin center) -->
-                    <div class="row g-3">
-                      <div class="col-12 col-md-6">
-                        <label for="storeId" class="form-label">Tienda <span class="text-danger">*</span></label>
-                        <select id="storeId" formControlName="storeId" class="form-select">
-                          <option [ngValue]="null">Selecciona una tienda</option>
-                          <option *ngFor="let store of filteredStores" [ngValue]="store.id">
-                            {{ store.storeName }}
-                          </option>
-                        </select>
-                        @if (getFieldError('storeId')) {
-                          <div class="invalid-feedback d-block">{{ getFieldError('storeId') }}</div>
-                        }
-                      </div>
-                    </div>
-                  }
-
-                  @if (hideLocationFields()) {
-                    <div class="alert alert-info mb-0" role="status">
-                      Centro y tienda se asignan automáticamente.
-                    </div>
-                  }
-                </div>
-              }
-
-              <!-- Step 1: Basic Info, Prices & Stock -->
-              @if (currentStep() === 1) {
-                <div class="vstack gap-4" [@slideInFrom]>
-                  <div>
-                    <h2 class="h5 mb-1">Información del Artículo</h2>
-                    <p class="text-muted mb-0">Completa los datos comerciales y de inventario.</p>
-                  </div>
-
-                  <!-- Item Type Selection -->
-                  <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                      <label for="itemTypeId" class="form-label">Tipo de Artículo <span class="text-danger">*</span></label>
-                      <div class="input-group">
-                        <select id="itemTypeId" formControlName="itemTypeId" class="form-select">
-                          <option [ngValue]="null">Selecciona un tipo</option>
-                          <option *ngFor="let type of itemTypes()" [ngValue]="type.id">
-                            {{ type.name }}
-                          </option>
-                        </select>
-                        <button type="button" class="btn btn-outline-primary" (click)="openItemTypeModal()" aria-label="Agregar tipo de artículo">
-                          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo
-                        </button>
-                      </div>
-                      @if (getFieldError('itemTypeId')) {
-                        <div class="invalid-feedback d-block">{{ getFieldError('itemTypeId') }}</div>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                      <label for="product" class="form-label">Nombre del Producto <span class="text-danger">*</span></label>
-                      <input type="text" id="product" formControlName="product" class="form-control" placeholder="Ej: Pantalla LCD 32 pulgadas">
-                      @if (getFieldError('product')) {
-                        <div class="invalid-feedback d-block">{{ getFieldError('product') }}</div>
-                      }
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                      <label for="sku" class="form-label">SKU <span class="text-danger">*</span></label>
-                      <input type="text" id="sku" formControlName="sku" class="form-control" placeholder="Ej: LCD32-001">
-                      @if (getFieldError('sku')) {
-                        <div class="invalid-feedback d-block">{{ getFieldError('sku') }}</div>
-                      }
-                    </div>
-                  </div>
-
-                  <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                      <label for="barcode" class="form-label">Código de Barras</label>
-                      <input type="text" id="barcode" formControlName="barcode" class="form-control" placeholder="Ej: 1234567890123">
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                      <label for="shortTitleDesc" class="form-label">Descripción Corta</label>
-                      <input type="text" id="shortTitleDesc" formControlName="shortTitleDesc" class="form-control" placeholder="Descripción breve">
-                    </div>
-                  </div>
-
-                  <!-- Prices Section -->
-                  <div class="border rounded-3 p-3 p-md-4 bg-light-subtle">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                      <i class="bi bi-cash-coin text-primary" aria-hidden="true"></i>
-                      <h3 class="h6 mb-0">Precios y Márgenes</h3>
-                    </div>
-
-                    <div class="row g-3">
-                      <div class="col-12 col-md-4">
-                        <label for="cost" class="form-label">Costo <span class="text-danger">*</span></label>
-                        <input type="number" id="cost" formControlName="cost" class="form-control" placeholder="0" min="0">
-                        @if (getFieldError('cost')) {
-                          <div class="invalid-feedback d-block">{{ getFieldError('cost') }}</div>
-                        }
-                      </div>
-
-                      <div class="col-12 col-md-4">
-                        <label for="price" class="form-label">Precio de Venta <span class="text-danger">*</span></label>
-                        <input type="number" id="price" formControlName="price" class="form-control" placeholder="0" min="0">
-                        @if (getFieldError('price')) {
-                          <div class="invalid-feedback d-block">{{ getFieldError('price') }}</div>
-                        }
-                      </div>
-
-                      <div class="col-12 col-md-4">
-                        <label for="discount" class="form-label">Descuento (%)</label>
-                        <input type="number" id="discount" formControlName="discount" class="form-control" placeholder="0" min="0" max="100">
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Stock Section -->
-                  <div class="border rounded-3 p-3 p-md-4">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                      <i class="bi bi-box-seam text-primary" aria-hidden="true"></i>
-                      <h3 class="h6 mb-0">Stock e Inventario</h3>
-                    </div>
-
-                    <div class="row g-3">
-                      <div class="col-12 col-md-4">
-                        <label for="stock" class="form-label">Stock Actual <span class="text-danger">*</span></label>
-                        <input type="number" id="stock" formControlName="stock" class="form-control" placeholder="0" min="0">
-                        @if (getFieldError('stock')) {
-                          <div class="invalid-feedback d-block">{{ getFieldError('stock') }}</div>
-                        }
-                      </div>
-
-                      <div class="col-12 col-md-4">
-                        <label for="minimunStock" class="form-label">Stock Mínimo <span class="text-danger">*</span></label>
-                        <input type="number" id="minimunStock" formControlName="minimunStock" class="form-control" placeholder="0" min="0">
-                      </div>
-
-                      <div class="col-12 col-md-4">
-                        <label for="warranty" class="form-label">Garantía (meses)</label>
-                        <input type="number" id="warranty" formControlName="warranty" class="form-control" placeholder="0" min="0">
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Additional Info -->
-                  <div class="border rounded-3 p-3 p-md-4">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                      <i class="bi bi-info-circle text-primary" aria-hidden="true"></i>
-                      <h3 class="h6 mb-0">Información Adicional</h3>
-                    </div>
-
-                    <div class="row g-3 align-items-center">
-                      <div class="col-12 col-md-6">
-                        <div class="form-check">
-                          <input type="checkbox" id="taxable" formControlName="taxable" class="form-check-input">
-                          <label for="taxable" class="form-check-label">Gravable (IVA)</label>
-                        </div>
-                      </div>
-
-                      <div class="col-12 col-md-6">
-                        <div class="form-check">
-                          <input type="checkbox" id="isActive" formControlName="isActive" class="form-check-input">
-                          <label for="isActive" class="form-check-label">Activo</label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="row g-3 mt-1">
-                      <div class="col-12">
-                        <label for="image" class="form-label">URL de Imagen</label>
-                        <input type="text" id="image" formControlName="image" class="form-control" placeholder="https://ejemplo.com/imagen.jpg">
-                      </div>
-
-                      <div class="col-12">
-                        <label for="specs" class="form-label">Especificaciones (JSON)</label>
-                        <textarea id="specs" formControlName="specs" class="form-control font-monospace" rows="3" placeholder='{"color": "negro", "peso": "2kg"}'></textarea>
-                        <div class="form-text">Usa un JSON válido para guardar propiedades adicionales.</div>
-                      </div>
-                    </div>
+                  <div class="col-12 col-md-6">
+                    <label for="storeId" class="form-label">Store <span class="text-danger">*</span></label>
+                    <select id="storeId" formControlName="storeId" class="form-select" [disabled]="!itemForm.get('centerId')?.value">
+                      <option [ngValue]="null">Select a store</option>
+                      <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+                    </select>
+                    @if (!itemForm.get('centerId')?.value) {
+                      <div class="form-text">Please select a center first.</div>
+                    }
+                    @if (getFieldError('storeId')) {
+                      <div class="invalid-feedback d-block">{{ getFieldError('storeId') }}</div>
+                    }
                   </div>
                 </div>
               }
 
-              <!-- Error Alert -->
-              @if (error()) {
-                <div class="alert alert-danger d-flex align-items-center gap-2 mt-4" role="alert">
-                  <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
-                  <span>{{ error() }}</span>
+              @if (showOnlyStoreField()) {
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <label for="storeId" class="form-label">Tienda <span class="text-danger">*</span></label>
+                    <select id="storeId" formControlName="storeId" class="form-select">
+                      <option [ngValue]="null">Selecciona una tienda</option>
+                      <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
+                    </select>
+                    @if (getFieldError('storeId')) {
+                      <div class="invalid-feedback d-block">{{ getFieldError('storeId') }}</div>
+                    }
+                  </div>
                 </div>
               }
 
-              <!-- Success Alert -->
-              @if (success()) {
-                <div class="alert alert-success d-flex align-items-center gap-2 mt-4" role="status">
-                  <i class="bi bi-check-circle" aria-hidden="true"></i>
-                  <span>¡Guardado exitosamente! Redirigiendo...</span>
-                </div>
+              @if (hideLocationFields()) {
+                <div class="alert alert-info mb-0" role="status">Centro y tienda se asignan automáticamente.</div>
               }
 
-              <!-- Actions -->
-              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-4 mt-2 border-top">
-                <button type="button" class="btn btn-outline-secondary" (click)="onCancel()" [disabled]="isSaving()">
-                  Cancelar
-                </button>
+              <div>
+                <h2 class="h5 mb-1">Item Information</h2>
+                <p class="text-muted mb-0">Fill in commercial and inventory data.</p>
+              </div>
 
-                <div class="d-flex flex-wrap gap-2">
-                  @if (currentStep() > 0) {
-                    <button type="button" class="btn btn-outline-secondary" (click)="prevStep()" [disabled]="isSaving()">
-                      ← Anterior
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label for="itemTypeId" class="form-label">Item Type <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <select id="itemTypeId" formControlName="itemTypeId" class="form-select">
+                      <option [ngValue]="null">Select a type</option>
+                      <option *ngFor="let type of itemTypes()" [ngValue]="type.id">{{ type.name }}</option>
+                    </select>
+                    <button type="button" class="btn btn-outline-primary" (click)="openItemTypeModal()" aria-label="Add item type">
+                      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
                     </button>
-                  }
-
-                  @if (currentStep() < 1) {
-                    <button type="button" class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep() || isSaving()">
-                      Siguiente →
-                    </button>
-                  }
-
-                  @if (currentStep() === 1) {
-                    <button type="submit" class="btn btn-success" [disabled]="!itemForm.valid || isSaving()" (click)="onSubmit()">
-                      @if (isSaving()) {
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Guardando...
-                      }
-                      @if (!isSaving()) {
-                        @if (isEditMode()) {
-                          <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Actualizar Artículo
-                        } @else {
-                          <i class="bi bi-save me-2" aria-hidden="true"></i>Crear Artículo
-                        }
-                      }
-                    </button>
+                  </div>
+                  @if (getFieldError('itemTypeId')) {
+                    <div class="invalid-feedback d-block">{{ getFieldError('itemTypeId') }}</div>
                   }
                 </div>
               </div>
-            </form>
-          }
+
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label for="product" class="form-label">Product Name <span class="text-danger">*</span></label>
+                  <input type="text" id="product" formControlName="product" class="form-control" placeholder="e.g., 32-inch LCD Screen">
+                  @if (getFieldError('product')) {
+                    <div class="invalid-feedback d-block">{{ getFieldError('product') }}</div>
+                  }
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="sku" class="form-label">SKU <span class="text-danger">*</span></label>
+                  <input type="text" id="sku" formControlName="sku" class="form-control" placeholder="e.g., LCD32-001">
+                  @if (getFieldError('sku')) {
+                    <div class="invalid-feedback d-block">{{ getFieldError('sku') }}</div>
+                  }
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label for="barcode" class="form-label">Barcode</label>
+                  <input type="text" id="barcode" formControlName="barcode" class="form-control" placeholder="e.g., 1234567890123">
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="shortTitleDesc" class="form-label">Short Description</label>
+                  <input type="text" id="shortTitleDesc" formControlName="shortTitleDesc" class="form-control" placeholder="Short description">
+                </div>
+              </div>
+
+              <div *ngIf="!(authService.isExpert() && !isCenterAdmin())" class="border rounded-3 p-3 p-md-4 bg-light-subtle">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-cash-coin text-primary" aria-hidden="true"></i>
+                  <h3 class="h6 mb-0">Pricing &amp; Margins</h3>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-12 col-md-4">
+                        <label for="cost" class="form-label">Cost <span class="text-danger">*</span></label>
+                    <input type="number" id="cost" formControlName="cost" class="form-control" placeholder="0" min="0">
+                    @if (getFieldError('cost')) {
+                      <div class="invalid-feedback d-block">{{ getFieldError('cost') }}</div>
+                    }
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                        <label for="price" class="form-label">Sale Price <span class="text-danger">*</span></label>
+                    <input type="number" id="price" formControlName="price" class="form-control" placeholder="0" min="0">
+                    @if (getFieldError('price')) {
+                      <div class="invalid-feedback d-block">{{ getFieldError('price') }}</div>
+                    }
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                        <label for="discount" class="form-label">Discount (%)</label>
+                    <input type="number" id="discount" formControlName="discount" class="form-control" placeholder="0" min="0" max="100">
+                  </div>
+                </div>
+              </div>
+
+              <div class="border rounded-3 p-3 p-md-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-box-seam text-primary" aria-hidden="true"></i>
+                  <h3 class="h6 mb-0">Stock &amp; Inventory</h3>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-12 col-md-4">
+                        <label for="stock" class="form-label">Current Stock <span class="text-danger">*</span></label>
+                    <input type="number" id="stock" formControlName="stock" class="form-control" placeholder="0" min="0">
+                    @if (getFieldError('stock')) {
+                      <div class="invalid-feedback d-block">{{ getFieldError('stock') }}</div>
+                    }
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                        <label for="minimunStock" class="form-label">Minimum Stock <span class="text-danger">*</span></label>
+                    <input type="number" id="minimunStock" formControlName="minimunStock" class="form-control" placeholder="0" min="0">
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                        <label for="warranty" class="form-label">Warranty (months)</label>
+                    <input type="number" id="warranty" formControlName="warranty" class="form-control" placeholder="0" min="0">
+                  </div>
+                </div>
+              </div>
+
+              <div class="border rounded-3 p-3 p-md-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <i class="bi bi-info-circle text-primary" aria-hidden="true"></i>
+                  <h3 class="h6 mb-0">Additional Information</h3>
+                </div>
+
+                <div class="row g-3 align-items-center">
+                  <div class="col-12 col-md-6" *ngIf="!(authService.isExpert() && !isCenterAdmin())">
+                    <div class="form-check">
+                      <input type="checkbox" id="taxable" formControlName="taxable" class="form-check-input">
+                      <label for="taxable" class="form-check-label">Taxable (VAT)</label>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <div class="form-check">
+                      <input type="checkbox" id="isActive" formControlName="isActive" class="form-check-input">
+                      <label for="isActive" class="form-check-label">Active</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                  <div class="col-12">
+                    <label class="form-label">Image</label>
+
+                    <div class="mb-2">
+                      <div class="border rounded p-3 d-flex gap-3 align-items-center" style="min-height:120px;" (drop)="onDropFile($event)" (dragover)="onDragOver($event)">
+                        <div class="flex-shrink-0">
+                          <div *ngIf="previewUrl; else placeholder" style="width:100px;height:80px;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                            <img [src]="previewUrl" alt="preview" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                          </div>
+                          <ng-template #placeholder>
+                            <div class="text-muted text-center" style="width:100px;height:80px;display:flex;align-items:center;justify-content:center;">
+                              <i class="bi bi-image" style="font-size:2rem"></i>
+                            </div>
+                          </ng-template>
+                        </div>
+
+                        <div class="flex-grow-1">
+                          <div class="mb-2">
+                            <strong class="d-block">Drag &amp; drop an image here, or</strong>
+                            <label class="btn btn-sm btn-outline-primary mt-2">
+                              Select file
+                              <input type="file" accept="image/*" style="display:none" (change)="onFileSelected($event)" />
+                            </label>
+                          </div>
+
+                          <div *ngIf="uploading" class="mt-2">
+                            <div class="progress" style="height:8px;">
+                              <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress" [attr.aria-valuenow]="uploadProgress" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div class="small text-muted mt-1">Uploading: {{ uploadProgress }}%</div>
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0 mt-2" (click)="cancelUpload()">Cancel upload</button>
+                          </div>
+
+                          <div *ngIf="!uploading && previewUrl" class="mt-2">
+                            <div class="d-flex gap-2">
+                              <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeSelectedImage()">Remove</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-text">Allowed: JPG, PNG, GIF. Max size: {{ ( (environment.files.maxUploadSize || 10485760) / 1024 / 1024 ) | number:'1.1-1' }} MB</div>
+                    </div>
+
+                    <input type="hidden" id="image" formControlName="image" />
+                    <input type="hidden" id="imageName" formControlName="imageName" />
+                  </div>
+
+                  <div class="col-12">
+                    <label for="specs" class="form-label">Specifications (JSON)</label>
+                    <textarea id="specs" formControlName="specs" class="form-control font-monospace" rows="3" placeholder='{"color": "black", "weight": "2kg"}'></textarea>
+                    <div class="form-text">Use valid JSON to store additional properties.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error / Success -->
+            @if (error()) {
+              <div class="alert alert-danger d-flex align-items-center gap-2 mt-4" role="alert">
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                <span>{{ error() }}</span>
+              </div>
+            }
+
+            @if (success()) {
+              <div class="alert alert-success d-flex align-items-center gap-2 mt-4" role="status">
+                <i class="bi bi-check-circle" aria-hidden="true"></i>
+                <span>Saved successfully! Redirecting...</span>
+              </div>
+            }
+
+            <!-- Actions -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-4 mt-2 border-top">
+              <button type="button" class="btn btn-outline-secondary" (click)="onCancel()" [disabled]="isSaving()">Cancelar</button>
+
+              <div>
+                <button type="submit" class="btn btn-success" [disabled]="!itemForm.valid || isSaving()" (click)="onSubmit()">
+                  @if (isSaving()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Saving...
+                  }
+                  @if (!isSaving()) {
+                    @if (isEditMode()) {
+                      <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Update Item
+                    } @else {
+                      <i class="bi bi-save me-2" aria-hidden="true"></i>Create Item
+                    }
+                  }
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -347,27 +321,27 @@
     <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 class="modal-title h5" id="itemTypeModalLabel">Nuevo tipo de artículo</h2>
+          <h2 class="modal-title h5" id="itemTypeModalLabel">New item type</h2>
           <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeItemTypeModal()" [disabled]="isCreatingItemType()"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="itemTypeForm" class="vstack gap-3">
             <div>
-              <label for="itemTypeName" class="form-label">Nombre <span class="text-danger">*</span></label>
+              <label for="itemTypeName" class="form-label">Name <span class="text-danger">*</span></label>
               <input id="itemTypeName" type="text" formControlName="name" class="form-control" placeholder="Ej: Repuesto, Accesorio">
               @if (itemTypeForm.get('name')?.touched && itemTypeForm.get('name')?.errors?.['required']) {
-                <div class="invalid-feedback d-block">El nombre es requerido.</div>
+                <div class="invalid-feedback d-block">Name is required.</div>
               }
             </div>
 
             <div>
-              <label for="itemTypeDescription" class="form-label">Descripción</label>
+              <label for="itemTypeDescription" class="form-label">Description</label>
               <textarea id="itemTypeDescription" rows="3" formControlName="description" class="form-control" placeholder="Describe el tipo de artículo"></textarea>
             </div>
 
             <div class="form-check">
               <input id="itemTypeIsActive" type="checkbox" formControlName="isActive" class="form-check-input">
-              <label for="itemTypeIsActive" class="form-check-label">Activo</label>
+              <label for="itemTypeIsActive" class="form-check-label">Active</label>
             </div>
 
             @if (itemTypeError()) {
@@ -376,16 +350,14 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeItemTypeModal()" [disabled]="isCreatingItemType()">
-            Cancelar
-          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="closeItemTypeModal()" [disabled]="isCreatingItemType()">Cancelar</button>
           <button type="button" class="btn btn-primary" (click)="createItemType()" [disabled]="isCreatingItemType()">
             @if (isCreatingItemType()) {
               <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              Guardando...
+              Saving...
             }
             @if (!isCreatingItemType()) {
-              Guardar
+              Save
             }
           </button>
         </div>

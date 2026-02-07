@@ -13,6 +13,9 @@ import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { ItemTypesService } from '../../shared/services/item-types.service';
 import { AuthService } from '../../shared/services/auth.service';
+import { FileUploadService } from '../../shared/services/file-upload.service';
+import { HttpEventType, HttpEvent } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 interface FormState {
   isLoading: boolean;
@@ -45,7 +48,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
 
   // State signals
   readonly formState = signal<FormState>({
@@ -81,6 +84,16 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private costChangeSubject = new Subject<void>();
 
+  // File upload state
+  selectedFile: File | null = null;
+  previewUrl: string | null = null;
+  uploadProgress = 0;
+  uploading = false;
+  private uploadSubscription: any = null;
+  public environment = environment;
+
+  private fileUploadService = inject(FileUploadService);
+
   readonly isLoading = computed(() => this.formState().isLoading);
   readonly isSaving = computed(() => this.formState().isSaving);
   readonly error = computed(() => this.formState().error);
@@ -114,6 +127,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       isActive: [true],
       specs: [''],
       image: [''],
+      imageName: [''],
     });
 
     this.itemTypeForm = this.fb.group({
@@ -128,6 +142,12 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
     this.loadData();
     this.setupFormListeners();
     this.applyUserTypeRules();
+
+    // initialize image preview if editing
+    const imgVal = this.itemForm.get('image')?.value;
+    if (imgVal) {
+      this.previewUrl = String(imgVal);
+    }
 
     this.authService.employee$
       .pipe(takeUntil(this.destroy$))
@@ -224,6 +244,26 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
 
     centerControl?.updateValueAndValidity({ emitEvent: false });
     storeControl?.updateValueAndValidity({ emitEvent: false });
+
+    // Financial fields: hide/disable validators for Experts who are not center admins
+    const isExpertNoAdmin = this.authService.isExpert() && !this.isCenterAdmin();
+    const priceControl = this.itemForm.get('price');
+    const costControl = this.itemForm.get('cost');
+    const discountControl = this.itemForm.get('discount');
+
+    if (isExpertNoAdmin) {
+      priceControl?.clearValidators();
+      costControl?.clearValidators();
+      discountControl?.clearValidators();
+    } else {
+      priceControl?.setValidators([Validators.required, Validators.min(0)]);
+      costControl?.setValidators([Validators.required, Validators.min(0)]);
+      discountControl?.setValidators([Validators.min(0), Validators.max(100)]);
+    }
+
+    priceControl?.updateValueAndValidity({ emitEvent: false });
+    costControl?.updateValueAndValidity({ emitEvent: false });
+    discountControl?.updateValueAndValidity({ emitEvent: false });
   }
 
   private loadItem(id: number) {
@@ -231,6 +271,20 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       next: (item) => {
         const centerId = (item as any).centerId ?? (item as any).centerid;
         const storeId = (item as any).storeId ?? (item as any).storeid;
+        // prepare specs: if it's an empty object, show as empty string (do not show "{}")
+        let specsValue = '';
+        try {
+          if (item.specs) {
+            const parsed = typeof item.specs === 'string' ? JSON.parse(item.specs) : item.specs;
+            if (parsed && Object.keys(parsed).length > 0) {
+              specsValue = JSON.stringify(parsed);
+            }
+          }
+        } catch (e) {
+          // fallback: if parsing fails, keep as empty
+          specsValue = '';
+        }
+
         this.itemForm.patchValue({
           centerId: centerId != null ? Number(centerId) : null,
           storeId: storeId != null ? Number(storeId) : null,
@@ -247,7 +301,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
           warranty: item.warranty,
           taxable: item.taxable,
           isActive: item.isActive,
-          specs: item.specs ? JSON.stringify(item.specs) : '',
+          specs: specsValue,
           image: item.image,
         });
 
@@ -266,6 +320,160 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
         this.itemForm.get('storeId')?.setValue(null);
       }
     });
+  }
+
+  private sanitizeBaseName(input: string) {
+    return input
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-]/g, '')
+      .substring(0, 60);
+  }
+
+  private async generateUniqueFilename(base: string, ext: string) {
+    // Fetch existing items and inspect their imageName or image field
+    try {
+      const existing = await this.itemsService.getAll().toPromise();
+      const used = new Set<string>();
+      (existing || []).forEach((it: any) => {
+        const name = it.imageName ?? it.image ?? null;
+        if (name) used.add(String(name));
+      });
+
+      let candidate = `${base}${ext}`;
+      let i = 1;
+      while (used.has(candidate)) {
+        candidate = `${base}-${i}${ext}`;
+        i++;
+      }
+      return candidate;
+    } catch (e) {
+      // fallback: timestamp
+      return `${base}-${Date.now()}${ext}`;
+    }
+  }
+
+  private fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // --- File input / upload helpers ---
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (!file) return;
+    this.handleNewFile(file);
+  }
+
+  onDropFile(event: DragEvent) {
+    event.preventDefault();
+    const file = event.dataTransfer?.files?.[0] ?? null;
+    if (!file) return;
+    this.handleNewFile(file);
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+  }
+
+  private handleNewFile(file: File) {
+    // validate size and type
+    const maxSize = environment.files?.maxUploadSize ?? 10 * 1024 * 1024;
+    const allowed = environment.files?.allowedTypes ?? ['image/jpeg', 'image/png', 'image/gif'];
+
+    if (file.size > maxSize) {
+      this.formState.update(s => ({ ...s, error: `File too large. Max ${(maxSize / 1024 / 1024).toFixed(1)}KB.` }));
+      return;
+    }
+    if (!allowed.includes(file.type)) {
+      this.formState.update(s => ({ ...s, error: 'Invalid file type.' }));
+      return;
+    }
+
+    this.selectedFile = file;
+    this.previewUrl = URL.createObjectURL(file);
+
+    // Build filename from product name (or fallback to original name)
+    const productName = String(this.itemForm.get('product')?.value ?? '').trim() || file.name.replace(/\.[^.]+$/, '');
+    const base = this.sanitizeBaseName(productName);
+    const extMatch = /\.[^.]+$/.exec(file.name);
+    const ext = extMatch ? extMatch[0].toLowerCase() : '.jpg';
+
+    // generate unique filename then convert file to data url and set form values
+    this.generateUniqueFilename(base, ext).then((uniqueName) => {
+      this.itemForm.get('imageName')?.setValue(uniqueName);
+      // convert file to data URL and set into image for frontend storage
+      this.fileToDataUrl(file).then(dataUrl => {
+        this.itemForm.get('image')?.setValue(dataUrl);
+        // keep previewUrl already set from objectURL; do not call backend upload (store in frontend)
+      }).catch(err => {
+        this.formState.update(s => ({ ...s, error: 'Error reading image file.' }));
+      });
+    }).catch(() => {
+      const fallbackName = `${base}-${Date.now()}${ext}`;
+      this.itemForm.get('imageName')?.setValue(fallbackName);
+      this.fileToDataUrl(file).then(dataUrl => this.itemForm.get('image')?.setValue(dataUrl));
+    });
+  }
+
+  removeSelectedImage() {
+    if (this.uploading && this.uploadSubscription) {
+      this.uploadSubscription.unsubscribe();
+    }
+    this.selectedFile = null;
+    this.previewUrl = null;
+    this.uploadProgress = 0;
+    this.uploading = false;
+    this.itemForm.get('image')?.setValue('');
+    this.itemForm.get('imageName')?.setValue('');
+  }
+
+  private startUpload(file: File) {
+    this.uploading = true;
+    this.uploadProgress = 0;
+    this.formState.update(s => ({ ...s, error: null }));
+
+    this.uploadSubscription = this.fileUploadService.uploadFile(file).subscribe({
+      next: (event: HttpEvent<any>) => {
+        if (event.type === HttpEventType.UploadProgress && event.total) {
+          this.uploadProgress = Math.round((100 * (event.loaded ?? 0)) / event.total);
+        }
+        if (event.type === HttpEventType.Response) {
+          const body = event.body ?? {};
+          // accept several possible response shapes
+          const url = body.url || body.path || body.filename || null;
+          if (url) {
+            this.itemForm.get('image')?.setValue(url);
+            // if backend returns a full url, prefer it
+            if (typeof url === 'string' && url.startsWith('http')) {
+              this.previewUrl = url;
+            }
+          }
+          this.uploading = false;
+          this.uploadProgress = 100;
+        }
+      },
+      error: (err: any) => {
+        this.formState.update(s => ({ ...s, error: this.getApiErrorMessage(err) ?? 'Error uploading file' }));
+        this.uploading = false;
+        this.uploadProgress = 0;
+      }
+    });
+  }
+
+  cancelUpload() {
+    if (this.uploadSubscription) {
+      this.uploadSubscription.unsubscribe();
+      this.uploading = false;
+      this.uploadProgress = 0;
+    }
   }
 
   private applyUserTypeRulesForEdit(): void {
@@ -389,6 +597,9 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       taxable: !!formValue.taxable,
       isActive: !!formValue.isActive,
       specs: parsedSpecs,
+      // image currently stored as data URL in frontend; imageName contains filename to persist in DB
+      image: formValue.image,
+      imageName: formValue.imageName,
     };
 
     // Aplicar RBAC para empleados

@@ -9,6 +9,7 @@ import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { ItemTypes } from '../../shared/models/ItemTypes';
 import { ItemsService } from '../../shared/services/items.service';
+import { AuthService } from '../../shared/services/auth.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { ItemTypesService } from '../../shared/services/item-types.service';
@@ -39,6 +40,7 @@ export class ItemsListModernComponent implements OnInit {
   private storesService = inject(StoresService);
   private itemTypesService = inject(ItemTypesService);
   private router = inject(Router);
+  public authService = inject(AuthService);
 
   // State Signals
   readonly listState = signal<ListState>({ isLoading: false, error: null });

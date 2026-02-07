@@ -9,11 +9,10 @@ import { CommonModule } from '@angular/common';
   selector: 'app-items-detail-page',
   standalone: true,
   imports: [CommonModule, ItemsDetailComponent],
-  template: `
-    <h1>Detalle de Item</h1>
-    <app-items-detail [item]="item"></app-items-detail>
-    <button (click)="goBack()">Volver</button>
-    <button (click)="onEdit()">Editar</button>
+ template: `
+    <h1>Item Detail</h1>
+    <app-items-detail [item]="item" (edit)="onEdit()" (view)="goBack()"></app-items-detail>
+    
   `,
 })
 export class ItemsDetailPageComponent {

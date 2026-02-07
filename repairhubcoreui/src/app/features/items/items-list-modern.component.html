@@ -145,6 +145,7 @@
             </div>
 
             <!-- Price & Margin -->
+            @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
             <div class="price-section">
               <div class="price-row">
                 <span class="label">Cost</span>
@@ -161,6 +162,7 @@
                 </span>
               </div>
             </div>
+            }
 
             <!-- Stock Info -->
             <div class="stock-section">

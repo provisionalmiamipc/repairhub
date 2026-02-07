@@ -201,6 +201,15 @@ export const environment = {
   },
 
   /**
+   * Configuración de archivos (uploads)
+   */
+  files: {
+    maxUploadSize: 10485760, // 10 MB
+    allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'],
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.pdf'],
+  },
+
+  /**
    * URLs de endpoints específicos
    */
   endpoints: {
