@@ -127,7 +127,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       isActive: [true],
       specs: [''],
       image: [''],
-      imageName: [''],
+      
     });
 
     this.itemTypeForm = this.fb.group({
@@ -314,10 +314,27 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
   }
 
   private setupFormListeners() {
-    // Listen for center changes to clear store (solo USER)
-    this.itemForm.get('centerId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      if (this.showCenterAndStoreFields()) {
-        this.itemForm.get('storeId')?.setValue(null);
+    // Listen for center changes to enable/disable and clear store (solo USER)
+    const centerControl = this.itemForm.get('centerId');
+    const storeControl = this.itemForm.get('storeId');
+
+    // Initialize store control state based on current center value
+    if (this.showCenterAndStoreFields()) {
+      if (!centerControl?.value) {
+        storeControl?.disable({ emitEvent: false });
+      } else {
+        storeControl?.enable({ emitEvent: false });
+      }
+    }
+
+    centerControl?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((value) => {
+      if (!this.showCenterAndStoreFields()) return;
+
+      if (value) {
+        storeControl?.enable({ emitEvent: false });
+      } else {
+        storeControl?.disable({ emitEvent: false });
+        storeControl?.setValue(null, { emitEvent: false });
       }
     });
   }
@@ -365,7 +382,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
   }
 
   // --- File input / upload helpers ---
-  onFileSelected(event: Event) {
+  /*onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     if (!file) return;
@@ -377,13 +394,13 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
     const file = event.dataTransfer?.files?.[0] ?? null;
     if (!file) return;
     this.handleNewFile(file);
-  }
+  }*/
 
   onDragOver(event: DragEvent) {
     event.preventDefault();
   }
 
-  private handleNewFile(file: File) {
+  /*private handleNewFile(file: File) {
     // validate size and type
     const maxSize = environment.files?.maxUploadSize ?? 10 * 1024 * 1024;
     const allowed = environment.files?.allowedTypes ?? ['image/jpeg', 'image/png', 'image/gif'];
@@ -421,7 +438,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       this.itemForm.get('imageName')?.setValue(fallbackName);
       this.fileToDataUrl(file).then(dataUrl => this.itemForm.get('image')?.setValue(dataUrl));
     });
-  }
+  }*/
 
   removeSelectedImage() {
     if (this.uploading && this.uploadSubscription) {
@@ -599,7 +616,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       specs: parsedSpecs,
       // image currently stored as data URL in frontend; imageName contains filename to persist in DB
       image: formValue.image,
-      imageName: formValue.imageName,
+      //imageName: formValue.imageName,
     };
 
     // Aplicar RBAC para empleados

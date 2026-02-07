@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { UploadsModule } from './uploads/uploads.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CentersModule } from './centers/centers.module';
 import { CustomersModule } from './customers/customers.module';
@@ -40,6 +41,10 @@ import { AuthModule } from './auth/auth.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/',
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
@@ -49,11 +54,6 @@ import { AuthModule } from './auth/auth.module';
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
           logging: configService.get('DB_LOGGING') === 'true',
-    // Serve public uploads (files saved to ./public)
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      serveRoot: '/',
-    }),
           autoLoadEntities: true, // ← Importante para cargar entidades automáticamente
         };
 
@@ -91,7 +91,7 @@ import { AuthModule } from './auth/auth.module';
     ItemModule, 
     ItemTypesModule, 
     // Uploads
-    (await import('./uploads/uploads.module')).UploadsModule,
+    UploadsModule,
     OrdersItemModule, 
     SalesModule, 
     SaleItemsModule, ServiceOrdersRequestedModule, RepairStatusModule, SONotesModule, SODiagnosticModule, SOItemsModule, ServiceTypeModule, PaymentTypeModule, InventoryMovementsModule, NotificationsModule,

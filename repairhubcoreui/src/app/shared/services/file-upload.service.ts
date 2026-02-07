@@ -24,4 +24,9 @@ export class FileUploadService {
 
     return this.http.request(req);
   }
+
+  deleteFile(filename: string): Observable<any> {
+    const url = `${environment.apiUrl}/api/upload/${encodeURIComponent(filename)}`;
+    return this.http.delete(url);
+  }
 }

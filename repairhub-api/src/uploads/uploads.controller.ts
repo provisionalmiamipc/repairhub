@@ -1,4 +1,5 @@
 import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Delete, Param } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
@@ -12,7 +13,7 @@ function ensureUploadDir() {
   }
 }
 
-function filenameFactory(req: any, file: Express.Multer.File, cb: Function) {
+function filenameFactory(req: any, file: any, cb: Function) {
   // sanitize original name and create unique filename
   const original = file.originalname || 'file';
   const ext = extname(original).toLowerCase() || '.jpg';
@@ -44,11 +45,26 @@ export class UploadsController {
     }),
     limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
   }))
-  async upload(@UploadedFile() file: Express.Multer.File) {
+  async upload(@UploadedFile() file: any) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
     // Return only the filename (as required)
     return { filename: file.filename, path: `/uploads/items/${file.filename}` };
+  }
+
+  @Delete(':filename')
+  async remove(@Param('filename') filename: string) {
+    const { unlinkSync, existsSync } = require('fs');
+    const filePath = join(UPLOAD_DIR, filename);
+    if (!existsSync(filePath)) {
+      return { deleted: false, reason: 'not_found' };
+    }
+    try {
+      unlinkSync(filePath);
+      return { deleted: true };
+    } catch (e) {
+      return { deleted: false, reason: e.message };
+    }
   }
 }
