@@ -263,6 +263,7 @@
             </div>
 
             <!-- Step 3: Costs -->
+            @if (!(userType() === 'employee' && authService.isExpert() && !isCenterAdmin())) {
             <div class="section-group mb-4">
               <h2 class="step-title h3 fw-bold text-primary border-bottom border-2 border-primary pb-2 mb-3">{{
                 steps[3].title }}</h2>
@@ -347,10 +348,12 @@
                   }
                 </div>
               </div>
-            </div>
+            </div> }
           </div>
         </div>
       </div>
+
+            
 
       <div class="col-lg-4">
         <div class="card border-0 shadow-sm">

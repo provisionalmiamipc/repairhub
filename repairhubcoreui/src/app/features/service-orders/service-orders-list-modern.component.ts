@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
 import { ServiceOrdersService } from '../../shared/services/service-orders.service';
+import { AuthService } from '../../shared/services/auth.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
@@ -36,6 +37,7 @@ interface ListState {
 })
 export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   private serviceOrdersService = inject(ServiceOrdersService);
+  public authService = inject(AuthService);
   private router = inject(Router);
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();

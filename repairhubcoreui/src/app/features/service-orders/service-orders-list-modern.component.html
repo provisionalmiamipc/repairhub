@@ -147,6 +147,7 @@
           </div>
 
           <!-- Cost Section -->
+          @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
           <div class="cost-section">
             <div class="cost-row">
               <span class="label">Total Cost</span>
@@ -164,6 +165,7 @@
               </div>
             </div>
           </div>
+          }
 
           <!-- Dates -->
           <div class="card-footer">
