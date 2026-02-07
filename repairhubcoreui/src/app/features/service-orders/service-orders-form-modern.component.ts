@@ -930,6 +930,38 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Pricing helpers
+  getSuggestedPrice(): number {
+    const totalCost = Number(this.serviceOrderForm.get('totalCost')?.value) || 0;
+    const discount = Number(this.serviceOrderForm.get('costdiscount')?.value) || 0;
+
+    if (!totalCost) return 0;
+    const suggested = totalCost / 0.7 - discount;
+    return Number(Number.isFinite(suggested) ? suggested : 0);
+  }
+
+  getTaxAmount(): number {
+    const suggested = this.getSuggestedPrice();
+    const taxPercent = Number(this.serviceOrderForm.get('tax')?.value) || 0;
+    const tax = suggested * (taxPercent / 100);
+    return Number(Number.isFinite(tax) ? tax : 0);
+  }
+
+  getSuggestedTotal(): number {
+    const suggested = this.getSuggestedPrice();
+    const tax = this.getTaxAmount();
+    return Number(Number.isFinite(suggested + tax) ? suggested + tax : 0);
+  }
+
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value || 0);
+  }
+
   getFieldError(fieldName: string): string | null {
     const field = this.serviceOrderForm.get(fieldName);
     if (!field?.errors || !field?.touched) return null;
