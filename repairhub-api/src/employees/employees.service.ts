@@ -7,12 +7,14 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { EmailService } from '../common/email.service';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(createEmployeeDto: CreateEmployeeDto) {
@@ -49,7 +51,17 @@ export class EmployeesService {
     const savedEmployee = await this.employeeRepository.save(employee);
     
     // Enviar email con credenciales (incluyendo PIN)
-    this.sendWelcomeEmail(savedEmployee, tempPassword, uniquePin);
+    try {
+      await this.emailService.sendWelcomeEmail({
+        to: savedEmployee.email,
+        fullName: `${savedEmployee.firstName ?? ''} ${savedEmployee.lastName ?? ''}`.trim(),
+        employeeCode,
+        pin: uniquePin,
+        tempPassword,
+      });
+    } catch (err) {
+      // Si falla el envío de correo no interrumpimos la creación; se registra en logs desde EmailService
+    }
     
     return {
       employee: savedEmployee,
@@ -85,17 +97,7 @@ export class EmployeesService {
     throw new ConflictException('No se pudo generar un PIN único después de varios intentos');
   }
 
-  private async sendWelcomeEmail(employee: Employee, tempPassword: string, pin: string): Promise<void> {
-    try {
-      // Tu lógica de envío de email
-      console.log('📧 Credenciales para:', employee.email);
-      console.log('🔑 Password temporal:', tempPassword);
-      console.log('🔢 PIN único:', pin);
-      console.log('👤 Código de empleado:', employee.employeeCode);
-    } catch (error) {
-      console.error('Error sending welcome email:', error);
-    }
-  }
+  // Nota: el envío de correo lo delegamos en `EmailService`.
 
   // Método para buscar por PIN (útil para login)
   async findByPin(pin: string): Promise<Employee | null> {

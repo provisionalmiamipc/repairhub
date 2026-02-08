@@ -327,7 +327,7 @@ export class EmployeesFormModernComponent implements OnInit {
       city: ['', [Validators.required, Validators.minLength(2)]],
 
       // Step 3: Job
-      employee_type: [null, Validators.required],
+      employee_type: ['', Validators.required],
       jobTitle: ['', [Validators.required, Validators.minLength(2)]],
       centerId: [null, Validators.required],
       storeId: [{ value: null, disabled: true }, Validators.required],
