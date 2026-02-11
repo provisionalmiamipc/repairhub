@@ -49,7 +49,13 @@ export class ServiceOrderPdfJobService implements OnModuleDestroy {
       }
 
       if (pdfBuffer && this.mailService && typeof this.mailService.sendOrderCreatedMail === 'function') {
-        await this.mailService.sendOrderCreatedMail(job.pdfData, pdfBuffer);
+        try {
+          await this.mailService.sendOrderCreatedMail(job.pdfData, pdfBuffer);
+          console.log('ServiceOrderPdfJobService: email send invoked for order', job.pdfData?.orderCode || job.pdfData?.id || 'unknown');
+        } catch (err) {
+          console.error('ServiceOrderPdfJobService: error sending email for order', job.pdfData?.orderCode || job.pdfData?.id || 'unknown', err);
+          throw err;
+        }
       }
     } catch (e) {
       // swallow errors; in a robust implementation we'd persist job for retry
