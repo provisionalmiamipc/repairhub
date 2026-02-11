@@ -2,7 +2,7 @@
 # BUILD STAGE - Compilar TypeScript a JavaScript
 # ============================================================================
 FROM node:18-alpine AS builder
-ARG CACHEBUST=2026-02-10T00:00:00Z
+ARG CACHEBUST=2026-02-10T12:00:00Z
 RUN echo "CACHEBUST=$CACHEBUST"
 
 LABEL maintainer="RepairHub <soporte@repairhub.com>"
