@@ -11,6 +11,7 @@ LABEL description="RepairHub API - Sistema de Gestión de Reparaciones"
 WORKDIR /build
 
 # Copiar archivos de definición de dependencias
+# Copiar los metadatos primero para poder cachear la instalación de dependencias
 COPY package*.json ./
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
@@ -19,8 +20,8 @@ COPY nest-cli.json ./
 # usar `npm ci` para respetar package-lock.json y evitar diferencias entre entornos
 RUN npm ci --legacy-peer-deps
 
-# Copiar código fuente
-COPY src ./src
+# Copiar todo el contexto restante (asegura que se incluyan plantillas y otros archivos)
+COPY . .
 
 # Compilar TypeScript a JavaScript
 RUN npm run build
