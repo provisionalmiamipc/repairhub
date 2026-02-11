@@ -1,4 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ServiceOrdersService } from './service_orders.service';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
@@ -30,5 +32,11 @@ export class ServiceOrdersController {
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.serviceOrdersService.remove(id);
+  }
+
+  @Post(':id/resend-email')
+  async resendEmail(@Param('id') id: number, @Res() res: Response) {
+    await this.serviceOrdersService.resendEmail(Number(id));
+    return res.json({ ok: true, message: 'Resend requested' });
   }
 }

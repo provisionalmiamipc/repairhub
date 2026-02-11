@@ -167,4 +167,75 @@ export class ServiceOrdersService {
     if (result.affected === 0) throw new NotFoundException(`ServiceOrder #${id} not found`);
     return { deleted: true };
   }
+
+  async resendEmail(id: number) {
+    const fullOrder = await this.serviceOrderRepository.findOne({
+      where: { id },
+      relations: [
+        'customer',
+        'device',
+        'deviceBrand',
+        'assignedTech',
+        'employee',
+        'paymentType',
+        'soitems',
+        'soitems.item',
+        'sonotes',
+      ],
+    });
+
+    if (!fullOrder) throw new NotFoundException(`ServiceOrder #${id} not found`);
+
+    const pdfData = {
+      orderCode: fullOrder.orderCode,
+      customerName: fullOrder.customer ? `${fullOrder.customer.firstName} ${fullOrder.customer.lastName}` : '',
+      customerEmail: fullOrder.customer?.email || '',
+      customerPhone: fullOrder.customer?.phone || fullOrder.customer?.phone || '',
+      customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '',
+      date: fullOrder.createdAt || new Date(),
+      device: fullOrder.device?.name || '',
+      model: fullOrder.model || '',
+      serial: fullOrder.serial || '',
+      defectivePart: fullOrder.defectivePart || '',
+      price: fullOrder.price || 0,
+      repairCost: fullOrder.repairCost || 0,
+      advancePayment: fullOrder.advancePayment || 0,
+      tax: fullOrder.price * fullOrder.tax / 100 || 0,
+      discount: fullOrder.costdiscount || 0,
+      total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
+      paymentType: fullOrder.paymentType?.type || '',
+      assignedTech: fullOrder.assignedTech ? `${fullOrder.assignedTech.firstName} ${fullOrder.assignedTech.lastName}` : '',
+      createdBy: fullOrder.employee ? `${fullOrder.employee.firstName} ${fullOrder.employee.lastName}` : '',
+      estimated: fullOrder.estimated || '',
+      noteReception: fullOrder.noteReception || '',
+      terms: '',
+      items: (fullOrder.soitems || []).map(it => ({
+        description: it.item?.product || it.note || '',
+        quantity: it.quantity || 1,
+        price: it.price || it.cost || 0,
+        discount: it.discount || 0,
+      })),
+    };
+
+    if (this.pdfJobService) {
+      this.pdfJobService.enqueue({ pdfData });
+      return { ok: true, queued: true };
+    }
+
+    // Fallback: generate PDF synchronously and send
+    let pdfBuffer: Buffer;
+    if (this.puppeteerPdfService) {
+      pdfBuffer = await this.puppeteerPdfService.generate(pdfData);
+    } else if (this.sampleOverlayPdfService) {
+      pdfBuffer = await this.sampleOverlayPdfService.generate(pdfData);
+    } else {
+      pdfBuffer = await this.pdfService.generate(pdfData);
+    }
+
+    if (pdfData.customerEmail) {
+      await this.mailService.sendOrderCreatedMail(pdfData, pdfBuffer);
+    }
+
+    return { ok: true, queued: false };
+  }
 }
