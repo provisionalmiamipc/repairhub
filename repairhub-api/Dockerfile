@@ -23,6 +23,8 @@ COPY src ./src
 
 # Compilar TypeScript a JavaScript
 RUN npm run build
+RUN ls -la /build || true
+RUN ls -la /build/dist || true
 
 # ============================================================================
 # PRODUCTION STAGE - Imagen pequeña solo con lo necesario
@@ -44,6 +46,9 @@ RUN npm install --only=production --legacy-peer-deps && \
 
 # Copiar código compilado del builder
 COPY --from=builder --chown=nestjs:nodejs /build/dist ./dist
+RUN ls -la /app || true
+RUN ls -la /app/dist || true
+RUN ls -la /app/dist/src || true
 
 # Cambiar al usuario no-root
 USER nestjs
