@@ -15,8 +15,9 @@ COPY package*.json ./
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
-# Instalar todas las dependencias (incluyendo dev)
-RUN npm install --legacy-peer-deps
+# Instalar todas las dependencias (incluyendo dev) de forma reproducible
+# usar `npm ci` para respetar package-lock.json y evitar diferencias entre entornos
+RUN npm ci --legacy-peer-deps
 
 # Copiar código fuente
 COPY src ./src
