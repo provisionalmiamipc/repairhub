@@ -61,16 +61,24 @@ import { AuthModule } from './auth/auth.module';
         const fromEmail = configService.get<string>('FROM_EMAIL') || `no-reply@${configService.get<string>('SMTP_HOST') || 'repairhub'}`;
         const defaultFrom = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
 
-        return {
-          transport: {
-            host: configService.get<string>('SMTP_HOST'),
-            port: Number(configService.get<number>('SMTP_PORT') ?? 587),
-            secure: configService.get('SMTP_SECURE') === 'true',
-            auth: {
-              user: configService.get<string>('SMTP_USER'),
-              pass: configService.get<string>('SMTP_PASS'),
-            },
+        const transport: any = {
+          host: configService.get<string>('SMTP_HOST'),
+          port: Number(configService.get<number>('SMTP_PORT') ?? 587),
+          secure: configService.get('SMTP_SECURE') === 'true',
+          auth: {
+            user: configService.get<string>('SMTP_USER'),
+            pass: configService.get<string>('SMTP_PASS'),
           },
+        };
+
+        // Activar debug de Nodemailer desde env SMTP_DEBUG=true (útil en Railway)
+        if (configService.get('SMTP_DEBUG') === 'true') {
+          transport.logger = true;
+          transport.debug = true;
+        }
+
+        return {
+          transport,
           defaults: {
             from: defaultFrom,
           },
@@ -121,6 +129,8 @@ import { AuthModule } from './auth/auth.module';
       
     }),
     AuthModule,
+    // Debug tools (only enable in deployments when needed)
+    require('./debug/debug.module').DebugModule,
     UsersModule, 
     CentersModule, 
     StoresModule, 
