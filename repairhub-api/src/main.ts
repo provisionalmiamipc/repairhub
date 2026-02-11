@@ -91,6 +91,24 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
+  // Global interceptor to log parsed request body (avoids raw middleware timing issues)
+  // This runs inside Nest lifecycle after body parsing so `req.body` is reliable.
+  // Using `as any` to avoid extra imports inside this file.
+  app.useGlobalInterceptors(({
+    intercept: (context: any, next: any) => {
+      try {
+        const req = context.switchToHttp().getRequest();
+        if (req) {
+          // Safe stringify
+          try { console.log('Incoming body:', JSON.stringify(req.body)); } catch (e) { console.log('Incoming body (raw):', req.body); }
+        }
+      } catch (e) {
+        // ignore
+      }
+      return next.handle();
+    }
+  } as any));
+
   // Middleware: convertir cadenas vacías en `undefined` para evitar validaciones erróneas
   app.use((req, _res, next) => {
     const transformEmptyStrings = (obj: any) => {
@@ -187,3 +205,30 @@ async function bootstrap() {
   `);
 }
 bootstrap();
+
+// Graceful shutdown / diagnostic handlers so we can see why the process is terminated
+process.on('SIGTERM', async () => {
+  try {
+    console.log('SIGTERM received - graceful shutdown start');
+    // attempt to close Nest app if available
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const appModule = require('./dist/src/main');
+  } catch (e) {
+    // ignore
+  }
+  // give some time for logs to flush
+  setTimeout(() => {
+    console.log('SIGTERM - exiting process');
+    process.exit(0);
+  }, 500);
+});
+
+process.on('unhandledRejection', (reason, p) => {
+  console.error('Unhandled Rejection at:', p, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception thrown:', err);
+  // allow the process manager to restart after logging
+  setTimeout(() => process.exit(1), 200);
+});
