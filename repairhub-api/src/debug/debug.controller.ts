@@ -1,6 +1,8 @@
 import { Controller, Post, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import { Req } from '@nestjs/common';
+import type { Request } from 'express';
 
 @Controller('_debug')
 export class DebugController {
@@ -24,5 +26,14 @@ export class DebugController {
       this.logger.error('Debug test mail failed', err);
       return { ok: false, error: err?.message || err };
     }
+  }
+
+  @Post('echo')
+  async echo(@Req() req: Request) {
+    const headers = req.headers;
+    const body = (req as any).body;
+    this.logger.log('DEBUG /_debug/echo headers: ' + JSON.stringify(headers));
+    try { this.logger.log('DEBUG /_debug/echo body: ' + JSON.stringify(body)); } catch (e) {}
+    return { ok: true, headers, body };
   }
 }
