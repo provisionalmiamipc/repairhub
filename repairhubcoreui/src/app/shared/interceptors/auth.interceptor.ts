@@ -78,10 +78,21 @@ function handle401Error(
         // propagate error to waiters and logout
         refreshSubject.next(null);
         authService.logout();
-        // Usar window.location para forzar recarga completa
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 100);
+        // If the user is currently on the activation page, avoid forcing a redirect
+        // so they can complete account activation. Otherwise, force reload to /login.
+        try {
+          const pathname = window.location.pathname || '';
+          const onActivate = pathname.startsWith('/activate');
+          if (!onActivate) {
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 100);
+          }
+        } catch (e) {
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 100);
+        }
         return throwError(() => err);
       }),
       finalize(() => {

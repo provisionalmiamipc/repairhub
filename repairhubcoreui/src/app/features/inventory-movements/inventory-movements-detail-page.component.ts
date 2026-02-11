@@ -12,8 +12,8 @@ import { CommonModule } from '@angular/common';
   template: `
     <h1>Detalle de Movimiento</h1>
     <app-inventory-movements-detail [movement]="movement"></app-inventory-movements-detail>
-    <button (click)="goBack()">Volver</button>
-    <button (click)="onEdit()">Editar</button>
+    <button (click)="goBack()">Back</button>
+    <button (click)="onEdit()">Edit</button>
   `,
 })
 export class InventoryMovementsDetailPageComponent {

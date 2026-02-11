@@ -6,6 +6,8 @@ import { ConfigModule} from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { ActivationToken } from './entities/activation-token.entity';
+import { Employee } from '../employees/entities/employee.entity';
 import { RefreshTokenService } from './refresh-token.service';
 
 // Controllers
@@ -31,7 +33,7 @@ import { EmployeesModule }from '../employees/employees.module';
     EmployeesModule,
     PassportModule,
     ConfigModule,
-    TypeOrmModule.forFeature([RefreshToken]),
+    TypeOrmModule.forFeature([RefreshToken, ActivationToken, Employee]),
         
   ],
   providers: [

@@ -34,6 +34,10 @@ export class CreateAppointmentDto {
 	createdById?: number | null;
 
 	@IsOptional()
+	@IsInt()
+	assignedTechId?: number | null;
+
+	@IsOptional()
 	cloused: boolean;
 
 	@IsOptional()

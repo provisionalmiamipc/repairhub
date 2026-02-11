@@ -12,8 +12,8 @@ import { CommonModule } from '@angular/common';
   template: `
     <h1>Detalle de Estado de Reparación</h1>
     <app-repair-status-detail [repairStatus]="repairStatus"></app-repair-status-detail>
-    <button (click)="goBack()">Volver</button>
-    <button (click)="onEdit()">Editar</button>
+    <button (click)="goBack()">Back</button>
+    <button (click)="onEdit()">Edit</button>
   `,
 })
 export class RepairStatusDetailPageComponent {

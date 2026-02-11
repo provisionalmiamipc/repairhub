@@ -15,11 +15,11 @@ import { takeUntil } from 'rxjs/operators';
     <div class="container-lg py-4">
       <div class="row mb-4">
         <div class="col-md-8">
-          <h1 class="h2">Órdenes de Trabajo</h1>
+          <h1 class="h2">Work Orders</h1>
         </div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nueva Orden
+            <i class="cil-plus me-2"></i> New Order
           </button>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { takeUntil } from 'rxjs/operators';
       <div *ngIf="loading$ | async">
         <div class="text-center py-5">
           <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
@@ -48,9 +48,9 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class OrdersListPageComponent implements OnInit, OnDestroy {
-  orders$ = this.ordersService.data$;
-  loading$ = this.ordersService.loading$;
-  error$ = this.ordersService.error$;
+  orders$: any;
+  loading$: any;
+  error$: any;
 
   private destroy$ = new Subject<void>();
 
@@ -58,7 +58,11 @@ export class OrdersListPageComponent implements OnInit, OnDestroy {
     private ordersService: OrdersService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    this.orders$ = this.ordersService.data$;
+    this.loading$ = this.ordersService.loading$;
+    this.error$ = this.ordersService.error$;
+  }
 
   ngOnInit() {
     this.ordersService.getAll();
@@ -82,12 +86,12 @@ export class OrdersListPageComponent implements OnInit, OnDestroy {
   }
 
   onDelete(order: Orders) {
-    if (order.id && confirm('¿Eliminar esta orden?')) {
+    if (order.id && confirm('Delete this order?')) {
       this.ordersService.delete(order.id).pipe(
         takeUntil(this.destroy$)
       ).subscribe({
         next: () => this.ordersService.getAll(),
-        error: (err) => console.error('Error al eliminar:', err)
+        error: (err) => console.error('Error deleting:', err)
       });
     }
   }

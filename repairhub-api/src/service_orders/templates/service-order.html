@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; margin: 40px; color: #333; }
+      header { text-align: center; margin-bottom: 20px; }
+      .logo { width: 140px; }
+      h1 { color: #0056b3; margin: 0 0 6px 0; }
+      .meta { margin-bottom: 18px; }
+      .meta p { margin: 2px 0; }
+      .summary { border-top: 2px solid #eee; padding-top: 12px; margin-top: 10px; }
+      .summary .row { display:flex; justify-content:space-between; margin:6px 0; }
+      .terms { margin-top: 18px; font-size: 11px; color: #555; text-align: justify; }
+      footer { text-align:center; margin-top:24px; color:#888; font-size:12px }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img class="logo" src="{{logoDataUri}}" alt="logo" />
+      <h1>Service Order Confirmation</h1>
+    </header>
+
+    <section class="meta">
+      <p><strong>Order Code:</strong> {{orderCode}}</p>
+      <p><strong>Customer:</strong> {{customerName}} — {{customerEmail}}</p>
+      <p><strong>Phone:</strong> {{customerPhone}} | <strong>Address:</strong> {{customerAddress}}</p>
+      <p><strong>Date:</strong> {{date}}</p>
+      <p><strong>Device:</strong> {{device}} — Model: {{model}} — SN: {{serial}}</p>
+      <p><strong>Defect:</strong> {{defectivePart}}</p>
+    </section>
+
+    <section class="summary">
+      <h3 style="color:#0056b3;margin:0 0 8px 0">Financial Summary</h3>
+      <div class="row"><div>Price:</div><div>${{price}}</div></div>      
+      <div class="row"><div>Advance:</div><div>${{advancePayment}}</div></div>
+      <div class="row"><div>Tax 7%:</div><div>${{tax}}</div></div>
+      <div class="row"><div>Discount:</div><div>-${{discount}}</div></div>
+      <div class="row" style="font-weight:700"><div>Total:</div><div>${{total}}</div></div>
+      <div style="margin-top:12px">Payment: {{paymentType}}</div>
+    </section>
+
+    <!--section class="items" style="margin-top:18px">
+      <h3 style="color:#0056b3;margin:0 0 8px 0">Items / Services</h3>
+      {{itemsTable}}
+    </section-->
+
+    <section class="meta" style="margin-top:12px">
+      <p><strong>Assigned Tech:</strong> {{assignedTech}}</p>
+      <p><strong>Created By:</strong> {{createdBy}}</p>
+      <p><strong>Estimated:</strong> {{estimated}}</p>
+      <p><strong>Reception Note:</strong> {{noteReception}}</p>
+    </section>
+
+    <section class="terms">
+      <h3 style="color:#0056b3;margin:0 0 8px 0">Terms & conditions</h3>
+       <p>Miami Photography Center Last updated: August 2025 Repairs (in workshop) Scope of Service
+        Technical repair and maintenance of photographic cameras, lenses, flashes, and accessories at our
+        specialized workshop. Estimates and Diagnosis - Free estimates conducted in our workshop. - If final
+        cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not
+        include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. -
+        Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not
+        responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -
+        Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or
+        discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:
+        $45, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not
+        guaranteed on-site. Warranty and Liability - Same 6-month warranty as workshop repairs. - Immediate
+        on-site resolution not guaranteed if parts are needed. Logistics - Client must provide proper access to
+        the service area. - Rescheduling allowed with at least 24-hour notice.</p>
+    </section>
+
+    <footer>
+      Thank you for trusting Miami Photography Center.<br/>
+      For questions or support, contact us at support@miamiphotographycenter.com
+    </footer>
+  </body>
+  </html>

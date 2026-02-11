@@ -1,11 +1,16 @@
 import { IsString, IsNotEmpty, IsOptional, IsEmail, IsEnum, IsInt, Min, Length, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class CreateEmployeeDto {
+	@IsOptional()
+	@Transform(({ value }) => value === '' ? undefined : value)
 	@IsInt()
 	storeId?: number;
 
+	@IsOptional()
+	@Transform(({ value }) => value === '' ? undefined : value)
 	@IsInt()
-	centerId: number;
+	centerId?: number;
 
 	@IsString()
 	@IsNotEmpty()
@@ -43,13 +48,17 @@ export class CreateEmployeeDto {
 	@IsString()
 	avatar?: string;
 
+	@IsOptional()
+	@Transform(({ value }) => value === '' ? undefined : value)
 	@IsInt()
 	@Min(0)
-	pinTimeout: number;
+	pinTimeout?: number;
 
+	@IsOptional()
+	@Transform(({ value }) => value === '' ? undefined : value)
 	@IsString()
 	@Length(4, 6)
-	pin: string;
+	pin?: string;
 
 	@IsString()	
 	@IsOptional()	

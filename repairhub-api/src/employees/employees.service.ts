@@ -2,6 +2,9 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Employee } from './entities/employee.entity';
+import { Store } from '../stores/entities/store.entity';
+import { Center } from '../centers/entities/center.entity';
+import { ActivationToken } from '../auth/entities/activation-token.entity';
 import { Gender } from '../common/enums/gender.enum';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
@@ -14,6 +17,8 @@ export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+    @InjectRepository(ActivationToken)
+    private readonly activationTokenRepository: Repository<ActivationToken>,
     private readonly emailService: EmailService,
   ) {}
 
@@ -35,37 +40,142 @@ export class EmployeesService {
 
     // Generar password temporal
     const tempPassword = this.generateTempPassword();
-    
-    // Generar PIN único
+
+    // Generar PIN único por defecto
     const uniquePin = await this.generateUniquePin();
 
-    const employee = this.employeeRepository.create({
+    // Si el DTO incluye un PIN, verificar que no exista ya y usarlo; si no, usar el generado
+    let finalPin = uniquePin;
+    if (createEmployeeDto.pin) {
+      const existsPin = await this.employeeRepository.findOne({ where: { pin: createEmployeeDto.pin } });
+      if (existsPin) {
+        throw new ConflictException('PIN already in use');
+      }
+      finalPin = String(createEmployeeDto.pin);
+    }
+
+    // Hashear la contraseña temporal antes de guardar
+    const hashedPassword = await bcrypt.hash(tempPassword, 12);
+
+    // Validar que `phone` y `email` no existan para evitar error de clave única
+    if (createEmployeeDto.phone) {
+      const existsPhone = await this.employeeRepository.findOne({ where: { phone: createEmployeeDto.phone } });
+      if (existsPhone) {
+        throw new ConflictException('Phone number already in use');
+      }
+    }
+
+    if (createEmployeeDto.email) {
+      const existsEmail = await this.employeeRepository.findOne({ where: { email: createEmployeeDto.email } });
+      if (existsEmail) {
+        throw new ConflictException('Email already in use');
+      }
+    }
+
+    // Validate centerId/storeId existence and relations
+    let validCenterId: number | undefined = undefined;
+    let validStoreId: number | undefined = undefined;
+
+    if (createEmployeeDto.centerId !== undefined && createEmployeeDto.centerId !== null) {
+      const cId = Number(createEmployeeDto.centerId);
+      const center = await this.employeeRepository.manager.findOne(Center, { where: { id: cId } });
+      if (!center) {
+        throw new NotFoundException(`Center with id ${cId} not found`);
+      }
+      validCenterId = cId;
+    }
+
+    if (createEmployeeDto.storeId !== undefined && createEmployeeDto.storeId !== null) {
+      const sId = Number(createEmployeeDto.storeId);
+      const store = await this.employeeRepository.manager.findOne(Store, { where: { id: sId } });
+      if (!store) {
+        throw new NotFoundException(`Store with id ${sId} not found`);
+      }
+      // If center provided, ensure store belongs to that center
+      if (validCenterId !== undefined && store.centerId !== validCenterId) {
+        throw new ConflictException('Store does not belong to the provided center');
+      }
+      validStoreId = sId;
+    }
+
+    const employeeData: any = {
       ...createEmployeeDto,
       gender: createEmployeeDto.gender === 'Male' ? Gender.MALE : Gender.FEMALE,
       employeeCode,
-      password: tempPassword,
-      pin: uniquePin,
+      password: hashedPassword,
+      pin: finalPin,
       pinTimeout: createEmployeeDto.pinTimeout ?? 0,
-      isCenterAdmin: createEmployeeDto.isCenterAdmin ?? false
-    });
-    const savedEmployee = await this.employeeRepository.save(employee);
-    
-    // Enviar email con credenciales (incluyendo PIN)
+      isCenterAdmin: createEmployeeDto.isCenterAdmin ?? false,
+    };
+
+    if (validCenterId !== undefined) employeeData.centerId = validCenterId;
+    else delete employeeData.centerId;
+    if (validStoreId !== undefined) employeeData.storeId = validStoreId;
+    else delete employeeData.storeId;
+
+    const employee = this.employeeRepository.create(employeeData);
+    let savedEmployee: Employee;
     try {
-      await this.emailService.sendWelcomeEmail({
-        to: savedEmployee.email,
-        fullName: `${savedEmployee.firstName ?? ''} ${savedEmployee.lastName ?? ''}`.trim(),
-        employeeCode,
-        pin: uniquePin,
-        tempPassword,
-      });
-    } catch (err) {
-      // Si falla el envío de correo no interrumpimos la creación; se registra en logs desde EmailService
+      const result = await this.employeeRepository.save(employee as any);
+      // TypeORM may return an entity or an array when saving; normalize to single Employee
+      if (Array.isArray(result)) {
+        savedEmployee = result[0] as Employee;
+      } else {
+        savedEmployee = result as Employee;
+      }
+    } catch (err: any) {
+      // Mapear error de clave única de Postgres a ConflictException para una respuesta más clara
+      if (err?.code === '23505') {
+        throw new ConflictException('Duplicate record in database: phone or email already exists');
+      }
+      throw err;
     }
     
+    // Generar token de activación (un solo uso)
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+    // Ejecutar creación de token y envío de email en segundo plano para no bloquear la respuesta
+    (async () => {
+      try {
+        const token = crypto.randomBytes(32).toString('hex');
+        const tokenHashLocal = crypto.createHash('sha256').update(token).digest('hex');
+        const expiresAtLocal = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+        try {
+          await this.activationTokenRepository.save({
+            employee: savedEmployee,
+            tokenHash: tokenHashLocal,
+            expiresAt: expiresAtLocal,
+          } as any);
+        } catch (err) {
+          console.error('Failed to save activation token (background):', err?.message || err);
+        }
+
+        const activationLink = `${process.env.APP_URL || 'http://localhost:4200'}/activate?token=${token}`;
+
+        try {
+          await this.emailService.sendWelcomeEmail({
+            to: savedEmployee.email,
+            fullName: `${savedEmployee.firstName ?? ''} ${savedEmployee.lastName ?? ''}`.trim(),
+            employeeCode,
+            pin: finalPin,
+            tempPassword: tempPassword,
+            // @ts-ignore - allow passing activationLink to template
+            activationLink,
+          } as any);
+        } catch (err) {
+          console.error('Failed to send welcome email (background):', err?.message || err);
+        }
+      } catch (bgErr) {
+        console.error('Background activation/email flow failed:', bgErr?.message || bgErr);
+      }
+    })();
+
     return {
       employee: savedEmployee,
-      tempPassword: tempPassword // ← Password sin hash para mostrar en frontend
+      tempPassword: tempPassword // ← Mostrar al admin en respuesta por compatibilidad
     };
   }
 
@@ -94,7 +204,7 @@ export class EmployeesService {
       attempts++;
     }
 
-    throw new ConflictException('No se pudo generar un PIN único después de varios intentos');
+    throw new ConflictException('Could not generate a unique PIN after several attempts');
   }
 
   // Nota: el envío de correo lo delegamos en `EmailService`.

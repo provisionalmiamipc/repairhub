@@ -12,8 +12,8 @@ import { CommonModule } from '@angular/common';
   template: `
     <h1>Detalle de Item</h1>
     <app-sale-items-detail [saleItem]="saleItem"></app-sale-items-detail>
-    <button (click)="goBack()">Volver</button>
-    <button (click)="onEdit()">Editar</button>
+    <button (click)="goBack()">Back</button>
+    <button (click)="onEdit()">Edit</button>
   `,
 })
 export class SaleItemsDetailPageComponent {

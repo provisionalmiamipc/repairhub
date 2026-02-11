@@ -91,6 +91,25 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
+  // Middleware: convertir cadenas vacías en `undefined` para evitar validaciones erróneas
+  app.use((req, _res, next) => {
+    const transformEmptyStrings = (obj: any) => {
+      if (obj && typeof obj === 'object') {
+        Object.keys(obj).forEach(key => {
+          if (obj[key] === '') {
+            obj[key] = undefined;
+          } else if (typeof obj[key] === 'object') {
+            transformEmptyStrings(obj[key]);
+          }
+        });
+      }
+    };
+    if (req && req.body) transformEmptyStrings(req.body);
+    // DEBUG: log body for validation troubleshooting
+    try { console.log('Incoming body:', JSON.stringify(req.body)); } catch (e) {}
+    next();
+  });
+
   // ==================== 📚 CONFIGURACIÓN SWAGGER ====================
   const config = new DocumentBuilder()
     .setTitle('RepairHub API')

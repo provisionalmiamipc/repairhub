@@ -17,8 +17,12 @@ import {
   FormBuilder,
   Validators,
   ReactiveFormsModule,
-  AbstractControl
+  AbstractControl,
+  AsyncValidatorFn,
+  ValidationErrors
 } from '@angular/forms';
+import { map, debounceTime, switchMap, first } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -322,8 +326,8 @@ export class EmployeesFormModernComponent implements OnInit {
       gender: [null, Validators.required],
 
       // Step 2: Contact
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^[0-9+\-\s()]{10,15}$/)]],
+      email: ['', [Validators.required, Validators.email], [this.uniqueEmailValidator()]],
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9+\-\s()]{7,20}$/)], [this.uniquePhoneValidator()]],
       city: ['', [Validators.required, Validators.minLength(2)]],
 
       // Step 3: Job
@@ -332,8 +336,9 @@ export class EmployeesFormModernComponent implements OnInit {
       centerId: [null, Validators.required],
       storeId: [{ value: null, disabled: true }, Validators.required],
       isCenterAdmin: [false],
-      pinTimeout: ['', [Validators.required, Validators.min(1), Validators.max(120)]],
-      pin: ['', [Validators.required, Validators.pattern(/^[0-9]{4,6}$/)]],
+      // pin/pinTimeout opcionales: backend puede generarlos si no se proporcionan
+      pinTimeout: ['', [Validators.min(0), Validators.max(120)]],
+      pin: ['', [Validators.pattern(/^[0-9]{4,6}$/)]],
       password: ['', [this.passwordStrengthValidator]]
     });
   }
@@ -422,6 +427,38 @@ export class EmployeesFormModernComponent implements OnInit {
     this.applyEmployeeDefaults();
   }
 
+  private uniqueEmailValidator(): AsyncValidatorFn {
+    return (control: AbstractControl) => {
+      const value = control.value;
+      if (!value) return of(null);
+      return of(value).pipe(
+        debounceTime(300),
+        switchMap(() => this.employeesService.getAll()),
+        map(list => {
+          const exists = list.some((e: any) => e.email === value && e.id !== this.employeeId());
+          return exists ? { emailTaken: true } : null;
+        }),
+        first()
+      );
+    };
+  }
+
+  private uniquePhoneValidator(): AsyncValidatorFn {
+    return (control: AbstractControl) => {
+      const value = control.value;
+      if (!value) return of(null);
+      return of(value).pipe(
+        debounceTime(300),
+        switchMap(() => this.employeesService.getAll()),
+        map(list => {
+          const exists = list.some((e: any) => e.phone === value && e.id !== this.employeeId());
+          return exists ? { phoneTaken: true } : null;
+        }),
+        first()
+      );
+    };
+  }
+
   private loadEmployeeForEdit(id: number): void {
     this.employeesService
       .getById(id, false)
@@ -500,7 +537,11 @@ export class EmployeesFormModernComponent implements OnInit {
         payload.storeId = empStoreId ?? undefined;
       }
     }
+    // Ensure pinTimeout is sent: normalize and default to 5 minutes when missing
     payload.pinTimeout = this.normalizeNumber(this.form.get('pinTimeout')?.value);
+    if (payload.pinTimeout === undefined || payload.pinTimeout === null) {
+      payload.pinTimeout = 5;
+    }
     if (!payload.password) {
       delete payload.password;
     }
@@ -534,6 +575,13 @@ export class EmployeesFormModernComponent implements OnInit {
           }, 500);
         },
         error: (err) => {
+          const status = err?.status;
+          if (status === 409) {
+            const msg = err?.error?.message || 'Conflict: phone/email already exists';
+            this.state.update(s => ({ ...s, isSubmitting: false, submitError: msg }));
+            return;
+          }
+
           this.state.update(s => ({
             ...s,
             isSubmitting: false,
@@ -560,7 +608,9 @@ export class EmployeesFormModernComponent implements OnInit {
     if (errors['minlength']) return `Minimum ${errors['minlength'].requiredLength} characters`;
     if (errors['maxlength']) return `Maximum ${errors['maxlength'].requiredLength} characters`;
     if (errors['email']) return 'Invalid email';
+    if (errors['emailTaken']) return 'Email already exists';
     if (errors['pattern']) return 'Invalid format';
+    if (errors['phoneTaken']) return 'Phone number already exists';
     if (errors['min']) return `Minimum value: ${errors['min'].min}`;
     if (errors['max']) return `Maximum value: ${errors['max'].max}`;
     if (errors['passwordStrength']) {

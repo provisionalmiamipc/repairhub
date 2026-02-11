@@ -25,10 +25,10 @@ import { EMPTY } from 'rxjs';
         </div>
         <div class="btn-group">
           <button class="btn btn-primary" routerLink="/users" routerLinkActive="active">
-            <i class="icon-arrow-left me-2"></i> Volver
+            <i class="icon-arrow-left me-2"></i> Back
           </button>
           <button class="btn btn-warning" routerLink="/users/{{ selectedUser?.id }}/edit">
-            <i class="icon-pencil me-2"></i> Editar
+            <i class="icon-pencil me-2"></i> Edit
           </button>
         </div>
       </div>

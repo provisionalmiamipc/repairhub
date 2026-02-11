@@ -9,7 +9,7 @@
            style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);">
         <div class="d-flex align-items-center gap-2">
           <i class="bi bi-shield-lock-fill fs-4"></i>
-          <h5 class="modal-title mb-0 fw-semibold">Verificación de PIN</h5>
+          <h5 class="modal-title mb-0 fw-semibold">PIN Verification</h5>
         </div>
         <button 
           type="button" 
@@ -32,7 +32,7 @@
             Hola, <span class="text-primary fw-semibold">{{ employeeName }}</span>
           </h6>
           <p class="text-body-secondary small mb-0">
-            Ingresa tu PIN de seguridad para continuar
+            Enter your security PIN to continue
           </p>
         </div>
 
@@ -43,7 +43,7 @@
           <div class="mb-3">
             <label for="pin-input" class="form-label fw-semibold small">
               <i class="bi bi-key-fill me-1"></i>
-              PIN de Seguridad
+              Security PIN
             </label>
             <input
               id="pin-input"
@@ -57,7 +57,7 @@
               maxlength="6"
               autocomplete="off"
               [class.is-invalid]="getPinError()"
-              [attr.aria-label]="'PIN de seguridad'" />
+              [attr.aria-label]="'Security PIN'" />
             
             <!-- Validation Feedback -->
             <div class="invalid-feedback" *ngIf="getPinError()">
@@ -76,7 +76,7 @@
           <div class="text-center mb-3" *ngIf="attemptCount > 0">
             <span class="badge bg-warning text-dark">
               <i class="bi bi-clock-history me-1"></i>
-              Intento {{ attemptCount }} de {{ maxAttempts }}
+              Attempt {{ attemptCount }} of {{ maxAttempts }}
             </span>
           </div>
 
@@ -89,11 +89,11 @@
               [disabled]="!pinForm.valid || isLoading || pinForm.disabled">
               <span *ngIf="!isLoading">
                 <i class="bi bi-check-circle-fill me-2"></i>
-                Verificar PIN
+                Verify PIN
               </span>
               <span *ngIf="isLoading">
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Verificando...
+                Verifying...
               </span>
             </button>
             
@@ -103,7 +103,7 @@
               (click)="onCancel()"
               [disabled]="isLoading || pinForm.disabled">
               <i class="bi bi-x-circle me-1"></i>
-              Cancelar
+              Cancel
             </button>
           </div>
         </form>
@@ -112,7 +112,7 @@
         <div class="border-top mt-4 pt-3">
           <p class="text-body-secondary small text-center mb-0">
             <i class="bi bi-info-circle me-1"></i>
-            Tu PIN es personal y confidencial. No lo compartas con nadie.
+            Your PIN is personal and confidential. Do not share it with anyone.
           </p>
         </div>
       </div>
@@ -121,8 +121,8 @@
       <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded" 
            style="background-color: var(--cui-body-bg); opacity: 0.95; z-index: 1050;"
            *ngIf="isLoading">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-          <span class="visually-hidden">Cargando...</span>
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Loading...</span>
         </div>
       </div>
       

@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { AuthService } from '../../shared/services/auth.service';
 import { ServiceOrdersService } from '../../shared/services/service-orders.service';
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
 import { ServiceOrdersListComponent } from './service-orders-list.component';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-service-orders-list-page',
@@ -48,18 +49,36 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class ServiceOrdersListPageComponent implements OnInit, OnDestroy {
-  serviceOrders$ = this.serviceOrdersService.data$;
-  loading$ = this.serviceOrdersService.loading$;
-  error$ = this.serviceOrdersService.error$;
+  serviceOrders$: any;
+  loading$: any;
+  error$: any;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private serviceOrdersService: ServiceOrdersService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
+  ngOnDestroy(): void {
+    throw new Error('Method not implemented.');
+  }
 
   ngOnInit(): void {
+    // Initialize observables after constructor-injected services are available
+    // Apply filtering: Experts (non center-admin) see only orders they created or were assigned to
+    this.serviceOrders$ = this.serviceOrdersService.data$.pipe(
+      map((orders: ServiceOrders[]) => {
+        const employee = this.authService.getCurrentEmployee();
+        if (employee && employee.employee_type === 'Expert' && !employee.isCenterAdmin) {
+          return orders.filter(o => o.createdById === employee.id || o.assignedTechId === employee.id);
+        }
+        return orders;
+      })
+    );
+    this.loading$ = this.serviceOrdersService.loading$;
+    this.error$ = this.serviceOrdersService.error$;
+
     this.serviceOrdersService.getAll();
   }
 
@@ -76,7 +95,7 @@ export class ServiceOrdersListPageComponent implements OnInit, OnDestroy {
   }
 
   onDelete(serviceOrder: ServiceOrders): void {
-    if (confirm(`¿Eliminar orden de servicio ${serviceOrder.id}?`)) {
+    if (confirm(`Delete service order ${serviceOrder.id}?`)) {
       this.serviceOrdersService
         .delete(serviceOrder.id)
         .pipe(takeUntil(this.destroy$))
@@ -84,14 +103,14 @@ export class ServiceOrdersListPageComponent implements OnInit, OnDestroy {
           this.serviceOrdersService.getAll();
         });
     }
-  }
 
-  clearError(): void {
+  /*clearError(): void {
     // Could implement error clearing logic
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
+  }*/
+}
 }

@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { existsSync } from 'fs';
 import { UploadsModule } from './uploads/uploads.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CentersModule } from './centers/centers.module';
@@ -45,27 +46,41 @@ import { AuthModule } from './auth/auth.module';
     }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        transport: {
-          host: configService.get<string>('SMTP_HOST'),
-          port: Number(configService.get<number>('SMTP_PORT') ?? 587),
-          secure: configService.get('SMTP_SECURE') === 'true',
-          auth: {
-            user: configService.get<string>('SMTP_USER'),
-            pass: configService.get<string>('SMTP_PASS'),
+      useFactory: (configService: ConfigService) => {
+        const candidate1 = join(__dirname, '..', 'templates', 'emails');
+        const candidate2 = join(__dirname, '..', 'src', 'templates', 'emails');
+        let templatesDir = candidate1;
+        if (!existsSync(candidate1) && existsSync(candidate2)) {
+          templatesDir = candidate2;
+        }
+        if (!existsSync(templatesDir)) {
+          console.warn(`Mailer templates folder not found. Checked: ${candidate1} and ${candidate2}`);
+        }
+
+        const fromName = configService.get<string>('FROM_NAME');
+        const fromEmail = configService.get<string>('FROM_EMAIL') || `no-reply@${configService.get<string>('SMTP_HOST') || 'repairhub'}`;
+        const defaultFrom = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+
+        return {
+          transport: {
+            host: configService.get<string>('SMTP_HOST'),
+            port: Number(configService.get<number>('SMTP_PORT') ?? 587),
+            secure: configService.get('SMTP_SECURE') === 'true',
+            auth: {
+              user: configService.get<string>('SMTP_USER'),
+              pass: configService.get<string>('SMTP_PASS'),
+            },
           },
-        },
-        defaults: {
-          from:
-            configService.get<string>('FROM_EMAIL') ||
-            `no-reply@${configService.get<string>('SMTP_HOST') || 'repairhub'}`,
-        },
-        template: {
-          dir: join(__dirname, '..', 'templates', 'emails'),
-          adapter: new HandlebarsAdapter(),
-          options: { strict: true },
-        },
-      }),
+          defaults: {
+            from: defaultFrom,
+          },
+          template: {
+            dir: templatesDir,
+            adapter: new HandlebarsAdapter(),
+            options: { strict: true },
+          },
+        };
+      },
       inject: [ConfigService],
     }),
     ServeStaticModule.forRoot({

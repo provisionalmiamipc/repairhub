@@ -6,11 +6,11 @@
   <div class="list-header">
     <div class="header-content">
       <div class="header-title">
-        <h1>Empleados</h1>
-        <p class="subtitle">Gestiona tu equipo de trabajo</p>
+        <h1>Employees</h1>
+        <p class="subtitle">Manage your workforce</p>
       </div>
 
-      <!-- Estadísticas rápidas -->
+      <!-- Quick stats -->
       <div class="stats-grid">
         <div class="stat-card">
           <span class="stat-value">{{ stats().total }}</span>
@@ -18,11 +18,11 @@
         </div>
         <div class="stat-card accent-primary">
           <span class="stat-value">{{ stats().experts }}</span>
-          <span class="stat-label">Expertos</span>
+          <span class="stat-label">Experts</span>
         </div>
         <div class="stat-card accent-info">
           <span class="stat-value">{{ stats().accountants }}</span>
-          <span class="stat-label">Contadores</span>
+          <span class="stat-label">Accountants</span>
         </div>
         <div class="stat-card accent-warning">
           <span class="stat-value">{{ stats().admins }}</span>
@@ -30,16 +30,16 @@
         </div>
         <div class="stat-card accent-secondary">
           <span class="stat-value">{{ stats().centerAdmins }}</span>
-          <span class="stat-label">Admins Centro</span>
+          <span class="stat-label">Center Admins</span>
         </div>
       </div>
     </div>
 
-    <!-- Botones de acción -->
+    <!-- Action buttons -->
     <div class="header-actions">
       <button class="btn-primary btn-lg" (click)="onCreateNew()">
         <span class="btn-icon"><i class="bi bi-plus"></i></span>
-        Nuevo Empleado
+        New Employee
       </button>
     </div>
   </div>
@@ -52,35 +52,35 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Busca por nombre, email o código..."
+          placeholder="Search by name, email or code..."
         [value]="searchQuery()"
         (input)="updateSearch($event.target.value)"
       />
       <span class="search-icon"><i class="bi bi-search"></i></span>
       @if (searchQuery()) {
-        <button class="btn-clear" (click)="clearSearch()" aria-label="Limpiar búsqueda">
+        <button class="btn-clear" (click)="clearSearch()" aria-label="Clear search">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       }
     </div>
 
-    <!-- Filtros -->
+    <!-- Filters -->
     <div class="filters-group">
       <div class="filter-chip">
         <label>Tipo:</label>
         <select (change)="onFilterByEmployeeType($event)">
-          <option value="">Todos</option>
-          <option value="Expert">Experto</option>
-          <option value="Accountant">Contador</option>
-          <option value="AdminStore">Admin Tienda</option>
+          <option value="">All</option>
+          <option value="Expert">Expert</option>
+          <option value="Accountant">Accountant</option>
+          <option value="AdminStore">Store Admin</option>
         </select>
       </div>
 
       <div class="filter-chip">
-        <label>Centro Admin:</label>
+        <label>Center Admin:</label>
         <select (change)="onFilterByCenterAdmin($event)">
-          <option value="">Todos</option>
-          <option value="true">Sí</option>
+          <option value="">All</option>
+          <option value="true">Yes</option>
           <option value="false">No</option>
         </select>
       </div>
@@ -88,7 +88,7 @@
       @if (searchQuery() || state().selectedFilters.employeeType || state().selectedFilters.isCenterAdmin !== undefined) {
         <button class="btn-reset-filters" (click)="resetFilters()">
           <i class="bi bi-arrow-clockwise"></i>
-          Resetear
+          Reset
         </button>
       }
     </div>
@@ -110,7 +110,7 @@
       <div class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
       <h3>Error</h3>
       <p>{{ error() }}</p>
-      <button class="btn-secondary" (click)="onRefresh()">Reintentar</button>
+      <button class="btn-secondary" (click)="onRefresh()">Retry</button>
     </div>
   }
 
@@ -138,11 +138,11 @@
   @if (isEmpty()) {
     <div class="empty-state" @cardEnter>
       <div class="empty-icon"><i class="bi bi-people"></i></div>
-      <h3>No hay empleados</h3>
-      <p>Comienza creando tu primer empleado para ver la lista aquí.</p>
+      <h3>No employees</h3>
+      <p>Start by creating your first employee to see them listed here.</p>
       <button class="btn-primary" (click)="onCreateNew()">
         <span class="btn-icon"><i class="bi bi-plus"></i></span>
-        Crear Empleado
+        Create Employee
       </button>
     </div>
   }
@@ -164,14 +164,14 @@
               <span class="employee-code">{{ employee.employeeCode }}</span>
             </div>
             @if (employee.isCenterAdmin) {
-              <div class="badge-admin"><i class="bi bi-award"></i> Centro Admin</div>
+              <div class="badge-admin"><i class="bi bi-award"></i> Center Admin</div>
             }
           </div>
 
           <!-- Card Body - Main Info -->
           <div class="card-body">
             <div class="info-group">
-              <label class="info-label">Tipo</label>
+              <label class="info-label">Type</label>
               <div class="badge" [class]="'badge-' + getEmployeeTypeColor(employee.employee_type)">
                 {{ getEmployeeTypeLabel(employee.employee_type) }}
               </div>
@@ -186,11 +186,11 @@
 
             <div class="info-row">
               <div class="info-group half">
-                <label class="info-label">Teléfono</label>
+                  <label class="info-label">Phone</label>
                 <p class="info-value">{{ employee.phone }}</p>
               </div>
               <div class="info-group half">
-                <label class="info-label">Género</label>
+                  <label class="info-label">Gender</label>
                 <p class="info-value">
                   @if (employee.gender === 'Male') {
                     <i class="bi bi-gender-male"></i>
@@ -203,11 +203,11 @@
 
             <div class="info-row">
               <div class="info-group half">
-                <label class="info-label">Cargo</label>
+                <label class="info-label">Position</label>
                 <p class="info-value">{{ employee.jobTitle }}</p>
               </div>
               <div class="info-group half">
-                <label class="info-label">Ciudad</label>
+                <label class="info-label">City</label>
                 <p class="info-value">{{ employee.city }}</p>
               </div>
             </div>
@@ -218,44 +218,44 @@
             <button 
               class="btn-action btn-view"
               (click)="onSelect(employee)"
-              title="Ver detalles"
+              title="View details"
             >
               <span class="btn-icon"><i class="bi bi-eye"></i></span>
-              Ver
+              View
             </button>
             <button 
               class="btn-action btn-edit"
               (click)="onEdit(employee, $event)"
-              title="Editar"
+              title="Edit"
             >
               <span class="btn-icon"><i class="bi bi-pencil"></i></span>
-              Editar
+              Edit
             </button>
             <!--button 
               class="btn-action btn-delete"
               (click)="onDelete(employee, $event)"
-              title="Eliminar"
+              title="Delete"
             >
               <span class="btn-icon">🗑️</span>
-              Eliminar
+              Delete
             </button-->
           </div>
 
           <!-- Metadata -->
           <div class="card-metadata">
-            <small>Creado: {{ employee.createdAt | date: 'short' }}</small>
+            <small>Created: {{ employee.createdAt | date: 'short' }}</small>
             @if (employee.updatedAt) {
-              <small>Actualizado: {{ employee.updatedAt | date: 'short' }}</small>
+              <small>Updated: {{ employee.updatedAt | date: 'short' }}</small>
             }
           </div>
         </div>
       }
     </div>
 
-    <!-- Contador de resultados filtrados -->
+    <!-- Filtered results counter -->
     @if (filteredItems().length !== items().length) {
       <div class="results-info">
-        Mostrando {{ filteredItems().length }} de {{ items().length }} empleados
+        Showing {{ filteredItems().length }} of {{ items().length }} employees
       </div>
     }
   }

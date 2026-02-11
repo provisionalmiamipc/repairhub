@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
   template: `
     <h1>Detalle de Dispositivo</h1>
     <app-devices-detail [device]="device"></app-devices-detail>
-    <button (click)="goBack()">Volver</button>
+    <button (click)="goBack()">Back</button>
     <button (click)="onEdit()">Editar</button>
   `,
 })

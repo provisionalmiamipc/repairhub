@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
       <!-- Header -->
       <div class="page-header">
         <div class="header-content">
-          <button class="btn-back" (click)="goBack()" title="Volver">
+          <button class="btn-back" (click)="goBack()" title="Back">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>

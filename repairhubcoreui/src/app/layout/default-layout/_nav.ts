@@ -8,6 +8,8 @@ import { UserType, EmployeeType } from '../../shared/models/rbac.constants';
 interface NavItemWithRoles extends INavData {
   roles?: (UserType | EmployeeType)[] | null; // null = visible para todos
   children?: NavItemWithRoles[];
+  // Custom flags for UI visibility rules
+  hideForExpertNonCenterAdmin?: boolean;
 }
 
 export const navItems: NavItemWithRoles[] = [
@@ -23,7 +25,9 @@ export const navItems: NavItemWithRoles[] = [
   },
   {
     title: true,
-    name: 'Main'
+    name: 'Main',
+    // Custom flag: hide this title for Expert employees who are NOT Center Admin
+    roles: [UserType.USER, EmployeeType.ADMIN_STORE]
   },
   {
     name: 'Centers',
@@ -67,13 +71,13 @@ export const navItems: NavItemWithRoles[] = [
     name: 'Customers',
     iconComponent: { name: 'cil-star' },
     url: '/customers',
-    roles: null // visible para todos
+    roles: [UserType.USER, EmployeeType.ADMIN_STORE] // visible para todos
   },
   {
     name: 'Items',
     url: '/items',
     iconComponent: { name: 'cil-puzzle' },
-    roles: null // visible para todos
+    roles: [UserType.USER, EmployeeType.ADMIN_STORE] // visible para todos
   },
   {
     name: 'Notifications',
@@ -83,7 +87,8 @@ export const navItems: NavItemWithRoles[] = [
   },  
   {
     title: true,
-    name: 'Extras'
+    name: 'Extras',
+    roles: [UserType.USER]
   },
   {
     name: 'Config',

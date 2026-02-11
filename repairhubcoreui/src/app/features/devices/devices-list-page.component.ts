@@ -24,8 +24,8 @@ import { takeUntil } from 'rxjs/operators';
       <div *ngIf="error$ | async as error" class="alert alert-danger alert-dismissible fade show" role="alert">
         {{ error }}<button type="button" class="btn-close" (click)="clearError()"></button>
       </div>
-      <div *ngIf="loading$ | async" class="text-center py-5">
-        <div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
+        <div *ngIf="loading$ | async" class="text-center py-5">
+        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
       </div>
       <app-devices-list *ngIf="!(loading$ | async)" [items]="items$" 
         (selectDevices)="onSelect($event)" (editDevices)="onEdit($event)" 
@@ -35,19 +35,23 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class DevicesListPageComponent implements OnInit, OnDestroy {
-  items$ = this.service.data$;
-  loading$ = this.service.loading$;
-  error$ = this.service.error$;
+  items$;
+  loading$;
+  error$;
   private destroy$ = new Subject<void>();
 
-  constructor(private service: DevicesService, private router: Router) {}
+  constructor(private service: DevicesService, private router: Router) {
+    this.items$ = this.service.data$;
+    this.loading$ = this.service.loading$;
+    this.error$ = this.service.error$;
+  }
 
   ngOnInit(): void { this.service.getAll(); }
   onCreate(): void { this.router.navigate(['/devices', 'new']); }
   onSelect(item: Devices): void { this.router.navigate(['/devices', item.id]); }
   onEdit(item: Devices): void { this.router.navigate(['/devices', item.id, 'edit']); }
   onDelete(item: Devices): void {
-    if (confirm('¿Eliminar?')) {
+    if (confirm('Delete?')) {
       this.service.delete(item.id).pipe(takeUntil(this.destroy$)).subscribe(() => this.service.getAll());
     }
   }

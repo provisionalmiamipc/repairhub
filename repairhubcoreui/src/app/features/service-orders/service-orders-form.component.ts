@@ -177,7 +177,7 @@ export class ServiceOrdersFormComponent {
       this.form.get('customerId')?.setValue((c as any).id);
       // reload customers list in case it's necessary
       this.customersService.getAll().subscribe(cs => this.customers = cs);
-      this.toastService.success('Cliente seleccionado');
+      this.toastService.success('Customer selected');
     }
     this.closeCustomerSearch();
   }

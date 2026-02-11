@@ -49,6 +49,9 @@ export class CreateServiceOrderDto {
 	@IsString()
 	noteReception?: string;
 
+	@IsString()
+	estimated?: string;
+
 	@IsInt()
 	paymentTypeId: number;
 

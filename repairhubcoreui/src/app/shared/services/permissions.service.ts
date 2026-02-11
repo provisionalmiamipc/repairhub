@@ -78,10 +78,12 @@ export class PermissionsService {
     const userType = this.authService.getUserType();
 
     if (employee) {
+      // Include `isCenterAdmin` flag so center admins inherit additional permissions
       return checkPermission(
         UserType.EMPLOYEE,
         employee.employee_type as EmployeeType,
-        permission
+        permission,
+        employee.isCenterAdmin
       );
     } else if (userType === 'user') {
       return checkPermission(UserType.USER, undefined, permission);

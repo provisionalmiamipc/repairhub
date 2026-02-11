@@ -17,7 +17,7 @@ export class EmailService {
   }) {
     const appUrl = this.config.get<string>('APP_URL') || this.config.get<string>('FRONTEND_URL') || 'http://localhost:4200';
 
-    const subject = `Bienvenido a RepairHub`;
+    const subject = `Welcome to Miami Photography Center.`;
 
     try {
       await this.mailerService.sendMail({
@@ -30,6 +30,7 @@ export class EmailService {
           pin: options.pin,
           tempPassword: options.tempPassword,
           appUrl,
+          activationLink: (options as any).activationLink,
         },
       });
 

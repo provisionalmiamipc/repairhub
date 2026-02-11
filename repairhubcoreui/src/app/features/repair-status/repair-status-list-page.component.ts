@@ -15,11 +15,11 @@ import { takeUntil } from 'rxjs/operators';
     <div class="container-lg py-4">
       <div class="row mb-4">
         <div class="col-md-8">
-          <h1 class="h2">Estados de Reparación</h1>
+          <h1 class="h2">Repair Statuses</h1>
         </div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nuevo Estado
+            <i class="cil-plus me-2"></i> New Status
           </button>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { takeUntil } from 'rxjs/operators';
       <div *ngIf="loading$ | async">
         <div class="text-center py-5">
           <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
@@ -48,16 +48,20 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class RepairStatusListPageComponent implements OnInit, OnDestroy {
-  repairStatuses$ = this.repairStatusService.data$;
-  loading$ = this.repairStatusService.loading$;
-  error$ = this.repairStatusService.error$;
+  repairStatuses$;
+  loading$;
+  error$;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private repairStatusService: RepairStatusService,
     private router: Router
-  ) {}
+  ) {
+    this.repairStatuses$ = this.repairStatusService.data$;
+    this.loading$ = this.repairStatusService.loading$;
+    this.error$ = this.repairStatusService.error$;
+  }
 
   ngOnInit(): void {
     this.repairStatusService.getAll();
@@ -76,7 +80,7 @@ export class RepairStatusListPageComponent implements OnInit, OnDestroy {
   }
 
   onDelete(repairStatus: RepairStatus): void {
-    if (confirm(`¿Eliminar estado?`)) {
+    if (confirm(`Delete status?`)) {
       this.repairStatusService
         .delete(repairStatus.id)
         .pipe(takeUntil(this.destroy$))

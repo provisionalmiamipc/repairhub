@@ -35,6 +35,17 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Si la app usa HashLocationStrategy y la URL llegó como '/activate?...',
+    // redirigir al formato con hash para que Angular Router la reconozca:
+    try {
+      const pathname = window.location.pathname || '';
+      const hash = window.location.hash || '';
+      if (pathname.startsWith('/activate') && !hash.startsWith('#/activate')) {
+        const newUrl = `${window.location.origin}/#${pathname}${window.location.search}`;
+        window.location.replace(newUrl);
+        return;
+      }
+    } catch (e) {}
 
     this.#router.events.pipe(
         takeUntilDestroyed(this.#destroyRef)

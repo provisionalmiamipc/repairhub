@@ -17,7 +17,7 @@ import { takeUntil } from 'rxjs/operators';
         <div class="col-md-8"><h1 class="h2">Items</h1></div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nuevo Item
+            <i class="cil-plus me-2"></i> New Item
           </button>
         </div>
       </div>
@@ -25,7 +25,7 @@ import { takeUntil } from 'rxjs/operators';
         {{ error }}<button type="button" class="btn-close" (click)="clearError()"></button>
       </div>
       <div *ngIf="loading$ | async" class="text-center py-5">
-        <div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div>
+        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
       </div>
       <app-items-list *ngIf="!(loading$ | async)" [items]="items$" 
         (selectItems)="onSelect($event)" (editItems)="onEdit($event)" 
@@ -35,19 +35,23 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class ItemsListPageComponent implements OnInit, OnDestroy {
-  items$ = this.service.data$;
-  loading$ = this.service.loading$;
-  error$ = this.service.error$;
+  items$: typeof this.service.data$;
+  loading$: typeof this.service.loading$;
+  error$: typeof this.service.error$;
   private destroy$ = new Subject<void>();
 
-  constructor(private service: ItemsService, private router: Router) {}
+  constructor(private service: ItemsService, private router: Router) {
+    this.items$ = this.service.data$;
+    this.loading$ = this.service.loading$;
+    this.error$ = this.service.error$;
+  }
 
   ngOnInit(): void { this.service.getAll(); }
   onCreate(): void { this.router.navigate(['/items', 'new']); }
   onSelect(item: Items): void { this.router.navigate(['/items', item.id]); }
   onEdit(item: Items): void { this.router.navigate(['/items', item.id, 'edit']); }
   onDelete(item: Items): void {
-    if (confirm('¿Eliminar?')) {
+    if (confirm('Delete?')) {
       this.service.delete(item.id).pipe(takeUntil(this.destroy$)).subscribe(() => this.service.getAll());
     }
   }

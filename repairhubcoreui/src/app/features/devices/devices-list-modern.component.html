@@ -2,11 +2,11 @@
   <div class="header-section">
     <div class="header-content">
       <div>
-        <h1><i class="bi bi-phone"></i> Dispositivos</h1>
-        <p class="subtitle">{{ filteredDevices().length }} dispositivos encontrados</p>
+        <h1><i class="bi bi-phone"></i> Devices</h1>
+        <p class="subtitle">{{ filteredDevices().length }} devices found</p>
       </div>
       <button class="btn-primary" (click)="createNew()">
-        <span>+</span> Nuevo Dispositivo
+        <span>+</span> New Device
       </button>
     </div>
   </div>
@@ -16,32 +16,32 @@
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" fill="currentColor"/>
       </svg>
-      <input
+        <input
         type="text"
-        placeholder="Buscar por nombre o descripción..."
+        placeholder="Search by name or description..."
         (input)="onSearchChange($any($event).target.value)"
       />
     </div>
 
     <div class="filter-group">
       <select (change)="onFilterCenterChange($any($event).target.value)">
-        <option value="0">Todos los centros</option>
+        <option value="0">All centers</option>
         @for (center of centers(); track center.id) {
           <option [value]="center.id">{{ center.centerName }}</option>
         }
       </select>
 
       <select (change)="onFilterStoreChange($any($event).target.value)">
-        <option value="0">Todas las tiendas</option>
+        <option value="0">All stores</option>
         @for (store of stores(); track store.id) {
           <option [value]="store.id">{{ store.storeName }}</option>
         }
       </select>
 
       <select (change)="onSortChange($any($event).target.value)">
-        <option value="name">A-Z (Alfabético)</option>
-        <option value="date">Más recientes</option>
-        <option value="id">ID (Mayor)</option>
+        <option value="name">A-Z (Alphabetical)</option>
+        <option value="date">Most recent</option>
+        <option value="id">ID (Highest)</option>
       </select>
     </div>
   </div>
@@ -49,7 +49,7 @@
   @if (listState().isLoading) {
     <div class="loading-state">
       <div class="loader"></div>
-      <p>Cargando dispositivos...</p>
+      <p>Loading devices...</p>
     </div>
   }
 
@@ -60,9 +60,9 @@
         <line x1="12" y1="8" x2="12" y2="12"></line>
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
-      <h3>Error al cargar</h3>
+      <h3>Error loading</h3>
       <p>{{ listState().error }}</p>
-      <button class="btn-secondary" (click)="retryLoad()">Reintentar</button>
+      <button class="btn-secondary" (click)="retryLoad()">Retry</button>
     </div>
   }
 
@@ -72,9 +72,9 @@
         <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
         <line x1="12" y1="18" x2="12.01" y2="18"></line>
       </svg>
-      <h3>Sin dispositivos</h3>
-      <p>No hay dispositivos que coincidan con los filtros seleccionados</p>
-      <button class="btn-primary" (click)="createNew()">Crear primer dispositivo</button>
+      <h3>No devices</h3>
+      <p>No devices match the selected filters</p>
+      <button class="btn-primary" (click)="createNew()">Create first device</button>
     </div>
   }
 
@@ -91,22 +91,22 @@
             @if (device.description) {
               <p class="description">{{ device.description }}</p>
             } @else {
-              <p class="description placeholder-text">Sin descripción</p>
+              <p class="description placeholder-text">No description</p>
             }
 
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Centro</span>
+                <span class="label">Center</span>
                 <span class="value">{{ getCenterName(device) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Tienda</span>
+                <span class="label">Store</span>
                 <span class="value">{{ getStoreName(device) }}</span>
               </div>
             </div>
 
             <div class="dates-info">
-              <small>Creado: {{ device.createdAt | date: 'short' }}</small>
+              <small>Created: {{ device.createdAt | date: 'short' }}</small>
             </div>
           </div>
 

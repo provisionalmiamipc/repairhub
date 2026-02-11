@@ -1,9 +1,9 @@
 <div *ngIf="soDiagnostic">
-  <h2>Detalle de Diagnóstico</h2>
-  <p><strong>Diagnóstico:</strong> {{ soDiagnostic.diagnostic }}</p>
-  <p><strong>Enviar Email:</strong> {{ soDiagnostic.sendEmail ? 'Sí' : 'No' }}</p>
-  <p><strong>Fecha de creación:</strong> {{ soDiagnostic.createdAt | date }}</p>
+  <h2>Diagnostic Detail</h2>
+  <p><strong>Diagnostic:</strong> {{ soDiagnostic.diagnostic }}</p>
+  <p><strong>Send Email:</strong> {{ soDiagnostic.sendEmail ? 'Yes' : 'No' }}</p>
+  <p><strong>Created At:</strong> {{ soDiagnostic.createdAt | date }}</p>
 </div>
 <div *ngIf="!soDiagnostic">
-  <p>No hay información de diagnóstico.</p>
+  <p>No diagnostic information.</p>
 </div>

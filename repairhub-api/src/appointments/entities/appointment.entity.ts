@@ -83,6 +83,14 @@ export class Appointment {
 	@IsOptional()
 	createdById: number | null;
 
+	@ManyToOne(() => Employee, (employee) => employee.appointments)
+	@JoinColumn({ name: 'assignedTechId' })
+	assignedTech: Employee;
+
+	@Column('int', { nullable: true })
+	@IsOptional()
+	assignedTechId: number | null;
+
     @CreateDateColumn({ type: 'timestamp' })
 	@IsDate()
     createdAt: Date;

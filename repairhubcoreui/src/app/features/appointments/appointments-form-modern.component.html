@@ -15,7 +15,7 @@
 
           <!-- Progress Bar -->
           <div class="mb-4">
-            <div class="progress" role="progressbar" aria-label="Progreso del formulario" [attr.aria-valuenow]="getStepProgress()" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress" role="progressbar" aria-label="Form progress" [attr.aria-valuenow]="getStepProgress()" aria-valuemin="0" aria-valuemax="100">
               <div class="progress-bar" [style.width.%]="getStepProgress()"></div>
             </div>
             <p class="small text-muted mt-2 mb-0">Step {{ currentStep() + 1 }} of {{ steps.length }}</p>
@@ -43,7 +43,7 @@
   <!-- Loading State -->
   @if (isLoading()) {
     <div class="d-flex flex-column align-items-center justify-content-center py-5">
-      <div class="spinner-border text-primary" role="status" aria-label="Cargando"></div>
+      <div class="spinner-border text-primary" role="status" aria-label="Loading"></div>
       <p class="mt-3 text-muted mb-0">Loading information...</p>
     </div>
   } @else {
@@ -214,6 +214,21 @@
               </div>
             </div>
 
+            <!-- Assigned Technician -->
+            <div class="col-12 col-md-4">
+              <label for="assignedTechId" class="form-label">Assigned Technician *</label>
+              <select class="form-select" formControlName="assignedTechId">
+                <option [ngValue]="null">Select technician</option>
+                <option *ngFor="let emp of employees()" [ngValue]="emp.id">
+                  {{ emp.firstName }} {{ emp.lastName }}
+                </option>
+              </select>
+              <div *ngIf="appointmentForm.get('assignedTechId')?.touched && appointmentForm.get('assignedTechId')?.invalid"
+                class="text-danger small">
+                Technician required
+              </div>
+            </div>
+
             <!-- Duration -->
             <div class="col-12 col-md-4">
               <label for="duration" class="form-label">Duration (minutes) *</label>
@@ -288,7 +303,7 @@
       <div class="form-actions d-flex flex-column gap-2">
         <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
           @if (isEditMode() && !isAppointmentClosed()) {
-            <div class="d-flex flex-wrap gap-2" role="group" aria-label="Acciones de estado">
+            <div class="d-flex flex-wrap gap-2" role="group" aria-label="Status actions">
               <button type="button" class="btn btn-outline-success" (click)="openStatusConfirm('close')" [disabled]="isSaving()">
                 Close appointment
               </button>
@@ -382,24 +397,24 @@
   <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
     <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
       <div class="modal-content">
-        <div class="modal-header">
+          <div class="modal-header">
           <h5 class="modal-title">
-            @if (pendingStatusAction() === 'close') { Cerrar cita }
-            @else { Cancelar cita }
+            @if (pendingStatusAction() === 'close') { Close appointment }
+            @else { Cancel appointment }
           </h5>
-          <button type="button" class="btn-close" aria-label="Cerrar" (click)="cancelStatusConfirm()"></button>
+          <button type="button" class="btn-close" aria-label="Close" (click)="cancelStatusConfirm()"></button>
         </div>
         <div class="modal-body">
           @if (pendingStatusAction() === 'close') {
-            <p>¿Confirmas que deseas cerrar esta cita?</p>
+            <p>Are you sure you want to close this appointment?</p>
           } @else {
-            <p>¿Confirmas que deseas cancelar esta cita?</p>
+            <p>Are you sure you want to cancel this appointment?</p>
           }
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="cancelStatusConfirm()">Volver</button>
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelStatusConfirm()">Back</button>
           <button type="button" class="btn btn-primary" (click)="confirmStatusChange()" [disabled]="isSaving()">
-            Confirmar
+            Confirm
           </button>
         </div>
       </div>

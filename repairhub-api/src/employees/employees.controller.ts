@@ -11,13 +11,27 @@ export class EmployeesController {
   async create(@Body() createEmployeeDto: CreateEmployeeDto) {
     //return this.employeesService.create(createEmployeeDto);
     const result = await this.employeesService.create(createEmployeeDto);
-    
-    // ✅ Retornar respuesta con password temporal
-    return {
-      ...result.employee,
-      tempPassword: result.tempPassword, // ← Solo para esta respuesta
-      pin: result.employee.pin
-    };
+    try {
+      // Serialize to plain object to avoid circular/proxy issues
+      const plainEmployee = JSON.parse(JSON.stringify(result.employee));
+      return {
+        ...plainEmployee,
+        tempPassword: result.tempPassword,
+        pin: plainEmployee.pin
+      };
+    } catch (err) {
+      console.error('Error serializing employee response:', err?.message || err);
+      // Fallback: return minimal payload
+      return {
+        id: result.employee.id,
+        employeeCode: result.employee.employeeCode,
+        firstName: result.employee.firstName,
+        lastName: result.employee.lastName,
+        email: result.employee.email,
+        pin: result.employee.pin,
+        tempPassword: result.tempPassword
+      };
+    }
   }
 
   @Get()

@@ -1,14 +1,28 @@
-import { Controller, Post, Body, UseGuards, Request, BadRequestException, NotFoundException, Res, Req } from "@nestjs/common";
+import { Controller, Post, Body, UseGuards, Request, BadRequestException, NotFoundException, Res, Req, Inject } from "@nestjs/common";
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { AuthService } from "./auth.service";
 import { ConfigService } from '@nestjs/config';
 import { JwtEmployeeGuard } from "./guards/jwt-employee.guard";
 import { JwtAnyGuard } from "./guards/jwt-any.guard";
 import { RefreshTokenService } from './refresh-token.service';
+import { ActivationToken } from './entities/activation-token.entity';
+import { Employee } from '../employees/entities/employee.entity';
 // avoid importing express Response type directly to keep isolatedModules compatibility
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private refreshTokenService: RefreshTokenService, private configService: ConfigService) {}
+  constructor(
+    private authService: AuthService,
+    private refreshTokenService: RefreshTokenService,
+    private configService: ConfigService,
+    @InjectRepository(ActivationToken)
+    private readonly activationTokenRepository: Repository<ActivationToken>,
+    @InjectRepository(Employee)
+    private readonly employeeRepository: Repository<Employee>,
+  ) {}
 
   @Post('login/user')
   async loginUser(@Body() loginDto: { userEmail: string; password: string }, @Res({ passthrough: true }) res: any) {
@@ -135,4 +149,27 @@ export class AuthController {
 
     return { loggedOut: true };
   }
+
+  @Post('activate')
+  async activate(@Body() body: { token: string; password: string }) {
+    if (!body?.token || !body?.password) throw new BadRequestException('token and password are required');
+
+    const tokenHash = crypto.createHash('sha256').update(body.token).digest('hex');
+    const record = await this.activationTokenRepository.findOne({ where: { tokenHash }, relations: ['employee'] });
+    if (!record || !record.employee) throw new BadRequestException('Token inválido o ya usado');
+    if (record.expiresAt < new Date()) {
+      // token expirado
+      await this.activationTokenRepository.delete(record.id);
+      throw new BadRequestException('Token expirado');
+    }
+
+    const hashed = await bcrypt.hash(body.password, 12);
+    await this.employeeRepository.update(record.employee.id, { password: hashed, isActive: true });
+
+    // eliminar token
+    await this.activationTokenRepository.delete(record.id);
+
+    return { success: true };
+  }
+
 }

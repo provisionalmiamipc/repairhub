@@ -9,14 +9,14 @@ import { SODiagnostic } from '../../shared/models/SODiagnostic';
   standalone: true,
   imports: [CommonModule, SODiagnosticListComponent],
   template: `
-    <h1>Diagnósticos</h1>
+    <h1>Diagnostics</h1>
     <app-so-diagnostic-list
       [soDiagnostics]="soDiagnostics"
       (select)="view($event)"
       (edit)="edit($event)"
       (delete)="delete($event)"
     ></app-so-diagnostic-list>
-    <button routerLink="/so-diagnostic/new">Nuevo Diagnóstico</button>
+    <button routerLink="/so-diagnostic/new">New Diagnostic</button>
   `,
   providers: [SODiagnosticService],
 })
@@ -40,7 +40,7 @@ export class SODiagnosticListPageComponent {
   }
 
   delete(soDiagnostic: SODiagnostic) {
-    if (confirm('¿Seguro que desea eliminar este diagnóstico?')) {
+    if (confirm('Are you sure you want to delete this diagnostic?')) {
       this.soDiagnosticService.delete(soDiagnostic.id).subscribe(() => this.load());
     }
   }

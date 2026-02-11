@@ -89,6 +89,13 @@ export class DefaultLayoutComponent implements OnInit {
    * Determina si un item debe ser visible basado en el rol
    */
   private canViewItem(item: any, currentRole: UserType | EmployeeType | null): boolean {
+    const employee = this.authService.getCurrentEmployee();
+
+    // Hide items explicitly marked for Expert non-center-admin
+    if (item.hideForExpertNonCenterAdmin && employee?.employee_type === EmployeeType.EXPERT && !employee?.isCenterAdmin) {
+      console.log(`🔒 Hiding ${item.name || item.url} for Expert non-center-admin`);
+      return false;
+    }
     // Si no tiene roles definidos, visible para todos
     if (!item.roles) {
       return true;

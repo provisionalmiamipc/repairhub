@@ -242,6 +242,11 @@ export class AuthService {
     );
   }
 
+  // Account activation: set initial password using token sent by email
+  activateAccount(token: string, password: string) {
+    return this.http.post<any>(`${this.API_URL}/activate`, { token, password });
+  }
+
   private storeAuthData(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.token);
     // refresh token is now stored in httpOnly cookie (set by server); do not store in localStorage

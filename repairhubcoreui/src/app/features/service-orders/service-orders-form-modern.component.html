@@ -18,7 +18,9 @@
       <div class="progress-bar bg-primary" role="progressbar" [style.width.%]="getStepProgress()"
         [attr.aria-valuenow]="getStepProgress()" aria-valuemin="0" aria-valuemax="100"></div>
     </div>
+    @if (!isExpertNonCenterAdmin()) {
     <p class="text-center text-muted mt-2 mb-0 small">Step {{ currentStep() + 1 }} of {{ steps.length }}</p>
+    }
   </div>
   }
 
@@ -57,8 +59,10 @@
           <div class="card-body p-4">
             <!-- Step 0: Center & Store -->
             <div class="section-group mb-4">
+              @if (showCenterAndStoreFields()) {
               <h2 class="step-title h3 fw-bold text-primary border-bottom border-2 border-primary pb-2 mb-3">{{
                 steps[0].title }}</h2>
+              }
               <div class="row g-3">
                 <!-- Center & Store fields visibility by user type -->
                 @if (showCenterAndStoreFields()) {
@@ -128,11 +132,12 @@
                       <option [value]="customer.id">{{ customer.firstName }} {{ customer.lastName }}</option>
                       }
                     </select>
-                    <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()">
+                    <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()"
+                      [disabled]="isOrderFinalized() || isFormReadOnly()">
                       <i class="bi bi-search"></i>
                     </button>
                     <button class="btn btn-outline-primary" type="button" (click)="openCustomerForm()"
-                      [disabled]="isOrderFinalized()">
+                      [disabled]="isOrderFinalized() || isFormReadOnly()">
                       <i class="bi bi-person-plus"></i>
                     </button>
                   </div>
@@ -152,7 +157,8 @@
                       <option [value]="device.id">{{ device.name }}</option>
                       }
                     </select>
-                    <button class="btn btn-outline-secondary" type="button" (click)="openAddDevice()">+</button>
+                    <button class="btn btn-outline-secondary" type="button" (click)="openAddDevice()"
+                      [disabled]="isOrderFinalized() || isFormReadOnly()">+</button>
                   </div>
                   @if (isFieldInvalid('deviceId')) {
                   <span class="error-message">{{ getFieldError('deviceId') }}</span>
@@ -170,7 +176,8 @@
                       <option [value]="brand.id">{{ brand.name }}</option>
                       }
                     </select>
-                    <button class="btn btn-outline-secondary" type="button" (click)="openAddDeviceBrand()">+</button>
+                    <button class="btn btn-outline-secondary" type="button" (click)="openAddDeviceBrand()"
+                      [disabled]="isOrderFinalized() || isFormReadOnly()">+</button>
                   </div>
                   @if (isFieldInvalid('deviceBrandId')) {
                   <span class="error-message">{{ getFieldError('deviceBrandId') }}</span>
@@ -252,13 +259,22 @@
                     placeholder="Additional notes..." rows="3"></textarea>
                 </div>
 
+                <!-- Estimated -->
+                <div class="col-12">
+                  <label for="estimated" class="form-label">Estimated</label>
+                  <textarea id="estimated" class="form-control" formControlName="estimated"
+                    placeholder="Estimated repair..." rows="3"></textarea>
+                </div>
+
                 <!-- Status (edit only) -->
+                @if (showCenterAndStoreFields()) {
                 <div class="col-12">
                   <div class="form-check">
                     <input id="lock" type="checkbox" formControlName="lock" class="form-check-input" />
                     <label class="form-check-label" for="lock">Lock order</label>
                   </div>
                 </div>
+                }
               </div>
             </div>
 
@@ -290,7 +306,7 @@
 
                 <!-- Discount -->
                 <div class="col-md-6 col-xl-4">
-                  <label for="costdiscount" class="form-label">Discount</label>
+                  <label for="costdiscount" class="form-label">Discount (%)</label>
                   <input type="number" id="costdiscount" class="form-control" formControlName="costdiscount" min="0"
                     step="0" />
                 </div>
@@ -312,13 +328,14 @@
                       <option [value]="paymentType.id">{{ paymentType.type }}</option>
                       }
                     </select>
-                    <button class="btn btn-outline-secondary" type="button" (click)="openAddPaymentType()">+</button>
+                    <button class="btn btn-outline-secondary" type="button" (click)="openAddPaymentType()"
+                      [disabled]="isOrderFinalized() || isFormReadOnly()">+</button>
                   </div>
                 </div>
 
                 <!-- Tax -->
                 <div class="col-md-6 col-xl-4">
-                  <label for="tax" class="form-label">Tax</label>
+                  <label for="tax" class="form-label">Tax (%)</label>
                   <input type="number" id="tax" class="form-control" formControlName="tax" min="0" step="0" />
                 </div>
 
@@ -333,8 +350,8 @@
                   @if (isEditMode()) {
                   <div class="mt-2">
                     <div class="d-flex justify-content-between">
-                      <div class="text-muted">Suggested Min Price</div>
-                      <div class="fw-bold">{{ formatCurrency(getSuggestedPrice()) }}</div>
+                      <div class="text-muted">Subtotal Price</div>
+                      <div class="fw-bold">{{ formatCurrency(getCurrentPrice()) }}</div>
                     </div>
                     <div class="d-flex justify-content-between">
                       <div class="text-muted">TAX:</div>
@@ -342,7 +359,7 @@
                     </div>
                     <div class="d-flex justify-content-between border-top pt-2 mt-2">
                       <div class="text-muted">Total</div>
-                      <div class="fw-bold">{{ formatCurrency(getSuggestedTotal()) }}</div>
+                      <div class="fw-bold">{{ formatCurrency(getCurrentTotal()) }}</div>
                     </div>
                   </div>
                   }
@@ -353,7 +370,7 @@
         </div>
       </div>
 
-            
+
 
       <div class="col-lg-4">
         <div class="card border-0 shadow-sm">
@@ -363,8 +380,8 @@
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Notes</span>
-                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button"
-                  (click)="openAddNote()">+</button>
+                <button *ngIf="!isOrderFinalized() && (!isFormReadOnly() || isExpertNonCenterAdmin())"
+                  class="btn btn-sm btn-outline-primary" type="button" (click)="openAddNote()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -372,9 +389,11 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ n.note }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button"
+                      <div>{{ n.createdAt | date:'dd/MM/yyyy' }}</div>
+                      <!--button *ngIf="!isOrderFinalized() && (!isFormReadOnly() || isExpertNonCenterAdmin())" class="btn btn-link" type="button"
                         (click)="openEditNote(n)">Edit</button>
-                      <button class="btn btn-link text-danger" type="button" (click)="deleteNote(n.id)">Delete</button>
+                      <button class="btn btn-link text-danger" type="button" (click)="deleteNote(n.id)" [disabled]="isFormReadOnly() && !isExpertNonCenterAdmin()">Delete</button>
+                    -->
                     </div>
                   </li>
                   }
@@ -385,11 +404,12 @@
               </div>
             </div>
 
+            @if (!isExpertNonCenterAdmin()) {
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Diagnostics</span>
-                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button"
-                  (click)="openAddDiagnostic()">+</button>
+                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                  type="button" (click)="openAddDiagnostic()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -397,10 +417,10 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ d.diagnostic }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button"
+                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-link" type="button"
                         (click)="openEditDiagnostic(d)">Edit</button>
-                      <button class="btn btn-link text-danger" type="button"
-                        (click)="deleteDiagnostic(d.id)">Delete</button>
+                      <button class="btn btn-link text-danger" type="button" (click)="deleteDiagnostic(d.id)"
+                        [disabled]="isFormReadOnly()">Delete</button>
                     </div>
                   </li>
                   }
@@ -411,11 +431,12 @@
               </div>
             </div>
 
+
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Statuses</span>
-                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button"
-                  (click)="openAddStatus()">+</button>
+                <span>Status</span>
+                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                  type="button" (click)="openAddStatus()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -423,15 +444,16 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ s.status }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button"
+                      <div>{{ s.createdAt | date:'dd/MM/yyyy' }}</div>
+                      <!--button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-link" type="button"
                         (click)="openEditStatus(s)">Edit</button>
                       <button class="btn btn-link text-danger" type="button"
-                        (click)="deleteStatus(s.id)">Delete</button>
+                        (click)="deleteStatus(s.id)" [disabled]="isFormReadOnly()">Delete</button-->
                     </div>
                   </li>
                   }
                   @if (!repairStatuses.length) {
-                  <li class="list-group-item text-muted">No statuses</li>
+                  <li class="list-group-item text-muted">No status</li>
                   }
                 </ul>
               </div>
@@ -440,8 +462,8 @@
             <div class="card">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Items</span>
-                <button *ngIf="!isOrderFinalized()" class="btn btn-sm btn-outline-primary" type="button"
-                  (click)="openAddItem()">+</button>
+                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                  type="button" (click)="openAddItem()">+</button>
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -452,9 +474,10 @@
                       <small class="text-muted">Qty: {{ i.quantity }} — Price: {{ i.price }}</small>
                     </div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized()" class="btn btn-link" type="button"
+                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-link" type="button"
                         (click)="openEditItem(i)">Edit</button>
-                      <button class="btn btn-link text-danger" type="button" (click)="deleteItem(i.id)">Delete</button>
+                      <button class="btn btn-link text-danger" type="button" (click)="deleteItem(i.id)"
+                        [disabled]="isFormReadOnly()">Delete</button>
                     </div>
                   </li>
                   }
@@ -464,6 +487,7 @@
                 </ul>
               </div>
             </div>
+            }
           </div>
         </div>
       </div>
@@ -549,8 +573,13 @@
                   <option [value]="customer.id">{{ customer.firstName }} {{ customer.lastName }}</option>
                   }
                 </select>
-                <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()">
+                <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()"
+                  [disabled]="isFormReadOnly()">
                   <i class="bi bi-search"></i>
+                </button>
+                <button class="btn btn-outline-primary" type="button" (click)="openCustomerForm()"
+                  [disabled]="isFormReadOnly()">
+                  <i class="bi bi-person-plus"></i>
                 </button>
               </div>
               @if (isFieldInvalid('customerId')) {
@@ -569,7 +598,8 @@
                   <option [value]="device.id">{{ device.name }}</option>
                   }
                 </select>
-                <button class="btn btn-outline-secondary" type="button" (click)="openAddDevice()">+</button>
+                <button class="btn btn-outline-secondary" type="button" (click)="openAddDevice()"
+                  [disabled]="isFormReadOnly()">+</button>
               </div>
               @if (isFieldInvalid('deviceId')) {
               <span class="error-message">{{ getFieldError('deviceId') }}</span>
@@ -587,11 +617,19 @@
                   <option [value]="brand.id">{{ brand.name }}</option>
                   }
                 </select>
-                <button class="btn btn-outline-secondary" type="button" (click)="openAddDeviceBrand()">+</button>
+                <button class="btn btn-outline-secondary" type="button" (click)="openAddDeviceBrand()"
+                  [disabled]="isFormReadOnly()">+</button>
               </div>
               @if (isFieldInvalid('deviceBrandId')) {
               <span class="error-message">{{ getFieldError('deviceBrandId') }}</span>
               }
+            </div>
+
+            <!-- Reception Note -->
+            <div class="col-12">
+              <label for="noteReception" class="form-label">Reception Notes</label>
+              <textarea id="noteReception" class="form-control" formControlName="noteReception"
+                placeholder="Additional notes..." rows="3"></textarea>
             </div>
           </div>
         </div>
@@ -621,6 +659,38 @@
                 placeholder="Serial number" />
             </div>
 
+            <!-- Assigned Tech -->
+            <div class="col-md-6 col-xl-4">
+              <label for="assignedTechId" class="form-label">Assigned Technician *</label>
+              <select id="assignedTechId" class="form-select" [class.is-invalid]="isFieldInvalid('assignedTechId')"
+                formControlName="assignedTechId">
+                <option [ngValue]="null" disabled>Select technician</option>
+                @for (employee of employees(); track employee.id) {
+                <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('assignedTechId')) {
+              <span class="error-message">{{ getFieldError('assignedTechId') }}</span>
+              }
+            </div>
+
+            <!-- Created By -->
+            @if (showCenterAndStoreFields()) {
+            <div class="col-md-6 col-xl-4">
+              <label for="createdById" class="form-label">Created By *</label>
+              <select id="createdById" class="form-select" [class.is-invalid]="isFieldInvalid('createdById')"
+                formControlName="createdById">
+                <option value="" disabled>Select user</option>
+                @for (employee of employees(); track employee.id) {
+                <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('createdById')) {
+              <span class="error-message">{{ getFieldError('createdById') }}</span>
+              }
+            </div>
+            }
+
             <!-- Defective Part -->
             <div class="col-12">
               <label for="defectivePart" class="form-label">Defective Part</label>
@@ -628,11 +698,11 @@
                 placeholder="Describe the defective part" />
             </div>
 
-            <!-- Reception Note -->
+            <!-- Estimated -->
             <div class="col-12">
-              <label for="noteReception" class="form-label">Reception Notes</label>
-              <textarea id="noteReception" class="form-control" formControlName="noteReception"
-                placeholder="Additional notes..." rows="3"></textarea>
+              <label for="estimated" class="form-label">Estimated</label>
+              <textarea id="estimated" class="form-control" formControlName="estimated"
+                placeholder="Estimated repair..." rows="3"></textarea>
             </div>
 
           </div>
@@ -668,14 +738,14 @@
 
             <!-- Discount -->
             <div class="col-md-6 col-xl-4">
-              <label for="costdiscount" class="form-label">Discount</label>
+              <label for="costdiscount" class="form-label">Discount (%)</label>
               <input type="number" id="costdiscount" class="form-control" formControlName="costdiscount" min="0"
                 step="0" />
             </div>
 
             <!-- Tax -->
             <div class="col-md-6 col-xl-4">
-              <label for="tax" class="form-label">Tax</label>
+              <label for="tax" class="form-label">Tax (%)</label>
               <input type="number" id="tax" class="form-control" formControlName="tax" min="0" step="0" />
             </div>
 
@@ -697,51 +767,41 @@
                   <option [value]="type.id">{{ type.type }}</option>
                   }
                 </select>
-                <button class="btn btn-outline-secondary" type="button" (click)="openAddPaymentType()">+</button>
+                <button class="btn btn-outline-secondary" type="button" (click)="openAddPaymentType()"
+                  [disabled]="isFormReadOnly()">+</button>
               </div>
               @if (isFieldInvalid('paymentTypeId')) {
               <span class="error-message">{{ getFieldError('paymentTypeId') }}</span>
               }
             </div>
 
-            <!-- Assigned Tech -->
-            <div class="col-md-6 col-xl-4">
-              <label for="assignedTechId" class="form-label">Assigned Technician *</label>
-              <select id="assignedTechId" class="form-select" [class.is-invalid]="isFieldInvalid('assignedTechId')"
-                formControlName="assignedTechId">
-                <option [ngValue]="null" disabled>Select technician</option>
-                @for (employee of employees(); track employee.id) {
-                <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
-                }
-              </select>
-              @if (isFieldInvalid('assignedTechId')) {
-              <span class="error-message">{{ getFieldError('assignedTechId') }}</span>
-              }
-            </div>
 
-            <!-- Created By -->
-            @if (showCenterAndStoreFields()) {
-            <div class="col-md-6 col-xl-4">
-              <label for="createdById" class="form-label">Created By *</label>
-              <select id="createdById" class="form-select" [class.is-invalid]="isFieldInvalid('createdById')"
-                formControlName="createdById">
-                <option value="" disabled>Select user</option>
-                @for (employee of employees(); track employee.id) {
-                <option [value]="employee.id">{{ employee.firstName }} {{ employee.lastName }}</option>
-                }
-              </select>
-              @if (isFieldInvalid('createdById')) {
-              <span class="error-message">{{ getFieldError('createdById') }}</span>
-              }
-            </div>
-            }
 
             <!-- Total Cost (Calculated) -->
-            <div class="col-12">
+            <div class="col-6">
               <div class="alert alert-info mb-0">
-                <label for="totalCost" class="form-label">Total Cost (Calculated)</label>
-                <input type="number" id="totalCost" class="form-control" formControlName="totalCost" readonly />
-                <small class="help-text d-block mt-1">Automatically calculated: Price + Repair - Discount + Tax</small>
+                <label for="totalCost" class="form-label">Total Price (Calculated)</label>
+                <input type="number" id="totalCost" hidden class="form-control" formControlName="totalCost" readonly />
+                <div class="col-md-2 col-xl-2"></div>
+                <div class="col-md-6 col-xl-4">
+                  @if (!isEditMode()) {
+                  <div class="mt-2">
+                    <div class="d-flex justify-content-between">
+                      <div class="text">Subtotal Price</div>
+                      <div class="fw-bold">{{ formatCurrency(getCurrentPrice()) }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                      <div class="text">TAX:</div>
+                      <div class="fw-bold">{{ formatCurrency(getTaxAmount()) }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                      <div class="text">Total</div>
+                      <div class="fw-bold">{{ formatCurrency(getCurrentTotal()) }}</div>
+                    </div>
+                  </div>
+                  }
+                </div>
+                <small class="help-text d-block mt-1">Automatically calculated: Price - Discount + Tax</small>
               </div>
             </div>
           </div>
@@ -749,7 +809,7 @@
         }
 
         <!-- Step Indicators (only in create mode) -->
-        @if (showSteps()) {
+        @if (showSteps() && !isExpertNonCenterAdmin()) {
         <div class="steps-indicator d-flex flex-wrap gap-2 justify-content-center mt-3 mb-4">
           @for (step of steps; track step.id) {
           <button type="button" class="btn btn-sm rounded-circle fw-semibold" [ngClass]="{
@@ -768,7 +828,7 @@
     }
 
     <div class="d-flex flex-wrap gap-2 justify-content-end mt-4 pt-3 border-top">
-      @if (isEditMode() && !isOrderFinalized()) {
+      @if (isEditMode() && !isOrderFinalized() && !isFormReadOnly()) {
       <button type="button" class="btn btn-outline-success" (click)="completeOrder()" [disabled]="isSaving()">
         <i class="bi bi-check-circle me-1"></i> Complete
       </button>
@@ -782,7 +842,7 @@
 
       <!-- Navigation buttons (only in create mode) -->
       @if (showSteps()) {
-      @if (currentStep() > 0) {
+      @if (currentStep() > 0 && !(isExpertNonCenterAdmin() && currentStep() === 1)) {
       <button type="button" class="btn btn-outline-secondary" (click)="prevStep()" [disabled]="isSaving()">
         <i class="bi bi-arrow-left me-1"></i> Previous
       </button>
@@ -798,7 +858,7 @@
         <!-- Submit button -->
         @if (!showSteps() || currentStep() === steps.length - 1) {
         <button type="submit" class="btn btn-success"
-          [disabled]="!serviceOrderForm.valid || isSaving() || isOrderFinalized()">
+          [disabled]="!serviceOrderForm.valid || isSaving() || isOrderFinalized() || isFormReadOnly()">
           @if (isSaving()) {
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...
           } @else {

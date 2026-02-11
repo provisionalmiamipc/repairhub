@@ -4,6 +4,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Appointments } from '../../shared/models/Appointments';
+import { Employees } from '../../shared/models/Employees';
+import { EmployeesService } from '../../shared/services/employees.service';
 import { Devices } from '../../shared/models/Devices';
 import { ServiceTypes } from '../../shared/models/ServiceTypes';
 import { AppointmentsService } from '../../shared/services/appointments.service';
@@ -54,6 +56,7 @@ export class AppointmentsFormModernComponent implements OnInit {
   private centersService = inject(CentersService);
   private storesService = inject(StoresService);
   private authService = inject(AuthService);
+  private employeesService = inject(EmployeesService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -72,6 +75,7 @@ export class AppointmentsFormModernComponent implements OnInit {
   readonly stores = signal<Stores[]>([]);
   readonly selectedCenterId = signal<number | null>(null);
   readonly minDate = signal<string>(this.getTodayDate());
+  readonly employees = signal<Employees[]>([]);
   readonly userType = signal<'employee' | 'user' | null>(this.authService.getUserType());
   readonly showDeviceModal = signal(false);
   readonly showServiceTypeModal = signal(false);
@@ -122,6 +126,7 @@ export class AppointmentsFormModernComponent implements OnInit {
     this.loadStores();
     this.loadDevices();
     this.loadServiceTypes();
+    this.loadEmployees();
     this.checkEditMode();
   }
 
@@ -135,6 +140,7 @@ export class AppointmentsFormModernComponent implements OnInit {
       time: ['', [Validators.required]],
       deviceId: ['', [Validators.required]],
       serviceTypeId: ['', [Validators.required]],
+      assignedTechId: [null, [Validators.required]],
       duration: [30, [Validators.required, Validators.min(15), Validators.max(480)]],
       notes: [''],
       cloused: [false],
@@ -142,6 +148,17 @@ export class AppointmentsFormModernComponent implements OnInit {
     });
 
     this.applyUserTypeRules();
+  }
+
+  private loadEmployees(): void {
+    this.employeesService.getAll().subscribe({
+      next: (employees) => {
+        this.employees.set(employees || []);
+      },
+      error: (err) => {
+        console.error('Error loading employees:', err);
+      }
+    });
   }
 
   private applyUserTypeRules(): void {
@@ -519,11 +536,11 @@ export class AppointmentsFormModernComponent implements OnInit {
     const field = this.appointmentForm.get(fieldName);
     if (!field?.errors || !field?.touched) return null;
 
-    if (field.errors['required']) return 'Este campo es requerido';
-    if (field.errors['minlength']) return `Mínimo ${field.errors['minlength'].requiredLength} caracteres`;
-    if (field.errors['min']) return `Mínimo ${field.errors['min'].min}`;
-    if (field.errors['max']) return `Máximo ${field.errors['max'].max}`;
-    if (field.errors['pattern']) return 'Formato inválido';
+    if (field.errors['required']) return 'This field is required';
+    if (field.errors['minlength']) return `Minimum ${field.errors['minlength'].requiredLength} characters`;
+    if (field.errors['min']) return `Minimum ${field.errors['min'].min}`;
+    if (field.errors['max']) return `Maximum ${field.errors['max'].max}`;
+    if (field.errors['pattern']) return 'Invalid format';
 
     return null;
   }

@@ -11,7 +11,7 @@ import { switchMap } from 'rxjs';
   standalone: true,
   imports: [CommonModule, SODiagnosticFormComponent],
   template: `
-    <h1>Editar Diagnóstico</h1>
+    <h1>Edit Diagnostic</h1>
     <app-so-diagnostic-form
       [soDiagnostic]="soDiagnostic"
       (save)="onSave($event)"

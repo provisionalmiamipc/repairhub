@@ -48,10 +48,20 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           // Limpiar sesión del usuario
           appState.clearUserSession();
           
-          // Redirigir al login después de 500ms
-          setTimeout(() => {
-            router.navigate(['/login']);
-          }, 500);
+          // Redirigir al login después de 500ms, salvo que estemos en la página de activación
+          try {
+            const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+            const onActivate = pathname.startsWith('/activate');
+            if (!onActivate) {
+              setTimeout(() => {
+                router.navigate(['/login']);
+              }, 500);
+            }
+          } catch (e) {
+            setTimeout(() => {
+              router.navigate(['/login']);
+            }, 500);
+          }
           break;
           
         case 403:
@@ -78,11 +88,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           appState.addNotification('error', errorMessage, 4000);
           break;
           
-        case 429:
-          // Demasiadas peticiones
-          errorMessage = error.error?.message || 'Demasiados intentos. Intenta nuevamente más tarde.';
-          appState.addNotification('error', errorMessage, 5000);
-          break;
+          case 429:
+            // Too many requests
+            errorMessage = error.error?.message || 'Too many attempts. Try again later.';
+            appState.addNotification('error', errorMessage, 5000);
+            break;
           
         case 500:
         case 502:

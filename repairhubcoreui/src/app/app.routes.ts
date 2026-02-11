@@ -18,6 +18,12 @@ import { Permission } from './shared/rbac';
 
 export const routes: Routes = [
   {
+    path: 'activate',
+    loadComponent: () => import('./views/pages/activate/activate.component').then(m => m.ActivateComponent),
+    data: { title: 'Activar cuenta' }
+  },
+
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full'
@@ -229,6 +235,11 @@ export const routes: Routes = [
     data: {
       title: 'Login Page'
     }
+  },
+  {
+    path: 'activate',
+    loadComponent: () => import('./views/pages/activate/activate.component').then(m => m.ActivateComponent),
+    data: { title: 'Activar cuenta' }
   },
   {
     path: 'register',

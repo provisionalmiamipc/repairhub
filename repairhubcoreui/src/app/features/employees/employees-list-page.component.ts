@@ -15,11 +15,11 @@ import { EmployeesListComponent } from './employees-list.component';
     <div class="container-lg py-4">
       <div class="row mb-4">
         <div class="col-md-8">
-          <h1 class="h2">Empleados</h1>
+          <h1 class="h2">Employees</h1>
         </div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nuevo Empleado
+            <i class="cil-plus me-2"></i> New Employee
           </button>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { EmployeesListComponent } from './employees-list.component';
       <div *ngIf="loading$ | async">
         <div class="text-center py-5">
           <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ export class EmployeesListPageComponent implements OnInit, OnDestroy {
   }
 
   onDelete(employee: Employees): void {
-    if (confirm(`¿Eliminar empleado ${employee.firstName} ${employee.lastName}?`)) {
+    if (confirm(`Delete employee ${employee.firstName} ${employee.lastName}?`)) {
       this.employeesService
         .delete(employee.id)
         .pipe(takeUntil(this.destroy$))

@@ -1,19 +1,25 @@
 <html>
   <body style="font-family: Arial, Helvetica, sans-serif; line-height:1.4; color:#333;">
-    <p>Hola {{fullName}},</p>
+    <p>Hello {{fullName}},</p>
 
-    <p>Bienvenido a <strong>RepairHub</strong>. A continuación encontrarás tus credenciales de acceso temporales:</p>
+    <p>Welcome to <strong>Miami Photography Center.</strong>.</p>
+
+    <p><strong>Access information:</strong></p>
 
     <ul>
-      <li><strong>Código de empleado:</strong> {{employeeCode}}</li>
+      <li><strong>Employee code:</strong> {{employeeCode}}</li>
       <li><strong>PIN:</strong> {{pin}}</li>
-      <li><strong>Contraseña temporal:</strong> {{tempPassword}}</li>
     </ul>
 
-    <p>Puedes iniciar sesión en: <a href="{{appUrl}}">{{appUrl}}</a></p>
+    {{#if activationLink}}
+      <p>To activate your account and set your password, click the link below (valid for 24 hours):</p>
+      <p><a href="{{activationLink}}">Activate account</a></p>
+    {{else}}
+      <p><strong>Temporary password:</strong> {{tempPassword}}</p>
+      <p>You can sign in at: <a href="{{appUrl}}">{{appUrl}}</a></p>
+      <p>For security, please change your password on first login.</p>
+    {{/if}}
 
-    <p>Por seguridad cambia tu contraseña en el primer inicio de sesión.</p>
-
-    <p>Saludos,<br/>Equipo RepairHub</p>
+    <p>Regards,<br/>Miami Photography Center Team</p>
   </body>
 </html>

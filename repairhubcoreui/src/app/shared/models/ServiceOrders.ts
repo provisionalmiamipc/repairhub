@@ -33,6 +33,7 @@ export interface ServiceOrders {
   assignedTechId: number;
   createdById: number;
   noteReception: string;
+  estimated: string;
   cloused: boolean;
   canceled: boolean;
   createdAt: Date;

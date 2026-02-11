@@ -99,8 +99,15 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
       }
     });
 
+    // Role-based visibility: Experts (non center-admin) see only their orders
+    const employee = this.authService.getCurrentEmployee();
+    if (employee && employee.employee_type === 'Expert' && !employee.isCenterAdmin) {
+      filtered = filtered.filter(o => o.createdById === employee.id || o.assignedTechId === employee.id);
+    }
+
     return filtered;
   });
+
 
   isEmptyState = computed(() => this.filteredServiceOrders().length === 0 && !this.isLoading());
 

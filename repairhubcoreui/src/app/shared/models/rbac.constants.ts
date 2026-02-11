@@ -154,8 +154,8 @@ const USER_PERMISSIONS: Permission[] = [
 // EXPERT: Empleado base - Acceso limitado
 const EXPERT_PERMISSIONS: Permission[] = [
   // Clientes (crear y ver propios)
-  Permission.VIEW_CUSTOMERS,
-  Permission.CREATE_CUSTOMER,
+  //Permission.VIEW_CUSTOMERS,
+  //Permission.CREATE_CUSTOMER,
 
   // Órdenes de Servicio (asignadas a él)
   Permission.VIEW_SERVICE_ORDERS,

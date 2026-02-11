@@ -36,6 +36,7 @@ export class RepairStatusFormComponent {
   // Status picker
   showStatusPicker: boolean = false;
   statusOptions: { label: string; icon: string }[] = [
+    { label: 'Pending', icon: 'bi bi-clock' },
     { label: 'Repaired', icon: 'bi bi-check2-circle' },
     { label: 'In Progress', icon: 'bi bi-hourglass-split' },
     { label: 'Awaiting Parts', icon: 'bi bi-box-seam' },
@@ -46,6 +47,7 @@ export class RepairStatusFormComponent {
     { label: 'Tech Damage', icon: 'bi bi-tools' },
     { label: 'Paid', icon: 'bi bi-currency-dollar' },
     { label: 'Cancel Repair', icon: 'bi bi-x-circle' },
+    { label: 'Canceled by customer', icon: 'bi bi-person-x' },
     { label: 'Non Repairable', icon: 'bi bi-exclamation-triangle' },
   ];
 

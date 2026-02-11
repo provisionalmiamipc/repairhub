@@ -208,6 +208,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   // Show steps only in create mode (not in edit mode)
   showSteps = computed(() => !this.isEditMode());
 
+  // Detect Expert employees that are NOT center admins
+  isExpertNonCenterAdmin = computed(() => {
+    return this.userType() === 'employee' && !this.isCenterAdmin() && this.authService.isExpert();
+  });
+
   // Computed filtered stores based on selected center
   filteredStores = computed(() => {
     const centerId = this.selectedCenterId();
@@ -215,10 +220,10 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   });
 
   steps = [
-    { id: 0, title: 'Centro y Tienda', description: 'Ubicación del servicio' },
-    { id: 1, title: 'Cliente y Dispositivo', description: 'Información del cliente y equipo' },
-    { id: 2, title: 'Detalles Técnicos', description: 'Especificaciones del equipo' },
-    { id: 3, title: 'Costos', description: 'Precios y pagos' }
+    { id: 0, title: 'Center & Store', description: 'Service location' },
+    { id: 1, title: 'Customer & Device', description: 'Customer and device information' },
+    { id: 2, title: 'Technical Details', description: 'Device specifications' },
+    { id: 3, title: 'Pricing', description: 'Prices and payments' }
   ];
 
   currentStep = signal(0);
@@ -231,6 +236,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     this.checkEditMode();
     this.setupCostCalculation();
     this.setupCenterChange();
+    // If user is Expert and not center admin, skip the Center/Store step in create mode
+    if (!this.isEditMode() && this.isExpertNonCenterAdmin()) {
+      // Start at step 1 (Customer & Device)
+      this.currentStep.set(1);
+    }
   }
 
   ngOnDestroy(): void {
@@ -250,15 +260,16 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       defectivePart: [''],
       paymentTypeId: [null, Validators.required],
       assignedTechId: [null, Validators.required],
-      createdById: [null, Validators.required],
+      createdById: ['', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
       repairCost: [0, [Validators.required, Validators.min(0)]],
       costdiscount: [0, [Validators.min(0)]],
       advancePayment: [0, [Validators.min(0)]],
-      tax: [0, [Validators.min(0)]],
+      tax: [7, [Validators.min(0)]],
       totalCost: [0],
       lock: [false],
       noteReception: [''],
+      estimated: [''],
       cloused: [false],
       canceled: [false]
     });
@@ -317,16 +328,29 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
             this.selectedCenterId.set(centerId);
           }
           this.loadRelatedCollections();
+
+          // If editing and user is Expert non-center-admin, make form read-only
+          const employee = this.authService.getCurrentEmployee();
+          if (this.isEditMode() && employee && employee.employee_type === 'Expert' && !employee.isCenterAdmin) {
+            this.serviceOrderForm.disable({ emitEvent: false });
+          }
+
           this.formState.update(s => ({ ...s, isLoading: false }));
         },
         error: (err) => {
           this.formState.update(s => ({
             ...s,
             isLoading: false,
-            error: err?.error?.message || 'Error cargando la orden'
+            error: err?.error?.message || 'Error loading order'
           }));
         }
       });
+  }
+
+  // Template helper: true when the current form is read-only for Expert non-center-admin
+  isFormReadOnly(): boolean {
+    const employee = this.authService.getCurrentEmployee();
+    return this.isEditMode() && !!employee && employee.employee_type === 'Expert' && !employee.isCenterAdmin;
   }
 
   private lockFormIfFinalized(): void {
@@ -347,11 +371,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toastService.success('Orden de servicio completada');
+          this.toastService.success('Service order completed');
           this.router.navigate(['/service-orders']);
         },
         error: (err) => {
-          this.formState.update(s => ({ ...s, isSaving: false, error: err?.error?.message || 'Error completando la orden' }));
+          this.formState.update(s => ({ ...s, isSaving: false, error: err?.error?.message || 'Error completing order' }));
         }
       });
   }
@@ -364,11 +388,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.toastService.success('Orden de servicio cancelada');
+          this.toastService.success('Service order cancelled');
           this.router.navigate(['/service-orders']);
         },
         error: (err) => {
-          this.formState.update(s => ({ ...s, isSaving: false, error: err?.error?.message || 'Error cancelando la orden' }));
+          this.formState.update(s => ({ ...s, isSaving: false, error: err?.error?.message || 'Error canceling order' }));
         }
       });
   }
@@ -459,11 +483,23 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
   prevStep(): void {
     if (this.currentStep() > 0) {
-      this.currentStep.update(s => s - 1);
+      const candidate = this.currentStep() - 1;
+      // Prevent going back to hidden Location step for Expert non-center-admin
+      if (candidate === 0 && this.isExpertNonCenterAdmin()) {
+        return;
+      }
+      this.currentStep.set(candidate);
     }
   }
 
   getStepProgress(): number {
+    // Adjust progress when the first step is skipped for Expert non-center-admin
+    if (this.isExpertNonCenterAdmin()) {
+      const total = Math.max(1, this.steps.length - 1);
+      const index = Math.max(0, this.currentStep() - 1);
+      return ((index + 1) / total) * 100;
+    }
+
     return ((this.currentStep() + 1) / this.steps.length) * 100;
   }
 
@@ -484,7 +520,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.formState.update(s => ({ ...s, isSaving: false, success: true }));
-          const msg = this.isEditMode() ? 'Orden de servicio actualizada' : 'Orden de servicio creada';
+          const msg = this.isEditMode() ? 'Service order updated' : 'Service order created';
           this.toastService.success(msg);
           setTimeout(() => {
             this.router.navigate(['/service-orders']);
@@ -494,7 +530,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
           this.formState.update(s => ({
             ...s,
             isSaving: false,
-            error: err?.error?.message || 'Error al guardar la orden'
+            error: err?.error?.message || 'Error saving order'
           }));
         }
       });
@@ -526,7 +562,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     if (customer && customer.id) {
       this.serviceOrderForm.get('customerId')?.setValue(customer.id);
       this.customersService.getAll().pipe(takeUntil(this.destroy$)).subscribe(c => this.customers.set(c || []));
-      this.toastService.success('Cliente seleccionado');
+      this.toastService.success('Customer selected');
     }
     this.closeCustomerSearch();
   }
@@ -536,7 +572,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (created) => {
-          this.toastService.success('Cliente creado');
+          this.toastService.success('Customer created');
           const list = this.customers();
           this.customers.set([...(list || []), created as any]);
           if ((created as any)?.id) {
@@ -544,7 +580,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
           }
           this.closeCustomerForm();
         },
-        error: () => this.toastService.error('Error creando cliente')
+        error: () => this.toastService.error('Error creating customer')
       });
   }
 
@@ -601,7 +637,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       this.devicesService.getAll().pipe(takeUntil(this.destroy$)).subscribe(d => this.devices.set(d || []));
       this.serviceOrderForm.get('deviceId')?.setValue(emittedId);
       this.closeDeviceModal();
-      this.toastService.success('Device guardado');
+      this.toastService.success('Device saved');
       return;
     }
 
@@ -610,9 +646,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         next: () => {
           this.devicesService.getAll().pipe(takeUntil(this.destroy$)).subscribe(d => this.devices.set(d || []));
           this.closeDeviceModal();
-          this.toastService.success('Device actualizado');
+          this.toastService.success('Device updated');
         },
-        error: () => this.toastService.error('Error actualizando device')
+        error: () => this.toastService.error('Error updating device')
       });
     } else {
       this.devicesService.create(payload).subscribe({
@@ -620,9 +656,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
           this.devicesService.getAll().pipe(takeUntil(this.destroy$)).subscribe(d => this.devices.set(d || []));
           this.serviceOrderForm.get('deviceId')?.setValue((created as any).id);
           this.closeDeviceModal();
-          this.toastService.success('Device creado');
+          this.toastService.success('Device created');
         },
-        error: () => this.toastService.error('Error creando device')
+        error: () => this.toastService.error('Error creating device')
       });
     }
   }
@@ -635,7 +671,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       this.deviceBrandsService.getAll().pipe(takeUntil(this.destroy$)).subscribe(b => this.deviceBrands.set(b || []));
       this.serviceOrderForm.get('deviceBrandId')?.setValue(emittedId);
       this.closeDeviceBrandModal();
-      this.toastService.success('Marca guardada');
+      this.toastService.success('Brand saved');
       return;
     }
 
@@ -644,9 +680,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         next: () => {
           this.deviceBrandsService.getAll().pipe(takeUntil(this.destroy$)).subscribe(b => this.deviceBrands.set(b || []));
           this.closeDeviceBrandModal();
-          this.toastService.success('Marca actualizada');
+          this.toastService.success('Brand updated');
         },
-        error: () => this.toastService.error('Error actualizando marca')
+        error: () => this.toastService.error('Error updating brand')
       });
     } else {
       this.deviceBrandsService.create(payload).subscribe({
@@ -654,9 +690,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
           this.deviceBrandsService.getAll().pipe(takeUntil(this.destroy$)).subscribe(b => this.deviceBrands.set(b || []));
           this.serviceOrderForm.get('deviceBrandId')?.setValue((created as any).id);
           this.closeDeviceBrandModal();
-          this.toastService.success('Marca creada');
+          this.toastService.success('Brand created');
         },
-        error: () => this.toastService.error('Error creando marca')
+        error: () => this.toastService.error('Error creating brand')
       });
     }
   }
@@ -669,7 +705,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       this.paymentTypesService.getAll().pipe(takeUntil(this.destroy$)).subscribe(p => this.paymentTypes.set(p || []));
       this.serviceOrderForm.get('paymentTypeId')?.setValue(emittedId);
       this.closePaymentTypeModal();
-      this.toastService.success('Tipo de pago guardado');
+      this.toastService.success('Payment type saved');
       return;
     }
 
@@ -678,9 +714,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         next: () => {
           this.paymentTypesService.getAll().pipe(takeUntil(this.destroy$)).subscribe(p => this.paymentTypes.set(p || []));
           this.closePaymentTypeModal();
-          this.toastService.success('Tipo de pago actualizado');
+          this.toastService.success('Payment type updated');
         },
-        error: () => this.toastService.error('Error actualizando tipo de pago')
+        error: () => this.toastService.error('Error updating payment type')
       });
     } else {
       this.paymentTypesService.create(payload).subscribe({
@@ -688,9 +724,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
           this.paymentTypesService.getAll().pipe(takeUntil(this.destroy$)).subscribe(p => this.paymentTypes.set(p || []));
           this.serviceOrderForm.get('paymentTypeId')?.setValue((created as any).id);
           this.closePaymentTypeModal();
-          this.toastService.success('Tipo de pago creado');
+          this.toastService.success('Payment type created');
         },
-        error: () => this.toastService.error('Error creando tipo de pago')
+        error: () => this.toastService.error('Error creating payment type')
       });
     }
   }
@@ -768,13 +804,13 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
     if (id) {
       this.soNotesService.update(id, sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeNoteModal(); this.toastService.success('Nota actualizada'); },
-        error: () => this.toastService.error('Error actualizando nota')
+        next: () => { this.loadRelatedCollections(); this.closeNoteModal(); this.toastService.success('Note updated'); },
+        error: () => this.toastService.error('Error updating note')
       });
     } else {
       this.soNotesService.create(sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeNoteModal(); this.toastService.success('Nota creada'); },
-        error: () => this.toastService.error('Error creando nota')
+        next: () => { this.loadRelatedCollections(); this.closeNoteModal(); this.toastService.success('Note created'); },
+        error: () => this.toastService.error('Error creating note')
       });
     }
   }
@@ -794,13 +830,13 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
     if (id) {
       this.soDiagnosticService.update(id, sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeDiagnosticModal(); this.toastService.success('Diagnóstico actualizado'); },
-        error: () => this.toastService.error('Error actualizando diagnóstico')
+        next: () => { this.loadRelatedCollections(); this.closeDiagnosticModal(); this.toastService.success('Diagnostic updated'); },
+        error: () => this.toastService.error('Error updating diagnostic')
       });
     } else {
       this.soDiagnosticService.create(sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeDiagnosticModal(); this.toastService.success('Diagnóstico creado'); },
-        error: () => this.toastService.error('Error creando diagnóstico')
+        next: () => { this.loadRelatedCollections(); this.closeDiagnosticModal(); this.toastService.success('Diagnostic created'); },
+        error: () => this.toastService.error('Error creating diagnostic')
       });
     }
   }
@@ -824,13 +860,13 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
     if (id) {
       this.soItemsService.update(id, sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeItemModal(); this.toastService.success('Item actualizado'); },
-        error: () => this.toastService.error('Error actualizando item')
+        next: () => { this.loadRelatedCollections(); this.closeItemModal(); this.toastService.success('Item updated'); },
+        error: () => this.toastService.error('Error updating item')
       });
     } else {
       this.soItemsService.create(sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeItemModal(); this.toastService.success('Item creado'); },
-        error: () => this.toastService.error('Error creando item')
+        next: () => { this.loadRelatedCollections(); this.closeItemModal(); this.toastService.success('Item created'); },
+        error: () => this.toastService.error('Error creating item')
       });
     }
   }
@@ -848,14 +884,14 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
     if (id) {
       this.repairStatusService.update(id, sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeStatusModal(); this.toastService.success('Estado actualizado'); },
-        error: () => this.toastService.error('Error actualizando estado')
+        next: () => { this.loadRelatedCollections(); this.closeStatusModal(); this.toastService.success('Status updated'); },
+        error: () => this.toastService.error('Error updating status')
       });
     } else {
       this.repairStatusService.create(sanitized).subscribe({
-        next: () => { this.loadRelatedCollections(); this.closeStatusModal(); this.toastService.success('Estado creado'); },
+        next: () => { this.loadRelatedCollections(); this.closeStatusModal(); this.toastService.success('Status created'); },
         error: (err) => {
-          const msg = err?.error?.message || err?.message || 'Error creando estado';
+          const msg = err?.error?.message || err?.message || 'Error creating status';
           this.toastService.error(typeof msg === 'string' ? msg : JSON.stringify(msg));
         }
       });
@@ -863,34 +899,34 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   }
 
   deleteNote(id: number): void {
-    if (!confirm('¿Eliminar nota?')) return;
+    if (!confirm('Delete note?')) return;
     this.soNotesService.delete(id).subscribe({
-      next: () => { this.loadRelatedCollections(); this.toastService.success('Nota eliminada'); },
-      error: () => this.toastService.error('Error eliminando nota')
+      next: () => { this.loadRelatedCollections(); this.toastService.success('Note deleted'); },
+      error: () => this.toastService.error('Error deleting note')
     });
   }
 
   deleteDiagnostic(id: number): void {
-    if (!confirm('¿Eliminar diagnóstico?')) return;
+    if (!confirm('Delete diagnostic?')) return;
     this.soDiagnosticService.delete(id).subscribe({
-      next: () => { this.loadRelatedCollections(); this.toastService.success('Diagnóstico eliminado'); },
-      error: () => this.toastService.error('Error eliminando diagnóstico')
+      next: () => { this.loadRelatedCollections(); this.toastService.success('Diagnostic deleted'); },
+      error: () => this.toastService.error('Error deleting diagnostic')
     });
   }
 
   deleteItem(id: number): void {
-    if (!confirm('¿Eliminar item?')) return;
+    if (!confirm('Delete item?')) return;
     this.soItemsService.delete(id).subscribe({
-      next: () => { this.loadRelatedCollections(); this.toastService.success('Item eliminado'); },
-      error: () => this.toastService.error('Error eliminando item')
+      next: () => { this.loadRelatedCollections(); this.toastService.success('Item deleted'); },
+      error: () => this.toastService.error('Error deleting item')
     });
   }
 
   deleteStatus(id: number): void {
-    if (!confirm('¿Eliminar estado?')) return;
+    if (!confirm('Delete status?')) return;
     this.repairStatusService.delete(id).subscribe({
-      next: () => { this.loadRelatedCollections(); this.toastService.success('Estado eliminado'); },
-      error: () => this.toastService.error('Error eliminando estado')
+      next: () => { this.loadRelatedCollections(); this.toastService.success('Status deleted'); },
+      error: () => this.toastService.error('Error deleting status')
     });
   }
 
@@ -940,10 +976,20 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     return Number(Number.isFinite(suggested) ? suggested : 0);
   }
 
+  getCurrentPrice(): number {
+    const cprice = Number(this.serviceOrderForm.get('price')?.value) || 0;
+    const discountPercent = Number(this.serviceOrderForm.get('costdiscount')?.value) || 0;
+    const discount = cprice * (discountPercent / 100);
+
+    if (!cprice) return 0;
+    const subtotal= cprice - discount;
+    return Number(Number.isFinite(subtotal) ? subtotal : 0);
+  }
+
   getTaxAmount(): number {
-    const suggested = this.getSuggestedPrice();
+    const current = this.getCurrentPrice();
     const taxPercent = Number(this.serviceOrderForm.get('tax')?.value) || 0;
-    const tax = suggested * (taxPercent / 100);
+    const tax = current * (taxPercent / 100);
     return Number(Number.isFinite(tax) ? tax : 0);
   }
 
@@ -953,6 +999,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     return Number(Number.isFinite(suggested + tax) ? suggested + tax : 0);
   }
 
+  getCurrentTotal(): number {
+    const total = this.getCurrentPrice();
+    const tax = this.getTaxAmount();
+    return Number(Number.isFinite(total + tax) ? total + tax : 0);
+  }
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -966,11 +1017,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     const field = this.serviceOrderForm.get(fieldName);
     if (!field?.errors || !field?.touched) return null;
 
-    if (field.errors['required']) return 'Este campo es requerido';
-    if (field.errors['minlength']) return `Mínimo ${field.errors['minlength'].requiredLength} caracteres`;
-    if (field.errors['min']) return `Mínimo ${field.errors['min'].min}`;
-    if (field.errors['max']) return `Máximo ${field.errors['max'].max}`;
-    if (field.errors['pattern']) return 'Formato inválido';
+    if (field.errors['required']) return 'This field is required';
+    if (field.errors['minlength']) return `Minimum ${field.errors['minlength'].requiredLength} characters`;
+    if (field.errors['min']) return `Minimum ${field.errors['min'].min}`;
+    if (field.errors['max']) return `Maximum ${field.errors['max'].max}`;
+    if (field.errors['pattern']) return 'Invalid format';
 
     return null;
   }

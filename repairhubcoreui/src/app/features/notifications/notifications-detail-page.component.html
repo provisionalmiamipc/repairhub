@@ -1,13 +1,13 @@
-<div *ngIf="loading">Cargando...</div>
+<div *ngIf="loading">Loading...</div>
 <div *ngIf="!loading && notification">
-  <h2>Detalle de Notificación</h2>
+  <h2>Notification Detail</h2>
   <p><strong>ID:</strong> {{ notification.id }}</p>
-  <p><strong>Título:</strong> {{ notification.title }}</p>
-  <p><strong>Mensaje:</strong> {{ notification.message }}</p>
-  <p><strong>Tipo:</strong> {{ notification.type }}</p>
-  <p><strong>Prioridad:</strong> {{ notification.priority }}</p>
-  <p><strong>Estado:</strong> {{ notification.status }}</p>
-  <p><strong>Creado:</strong> {{ notification.createdAt | date:'short' }}</p>
-  <a [routerLink]="['/notifications', notification.id, 'edit']">Editar</a>
-  <a routerLink="/notifications">Volver a la lista</a>
+  <p><strong>Title:</strong> {{ notification.title }}</p>
+  <p><strong>Message:</strong> {{ notification.message }}</p>
+  <p><strong>Type:</strong> {{ notification.type }}</p>
+  <p><strong>Priority:</strong> {{ notification.priority }}</p>
+  <p><strong>Status:</strong> {{ notification.status }}</p>
+  <p><strong>Created:</strong> {{ notification.createdAt | date:'short' }}</p>
+  <a [routerLink]="['/notifications', notification.id, 'edit']">Edit</a>
+  <a routerLink="/notifications">Back to list</a>
 </div>

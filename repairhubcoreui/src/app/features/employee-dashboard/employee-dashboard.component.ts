@@ -5,6 +5,8 @@ import { RouterModule } from '@angular/router';
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AuthService } from '../../shared/services/auth.service';
+import { PermissionsService } from '../../shared/services/permissions.service';
+import { Permission } from '../../shared/models/rbac.constants';
 import { RoleService } from '../../shared/services/role.service';
 import { EmployeeType } from '../../shared/models/constants/roles.constants';
 import { HasPermissionDirective } from '../../shared/directives/has-permission.directive';
@@ -40,7 +42,7 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
   readonly today = new Date();
   lastSync = new Date();
 
-  kpis: Array<{ title: string; value: string | number; trend: number; trendLabel: string; icon: string; color: string; progress: number; }> = [];
+  kpis: Array<{ title: string; value: string | number; trend: number; trendLabel: string; icon: string; color: string; progress: number; requiredPermission?: Permission }> = [];
   statusDistribution: Array<{ label: string; value: number; color: string; }> = [];
   pipeline: Array<{ label: string; value: number; color: string; }> = [];
   alerts: Array<{ title: string; subtitle: string; level: string; }> = [];
@@ -50,10 +52,10 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
   storePerformance: Array<{ label: string; value: number; color: string; }> = [];
 
   readonly quickActions = [
-    { label: 'Nueva orden', icon: 'bi-plus-circle', route: '/service-orders', permission: 'canManageStore' },
-    { label: 'Agendar cita', icon: 'bi-calendar2-plus', route: '/appointments', permission: 'canManageStore' },
-    { label: 'Inventario', icon: 'bi-box-seam', route: '/items', permission: 'canManageInventory' },
-    { label: 'Clientes', icon: 'bi-people', route: '/customers', permission: 'canViewReports' }
+    { label: 'New order', icon: 'bi-plus-circle', route: '/service-orders/new', permission: 'canManageStore' },
+    { label: 'Schedule appointment', icon: 'bi-calendar2-plus', route: '/appointments/new', permission: 'canManageStore' },
+    //{ label: 'Inventario', icon: 'bi-box-seam', route: '/items', permission: 'canManageStore' },
+   // { label: 'Clientes', icon: 'bi-people', route: '/customers', permission: 'canManageStore'}
   ];
 
   constructor(
@@ -63,7 +65,8 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
     private appointmentsService: AppointmentsService,
     private customersService: CustomersService,
     private employeesService: EmployeesService,
-    private itemsService: ItemsService
+    private itemsService: ItemsService,
+    private permissionsService: PermissionsService
   ) {}
 
   ngOnInit(): void {
@@ -130,74 +133,82 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
 
         this.kpis = [
           {
-            title: 'Órdenes activas',
+            title: 'Active orders',
             value: activeOrders.length,
             trend: this.calcTrend(orders24, ordersPrev24),
-            trendLabel: 'últimas 24h',
+            trendLabel: 'last 24h',
             icon: 'bi-clipboard-check',
             color: 'primary',
             progress: Math.round((activeOrders.length / totalOrdersSafe) * 100)
           },
           {
-            title: 'Órdenes cerradas',
+            title: 'Closed orders',
             value: closedOrders.length,
             trend: this.calcTrend(revenueData.closed24, revenueData.closedPrev24),
-            trendLabel: 'últimas 24h',
+            trendLabel: 'last 24h',
             icon: 'bi-check2-circle',
             color: 'success',
             progress: completedPct
           },
           {
-            title: 'Citas pendientes',
+            title: 'Pending appointments',
             value: pendingAppointments.length,
             trend: this.calcTrend(appts24, apptsPrev24),
-            trendLabel: 'últimas 24h',
+            trendLabel: 'last 24h',
             icon: 'bi-calendar2-event',
             color: 'info',
             progress: Math.round((pendingAppointments.length / (appointments.length || 1)) * 100)
           },
           {
-            title: 'Clientes activos',
+            title: 'Active customers',
             value: activeCustomers,
             trend: this.calcTrend(customers30, customersPrev30),
-            trendLabel: 'últimos 30 días',
+            trendLabel: 'last 30 days',
             icon: 'bi-people',
             color: 'primary',
             progress: 100
           },
           {
-            title: 'Empleados activos',
+            title: 'Active employees',
             value: activeEmployees,
             trend: this.calcTrend(employees30, employeesPrev30),
-            trendLabel: 'últimos 30 días',
+            trendLabel: 'last 30 days',
             icon: 'bi-person-badge',
             color: 'secondary',
             progress: Math.min(100, Math.round((activeEmployees / (employees.length || 1)) * 100))
           },
           {
-            title: 'Tiempo medio',
+            title: 'Average time',
             value: `${avgRepairHours.toFixed(1)}h`,
             trend: this.calcTrend(avgRepairHours, revenueData.avgHoursPrev),
-            trendLabel: 'promedio',
+            trendLabel: 'average',
             icon: 'bi-stopwatch',
             color: 'warning',
             progress: Math.min(100, Math.round(avgRepairHours * 10))
           },
           {
-            title: 'Alertas inventario',
+            title: 'Inventory alerts',
             value: lowStockItems.length,
             trend: -Math.min(99, lowStockItems.length),
-            trendLabel: 'stock bajo',
+            trendLabel: 'low stock',
             icon: 'bi-exclamation-triangle',
             color: 'danger',
             progress: Math.min(100, Math.round((lowStockItems.length / (items.length || 1)) * 100))
           }
         ];
 
+        // Mark sensitive KPIs with required permissions
+        this.kpis = this.kpis.map(k => {
+          if (k.title === 'Closed orders') return { ...k, requiredPermission: Permission.VIEW_ORDERS };
+          if (k.title === 'Average time') return { ...k, requiredPermission: Permission.VIEW_REPORTS };
+          if (k.title === 'Inventory alerts') return { ...k, requiredPermission: Permission.VIEW_INVENTORY };
+          return k;
+        });
+
         this.statusDistribution = [
-          { label: 'Completadas', value: completedPct, color: 'success' },
-          { label: 'En progreso', value: inProgressPct, color: 'info' },
-          { label: 'Canceladas', value: canceledPct, color: 'danger' }
+          { label: 'Completed', value: completedPct, color: 'success' },
+          { label: 'In progress', value: inProgressPct, color: 'info' },
+          { label: 'Canceled', value: canceledPct, color: 'danger' }
         ];
 
         this.pipeline = this.buildPipeline(activeOrders);
@@ -210,19 +221,19 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
 
         this.financeSummary = [
           {
-            label: 'Ingresos netos (30 días)',
+            label: 'Net revenue (30 days)',
             value: this.formatCurrency(revenueData.revenue30),
             change: this.formatTrend(revenueData.revenue30, revenueData.revenuePrev30),
             color: 'success'
           },
           {
-            label: 'Costes operativos (30 días)',
+            label: 'Operating costs (30 days)',
             value: this.formatCurrency(revenueData.cost30),
             change: this.formatTrend(revenueData.cost30, revenueData.costPrev30),
             color: 'info'
           },
           {
-            label: 'Margen bruto',
+            label: 'Gross margin',
             value: `${revenueData.marginPct.toFixed(1)}%`,
             change: this.formatTrend(revenueData.marginPct, revenueData.marginPrevPct),
             color: 'primary'
@@ -234,11 +245,33 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
           : 0;
 
         this.storePerformance = [
-          { label: 'Tasa de cierre', value: completedPct, color: 'success' },
-          { label: 'Cumplimiento citas', value: appointmentCompletion, color: 'info' },
-          { label: 'Cancelaciones', value: Math.round((canceledOrders.length / totalOrdersSafe) * 100), color: 'warning' }
+          { label: 'Closure rate', value: completedPct, color: 'success' },
+          { label: 'Appointment compliance', value: appointmentCompletion, color: 'info' },
+          { label: 'Cancellations', value: Math.round((canceledOrders.length / totalOrdersSafe) * 100), color: 'warning' }
         ];
       });
+  }
+
+  // Return only KPIs the current user can view
+  get visibleKpis() {
+    const employee = this.authService.getCurrentEmployee();
+
+    // Experts who are NOT center admins have a restricted, explicit KPI set
+    if (employee && employee.employee_type === 'Expert' && !employee.isCenterAdmin) {
+      const allowed = new Set([
+        'Active orders',
+        'Closed orders',
+        'Pending appointments',
+        'Average time'
+      ]);
+      return this.kpis.filter(k => allowed.has(k.title));
+    }
+
+    // Default: respect per-KPI requiredPermission (if present)
+    return this.kpis.filter(k => {
+      if (!k.requiredPermission) return true;
+      return this.permissionsService.hasPermission(k.requiredPermission);
+    });
   }
 
   getRoleDisplayName(): string {
@@ -247,7 +280,7 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
 
   getWelcomeMessage(): string {
     const employee = this.authService.getCurrentEmployee();
-    return employee ? `Bienvenido/a, ${employee.firstName}` : 'Bienvenido/a al panel de empleados';
+    return employee ? `Welcome, ${employee.firstName}` : 'Welcome to the employee dashboard';
   }
 
   private countByLastHours<T extends { createdAt?: Date | string }>(items: T[], hours: number, field: keyof T = 'createdAt' as keyof T): { current: number; previous: number } {
@@ -343,11 +376,11 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
 
   private buildPipeline(activeOrders: ServiceOrders[]): Array<{ label: string; value: number; color: string; }> {
     const stages = {
-      'Recepción': 0,
-      'Diagnóstico': 0,
-      'Reparación': 0,
-      'Calidad': 0,
-      'Entrega': 0
+      'Reception': 0,
+      'Diagnosis': 0,
+      'Repair': 0,
+      'Quality': 0,
+      'Delivery': 0
     };
 
     activeOrders.forEach(order => {
@@ -359,11 +392,11 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
     const total = activeOrders.length || 1;
 
     return [
-      { label: 'Recepción', value: Math.round((stages['Recepción'] / total) * 100), color: 'primary' },
-      { label: 'Diagnóstico', value: Math.round((stages['Diagnóstico'] / total) * 100), color: 'info' },
-      { label: 'Reparación', value: Math.round((stages['Reparación'] / total) * 100), color: 'warning' },
-      { label: 'Calidad', value: Math.round((stages['Calidad'] / total) * 100), color: 'secondary' },
-      { label: 'Entrega', value: Math.round((stages['Entrega'] / total) * 100), color: 'success' }
+      { label: 'Reception', value: Math.round((stages['Reception'] / total) * 100), color: 'primary' },
+      { label: 'Diagnosis', value: Math.round((stages['Diagnosis'] / total) * 100), color: 'info' },
+      { label: 'Repair', value: Math.round((stages['Repair'] / total) * 100), color: 'warning' },
+      { label: 'Quality', value: Math.round((stages['Quality'] / total) * 100), color: 'secondary' },
+      { label: 'Delivery', value: Math.round((stages['Delivery'] / total) * 100), color: 'success' }
     ];
   }
 
@@ -373,8 +406,8 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
     const lowStock = items.slice(0, 2);
     lowStock.forEach(item => {
       alerts.push({
-        title: item.product || 'Inventario crítico',
-        subtitle: `Stock crítico: ${item.stock} unidades`,
+        title: item.product || 'Critical inventory',
+        subtitle: `Critical stock: ${item.stock} units`,
         level: 'danger'
       });
     });
@@ -388,16 +421,16 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
 
     if (overdueOrders.length) {
       alerts.push({
-        title: 'Órdenes demoradas',
-        subtitle: `${overdueOrders.length} órdenes superan 3 días`,
+        title: 'Overdue orders',
+        subtitle: `${overdueOrders.length} orders exceed 3 days`,
         level: 'warning'
       });
     }
 
     if (!alerts.length) {
       alerts.push({
-        title: 'Todo bajo control',
-        subtitle: 'No hay alertas críticas en este momento',
+        title: 'All under control',
+        subtitle: 'No critical alerts at the moment',
         level: 'info'
       });
     }
@@ -416,10 +449,10 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
       .sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0))
       .slice(0, 3)
       .map(({ appointment, date }) => ({
-        time: appointment.time || (date ? date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : 'Pendiente'),
-        customer: appointment.customer || `Cliente #${appointment.id}`,
-        device: appointment.device?.name || `Dispositivo #${appointment.deviceId}`,
-        status: appointment.cloused ? 'Completada' : 'Confirmada'
+        time: appointment.time || (date ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Pending'),
+        customer: appointment.customer || `Customer #${appointment.id}`,
+        device: appointment.device?.name || `Device #${appointment.deviceId}`,
+        status: appointment.cloused ? 'Completed' : 'Confirmed'
       }));
   }
 
@@ -434,11 +467,11 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
       .map(order => {
         const created = this.parseDate(order.createdAt) || new Date();
         const ageHours = Math.max(1, Math.round((Date.now() - created.getTime()) / 3600000));
-        const priority = ageHours >= 72 ? 'Alta' : ageHours >= 36 ? 'Media' : 'Baja';
+        const priority = ageHours >= 72 ? 'High' : ageHours >= 36 ? 'Medium' : 'Low';
 
         return {
           order: order.orderCode || `#SO-${order.id}`,
-          task: order.defectivePart || 'Diagnóstico general',
+          task: order.defectivePart || 'General diagnosis',
           eta: `${ageHours}h`,
           priority
         };
@@ -455,14 +488,14 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
     return sorted[0]?.status || null;
   }
 
-  private mapStatusToStage(status: string | null): 'Recepción' | 'Diagnóstico' | 'Reparación' | 'Calidad' | 'Entrega' {
-    if (!status) return 'Recepción';
+  private mapStatusToStage(status: string | null): 'Reception' | 'Diagnosis' | 'Repair' | 'Quality' | 'Delivery' {
+    if (!status) return 'Reception';
     const normalized = status.toLowerCase();
-    if (normalized.includes('diagn')) return 'Diagnóstico';
-    if (normalized.includes('repar') || normalized.includes('repair')) return 'Reparación';
-    if (normalized.includes('calidad') || normalized.includes('quality')) return 'Calidad';
-    if (normalized.includes('entreg') || normalized.includes('deliver') || normalized.includes('ready')) return 'Entrega';
-    return 'Recepción';
+    if (normalized.includes('diagn')) return 'Diagnosis';
+    if (normalized.includes('repar') || normalized.includes('repair')) return 'Repair';
+    if (normalized.includes('calidad') || normalized.includes('quality')) return 'Quality';
+    if (normalized.includes('entreg') || normalized.includes('deliver') || normalized.includes('ready')) return 'Delivery';
+    return 'Reception';
   }
 
   private getAppointmentDate(appointment: Appointments): Date | null {
@@ -482,9 +515,9 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
 
   private formatCurrency(value: number): string {
     try {
-      return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
     } catch {
-      return `€ ${value.toFixed(2)}`;
+      return `$ ${value.toFixed(2)}`;
     }
   }
 

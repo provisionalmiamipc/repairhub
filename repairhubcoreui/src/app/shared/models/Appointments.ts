@@ -21,6 +21,7 @@ export interface Appointments {
   notes: string;
   cloused: boolean;
   canceled: boolean;
+  assignedTechId: number | null;
   createdById: number;
   createdAt?: Date;
   center?: Centers;  
