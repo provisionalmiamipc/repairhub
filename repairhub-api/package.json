@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build && cp -R src/templates dist/templates || true && mkdir -p dist/uploads && cp -R src/uploads/* dist/uploads/ || true",
+    "build": "nest build && cp -R src/templates dist/templates || true && mkdir -p dist/uploads && cp -R src/uploads/* dist/uploads/ || true && cp -R src/service_orders dist/src/service_orders || true",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "npm run build && npm run start:prod",
     "start:dev": "nest start --watch",
