@@ -179,8 +179,11 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   }
 
   deleteServiceOrder(order: ServiceOrders): void {
-    if (confirm(`¿Está seguro que desea eliminar la orden ${order.orderCode}?`)) {
-      this.serviceOrdersService.delete(order.id).subscribe({
+    (async () => {
+      const ok = await this.showConfirm(`Eliminar orden ${order.orderCode}`,
+        `¿Está seguro que desea eliminar la orden ${order.orderCode}?`);
+      if (!ok) return;
+      this.serviceOrdersService.delete(order.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.serviceOrders.update(orders => orders.filter(o => o.id !== order.id));
         },
@@ -191,7 +194,54 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
           }));
         }
       });
-    }
+    })();
+  }
+
+  resendOrderEmail(order: ServiceOrders): void {
+    if (!order || !order.id) return;
+    (async () => {
+      const ok = await this.showConfirm(`Reenviar correo ${order.orderCode}`,
+        `Reenviar correo de creación para la orden ${order.orderCode}?`);
+      if (!ok) return;
+
+      this.listState.update(s => ({ ...s, isLoading: true, error: null }));
+      this.serviceOrdersService.resendEmail(order.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (res) => {
+          this.listState.update(s => ({ ...s, isLoading: false }));
+          this.listState.update(s => ({ ...s, error: null }));
+        },
+        error: (err) => {
+          this.listState.update(s => ({ ...s, isLoading: false, error: err?.error?.message || 'Error al reenviar correo' }));
+        }
+      });
+    })();
+  }
+
+  // --- Modal confirm implementation using signals ---
+  readonly modalVisible = signal(false);
+  readonly modalTitle = signal('');
+  readonly modalMessage = signal('');
+  private modalResolver: ((value: boolean) => void) | null = null;
+
+  showConfirm(title: string, message: string): Promise<boolean> {
+    this.modalTitle.set(title);
+    this.modalMessage.set(message);
+    this.modalVisible.set(true);
+    return new Promise<boolean>(resolve => {
+      this.modalResolver = resolve;
+    });
+  }
+
+  onConfirmModal(): void {
+    if (this.modalResolver) this.modalResolver(true);
+    this.modalResolver = null;
+    this.modalVisible.set(false);
+  }
+
+  onCancelModal(): void {
+    if (this.modalResolver) this.modalResolver(false);
+    this.modalResolver = null;
+    this.modalVisible.set(false);
   }
 
   getStatusBadge(order: ServiceOrders): string {
