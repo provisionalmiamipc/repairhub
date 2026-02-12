@@ -18,6 +18,10 @@ COPY nest-cli.json ./
 # usar `npm ci` para respetar package-lock.json y evitar diferencias entre entornos
 RUN npm ci --legacy-peer-deps
 
+# Descargar Chromium en la etapa de build para copiarlo luego a la imagen final
+# Esto ayuda cuando el entorno de producción no permite descargas en tiempo de ejecución
+RUN npx puppeteer install chrome || npx @puppeteer/browsers install chrome || true
+
 # Copiar todo el contexto restante (asegura que se incluyan plantillas y otros archivos)
 COPY . .
 
@@ -56,6 +60,10 @@ RUN apk add --no-cache \
 
 # Indicar a Puppeteer la ruta del ejecutable del sistema
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Copiar la caché de navegadores desde el builder (si existe) y fijar permisos
+COPY --from=builder --chown=nestjs:nodejs /root/.cache/puppeteer /home/nestjs/.cache/puppeteer
+RUN if [ -d /home/nestjs/.cache/puppeteer ]; then chown -R nestjs:nodejs /home/nestjs/.cache/puppeteer || true; fi
 
 # Copiar código compilado del builder
 COPY --from=builder --chown=nestjs:nodejs /build/dist ./dist
