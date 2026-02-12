@@ -92,10 +92,39 @@ export class ServiceOrderPuppeteerPdfService implements OnModuleDestroy {
     const browser = await this.getBrowser();
     const page = await this.acquirePage(browser);
     try {
-      // reduce wait time by waiting for load instead of networkidle0
-      page.setDefaultNavigationTimeout(30000);
-      await page.setContent(html, { waitUntil: 'load' });
+      // Wait for full network idle to ensure resources are loaded (fonts, images)
+      const NAV_TIMEOUT = Number(process.env.PDF_PUPPETEER_NAV_TIMEOUT_MS || 60000);
+      page.setDefaultNavigationTimeout(NAV_TIMEOUT);
+      // Try once, and retry a single time on TimeoutError which can happen under load
+      try {
+        await page.setContent(html, { waitUntil: ['load', 'networkidle0'], timeout: NAV_TIMEOUT });
+      } catch (err) {
+        // If it's a navigation timeout, retry once with a longer timeout and gentler waitUntil
+        const isTimeout = err && err.name && err.name.includes('Timeout');
+        if (isTimeout) {
+          this.logger.warn('setContent timed out, retrying with extended timeout and relaxed waitUntil');
+          try {
+            await page.setContent(html, { waitUntil: ['load'], timeout: NAV_TIMEOUT * 2 });
+          } catch (err2) {
+            this.logger.error('setContent retry failed', err2);
+            throw err2;
+          }
+        } else {
+          throw err;
+        }
+      }
       const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' } });
+      // Log basic buffer info
+      // PDF generated
+      // Quick sanity check: PDF buffers should start with %PDF
+      try {
+        const header = pdfBuffer.slice(0,4);
+        if (!(header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46)) {
+          this.logger.error('Generated PDF buffer does not start with %PDF — possible generation error');
+        }
+      } catch (e) {
+        this.logger.error('Error while validating PDF buffer', e);
+      }
       return pdfBuffer;
     } finally {
       // release page back to pool for reuse

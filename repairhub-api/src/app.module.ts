@@ -38,6 +38,18 @@ import * as bcrypt from 'bcrypt';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 
+// Cargar DebugModule de forma condicional (evita errores si no se compila/instala)
+const DebugModuleOptional = (() => {
+  try {
+    // require relativo al runtime (dist/src)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // @ts-ignore
+    return require('./debug/debug.module').DebugModule;
+  } catch (e) {
+    return null;
+  }
+})();
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -130,7 +142,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     AuthModule,
     // Debug tools (only enable in deployments when needed)
-    require('./debug/debug.module').DebugModule,
+    ...(DebugModuleOptional ? [DebugModuleOptional] : []),
     UsersModule, 
     CentersModule, 
     StoresModule, 

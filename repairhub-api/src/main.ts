@@ -186,9 +186,19 @@ async function bootstrap() {
 
   const port = parseInt(process.env.PORT || '3000', 10);
   const host = process.env.HOST || '0.0.0.0';
-  
-  await app.listen(port, host);
-  
+
+  // Intentamos enlazar únicamente al puerto configurado. Si está ocupado,
+  // salimos con código de error para evitar comportamiento inesperado.
+  try {
+    await app.listen(port, host);
+  } catch (err: any) {
+    if (err && err.code === 'EADDRINUSE') {
+      logger.error(`Port ${port} is already in use. Exiting.`);
+      process.exit(1);
+    }
+    throw err;
+  }
+
   console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║                   RepairHub API - INICIADO                    ║
@@ -225,6 +235,8 @@ process.on('SIGTERM', async () => {
 
 process.on('unhandledRejection', (reason, p) => {
   console.error('Unhandled Rejection at:', p, 'reason:', reason);
+  // Treat unhandled rejections as fatal so the process doesn't stay in a bad state
+  setTimeout(() => process.exit(1), 200);
 });
 
 process.on('uncaughtException', (err) => {
