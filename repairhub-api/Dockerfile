@@ -55,8 +55,9 @@ RUN apk add --no-cache \
             harfbuzz \
             ttf-freefont \
             fontconfig && \
-        # crear un enlace consistente si el binario existe
-        test -f /usr/bin/chromium && ln -sf /usr/bin/chromium /usr/bin/chromium-browser || true
+        # crear enlaces consistentes a nombres comunes si el binario existe
+        test -f /usr/bin/chromium && ln -sf /usr/bin/chromium /usr/bin/chromium-browser || true; \
+        test -f /usr/bin/chromium && ln -sf /usr/bin/chromium /usr/bin/chrome || true
 
 # Indicar a Puppeteer la ruta del ejecutable del sistema
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
