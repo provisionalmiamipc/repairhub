@@ -45,14 +45,14 @@ RUN npm install --only=production --legacy-peer-deps && \
 # Instalar Chromium y dependencias necesarias para Puppeteer en Alpine
 # Esto asegura que en PaaS (Railway) Chromium exista en tiempo de ejecución
 RUN apk add --no-cache \
-      chromium \
-      nss \
-      freetype \
-      harfbuzz \
-      ttf-freefont \
-      fontconfig \
-    && # asegurar un path conocido para Puppeteer
-    if [ -f /usr/bin/chromium ]; then ln -sf /usr/bin/chromium /usr/bin/chromium-browser; fi
+            chromium \
+            nss \
+            freetype \
+            harfbuzz \
+            ttf-freefont \
+            fontconfig \
+    && # crear un enlace consistente si el binario existe
+    [ -f /usr/bin/chromium ] && ln -sf /usr/bin/chromium /usr/bin/chromium-browser || true
 
 # Indicar a Puppeteer la ruta del ejecutable del sistema
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
