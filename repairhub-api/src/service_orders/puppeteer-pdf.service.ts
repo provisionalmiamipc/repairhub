@@ -136,9 +136,29 @@ export class ServiceOrderPuppeteerPdfService implements OnModuleDestroy {
     if (!this.browserPromise) {
       this.browserPromise = (async () => {
         const puppeteer = require('puppeteer');
-        const b = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] });
-        this.browserInstance = b;
-        return b;
+        try {
+          const b = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] });
+          this.browserInstance = b;
+          return b;
+        } catch (err) {
+          const msg = err && err.message ? err.message : String(err);
+          const needInstall = msg.includes('Could not find Chrome') || msg.includes('Could not find Chromium') || msg.includes('Could not find any chromium') || msg.includes('No executable'); 
+          if (needInstall) {
+            try {
+              const { execSync } = require('child_process');
+              this.logger.warn('Chromium not found. Attempting runtime install: npx puppeteer install chrome');
+              execSync('npx puppeteer install chrome', { stdio: 'inherit', env: process.env });
+              // after install, retry launch
+              const b2 = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] });
+              this.browserInstance = b2;
+              return b2;
+            } catch (installErr) {
+              this.logger.error('Runtime puppeteer install failed', installErr);
+              throw installErr;
+            }
+          }
+          throw err;
+        }
       })();
     }
     return this.browserPromise;
