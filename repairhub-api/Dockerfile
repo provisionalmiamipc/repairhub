@@ -42,6 +42,21 @@ COPY --from=builder --chown=nestjs:nodejs /build/package*.json ./
 RUN npm install --only=production --legacy-peer-deps && \
     npm cache clean --force
 
+# Instalar Chromium y dependencias necesarias para Puppeteer en Alpine
+# Esto asegura que en PaaS (Railway) Chromium exista en tiempo de ejecución
+RUN apk add --no-cache \
+      chromium \
+      nss \
+      freetype \
+      harfbuzz \
+      ttf-freefont \
+      fontconfig \
+    && # asegurar un path conocido para Puppeteer
+    if [ -f /usr/bin/chromium ]; then ln -sf /usr/bin/chromium /usr/bin/chromium-browser; fi
+
+# Indicar a Puppeteer la ruta del ejecutable del sistema
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 # Copiar código compilado del builder
 COPY --from=builder --chown=nestjs:nodejs /build/dist ./dist
 
