@@ -17,7 +17,10 @@ export class ServiceOrderPdfService {
 
             // Logo
             try {
-                doc.image('src/uploads/logo.png', 40, 20, { width: 120 });
+                                const logo = require('../common/asset-utils').resolveUpload(['logo.png','logo.jpg','sopdf.jpg','sopdf.png']);
+                                if (logo) {
+                                    try { doc.image(logo, 40, 20, { width: 120 }); } catch(e) { /* ignore */ }
+                                }
             } catch (e) {
                 // Si falla, ignora el logo
             }

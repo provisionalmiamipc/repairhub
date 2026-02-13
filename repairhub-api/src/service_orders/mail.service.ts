@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { resolveUpload, resolveTemplate } from '../common/asset-utils';
+import * as path from 'path';
+import * as fs from 'fs';
 
 
 @Injectable()
@@ -10,62 +13,55 @@ export class ServiceOrderMailService {
     try {
       // If RESEND_API_KEY is present, use Resend HTTP API (works from Railway)
       const resendKey = process.env.RESEND_API_KEY;
+      const handlebars = require('handlebars');
+
+      // Resolve logo once so both Resend and SMTP flows can use it
+      let logoPath: string | null = null;
+      let logoAttachment: any = null;
+      try {
+        const p = resolveUpload(['logo.png', 'logo.jpg', 'logo.jpeg']);
+        if (p) {
+          logoPath = p;
+          const logo = fs.readFileSync(p);
+          logoAttachment = {
+            filename: path.basename(p),
+              // include both content_type and cid so both Resend and SMTP handle inline
+              type: p.endsWith('.png') ? 'image/png' : 'image/jpeg',
+              content: logo.toString('base64'),
+              content_type: p.endsWith('.png') ? 'image/png' : 'image/jpeg',
+              cid: 'logo@repairhub',
+              content_id: 'logo@repairhub',
+              disposition: 'inline',
+          };
+        }
+      } catch (e) {
+        // ignore
+      }
+
       if (resendKey) {
-        const fs = require('fs');
-        const path = require('path');
-        const handlebars = require('handlebars');
 
         // Try to load the same template used by Nest Mailer so Resend sends the rendered HTML
-        const tmplCandidates = [
-          path.join(__dirname, '..', 'templates', 'emails', 'service-order-created.hbs'),
-          path.join(process.cwd(), 'src', 'templates', 'emails', 'service-order-created.hbs'),
-          path.join(process.cwd(), 'templates', 'emails', 'service-order-created.hbs'),
-        ];
-
         const context = {
           customerName: order.customerName,
           orderCode: order.orderCode,
           APP_URL: process.env.APP_URL || '',
         };
 
-        let htmlBody = `<p>Hola ${order.customerName},</p><p>Adjunto tu orden de servicio <strong>#${order.orderCode}</strong>.</p>`;
+        let htmlBody = `<p>Hello ${order.customerName},</p><p>Please find attached your service order <strong>#${order.orderCode}</strong>.</p>`;
         let usedTemplate: string | null = null;
-        for (const c of tmplCandidates) {
+        const tmplPath = resolveTemplate('service-order-created.hbs');
+        if (tmplPath) {
           try {
-            if (fs.existsSync(c)) {
-              const src = fs.readFileSync(c, 'utf8');
-              const tpl = handlebars.compile(src);
-              htmlBody = tpl(context);
-              usedTemplate = c;
-              break;
-            }
+            const src = fs.readFileSync(tmplPath, 'utf8');
+            const tpl = handlebars.compile(src);
+            htmlBody = tpl(context);
+            usedTemplate = tmplPath;
           } catch (e) {
-            // continue to next candidate
+            // fallback to default htmlBody
           }
         }
 
-        // If a logo exists, attach it as an inline attachment with content_id so
-        // it can be referenced from the HTML via the CID `logo@repairhub`.
-        // Do NOT replace the CID in the HTML so clients that support inline
-        // attachments can render it from the attachment.
-        let logoPath: string | null = null;
-        let logoAttachment: any = null;
-        try {
-          const candidate = path.join(process.cwd(), 'src', 'uploads', 'logo.png');
-          if (fs.existsSync(candidate)) {
-            logoPath = candidate;
-            const logo = fs.readFileSync(candidate);
-            logoAttachment = {
-              filename: 'logo.png',
-              type: 'image/png',
-              content: logo.toString('base64'),
-              content_id: 'logo@repairhub',
-              disposition: 'inline',
-            };
-          }
-        } catch (e) {
-          // ignore
-        }
+        // If a logo exists, `logoAttachment` was prepared above and will be used
 
         // template selection and logo presence determined
 
@@ -177,12 +173,8 @@ export class ServiceOrderMailService {
             content: pdfBuffer,
             contentType: 'application/pdf',
           },
-          {
-            filename: 'logo.png',
-            path: require('path').join(process.cwd(), 'src', 'uploads', 'logo.png'),
-            cid: 'logo@repairhub',
-            contentType: 'image/png',
-          }
+          // Attach logo if present
+          ...(logoPath ? [{ filename: path.basename(logoPath), path: logoPath, cid: 'logo@repairhub', contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg' }] : []),
         ],
       });
       // sent via SMTP fallback

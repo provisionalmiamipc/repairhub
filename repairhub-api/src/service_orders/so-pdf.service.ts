@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import { Response } from 'express';
+import { resolveUpload } from '../common/asset-utils';
 
 
 @Injectable()
@@ -95,17 +96,21 @@ export class RepairPdfService {
 
 
 
-    // MPC text in logo
-    try {
-      doc.image('src/uploads/sopdf.jpg', 40, 40, { width: 120 });
-    } catch (e) {
-
+    // Try to render the logo/image (jpg/png) from resolved upload paths
+    const logoPath = resolveUpload(['sopdf.jpg', 'sopdf.png', 'logo.png', 'logo.jpg']);
+    if (logoPath) {
+      try {
+        doc.image(logoPath, 40, 40, { width: 120, height: 120 });
+      } catch (e) {
+        // fallback to placeholder box below
+      }
+    } else {
       // Yellow logo box (approximation - you would use an actual image)
       doc
         .rect(marginLeft, 50, 110, 110)
         .fillAndStroke('#FFED00', '#FFED00');
 
-      // Si falla, ignora el logo
+      // If no image, print MPC text inside the box
       doc
         .fillColor('#000000')
         .fontSize(28)
