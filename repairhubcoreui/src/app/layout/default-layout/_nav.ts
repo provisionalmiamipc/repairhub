@@ -80,10 +80,10 @@ export const navItems: NavItemWithRoles[] = [
     roles: [UserType.USER, EmployeeType.ADMIN_STORE] // visible para todos
   },
   {
-    name: 'Notifications',
-    url: '/notification',
-    iconComponent: { name: 'cil-bell' },
-    roles: null // visible para todos
+    //name: 'Notifications',
+    //url: '/notification',
+    //iconComponent: { name: 'cil-bell' },
+    //roles: null // visible para todos
   },  
   {
     title: true,

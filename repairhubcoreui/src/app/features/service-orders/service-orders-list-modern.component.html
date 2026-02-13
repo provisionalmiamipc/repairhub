@@ -191,13 +191,6 @@
                 <i class="bi bi-eye"></i> View
               </button>
               <button
-                class="action-btn mail"
-                (click)="resendOrderEmail(order)"
-                title="Resend creation email"
-              >
-                <i class="bi bi-envelope-fill"></i> Mail
-              </button>
-              <button
                 *ngIf="!(order.cloused || order.canceled)"
                 class="action-btn edit"
                 (click)="goToEdit(order)"
@@ -215,20 +208,6 @@
           </div>
         </div>
       }
-    </div>
-
-    <!-- Modal confirm -->
-    <div class="modal-backdrop" *ngIf="modalVisible()" (click)="onCancelModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);
-      display:block;z-index:999"></div>
-    <div *ngIf="modalVisible()" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1000;">
-      <div class="card" style="min-width:320px;padding:16px;border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,0.2);">
-        <h3 style="margin:0 0 8px 0">{{ modalTitle() }}</h3>
-        <p style="margin:0 0 16px 0">{{ modalMessage() }}</p>
-        <div style="display:flex;justify-content:flex-end;gap:8px">
-          <button class="btn btn-secondary" (click)="onCancelModal()">Cancelar</button>
-          <button class="btn btn-primary" (click)="onConfirmModal()">Confirmar</button>
-        </div>
-      </div>
     </div>
 
     <!-- Results Info -->

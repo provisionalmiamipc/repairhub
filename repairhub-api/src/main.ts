@@ -19,7 +19,8 @@ async function bootstrap() {
       return [
         'https://repairhubcoreui.vercel.app',
         'https://repairhubcoreui-c46up6hld-alejandros-projects-ca53de42.vercel.app',
-        'https://repairhub-2iimhaw0k-alejandros-projects-ca53de42.vercel.app'
+        'https://repairhub-2iimhaw0k-alejandros-projects-ca53de42.vercel.app',
+        'https://oceanspt.com/'
       ];
     } else {
       return [
