@@ -232,7 +232,7 @@ export class RepairPdfService {
     yPos = tableTop + 25;
 
     // Table row data
-    const rowData = [data.createdBy, data.assignedTech, data.customerName, data.lastRepairStatus?.status || ''];
+    const rowData = [data.createdBy, data.assignedTech, data.customerName, data.lastrepairStatus?.status || ''];
 
     // Row background
     //doc
