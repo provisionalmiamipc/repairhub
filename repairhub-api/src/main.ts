@@ -13,52 +13,60 @@ async function bootstrap() {
   // ==================== 🔒 CONFIGURACIÓN CORS ====================
   const nodeEnv = configService.get('NODE_ENV', 'development');
   
-  // Orígenes permitidos según el entorno
+  // Orígenes permitidos según el entorno (se puede configurar con CORS_ORIGINS)
   const getCorsOrigins = () => {
+    // Leer variable de entorno `CORS_ORIGINS` (coma-separada) vía ConfigService
+    const envList = configService.get<string>('CORS_ORIGINS');
+    if (envList && envList.trim().length > 0) {
+      return envList
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(s => s.replace(/\/$/, ''));
+    }
+
     if (nodeEnv === 'production') {
       return [
         'https://repairhubcoreui.vercel.app',
-        'https://repairhubcoreui-c46up6hld-alejandros-projects-ca53de42.vercel.app',
-        'https://repairhub-2iimhaw0k-alejandros-projects-ca53de42.vercel.app',
-        'https://oceanspt.com/'
+        'https://oceanspt.com'
       ];
     } else {
       return [
-        'http://localhost:3000',    // Frontend principal        
+        'http://localhost:3000',    // Frontend principal
         'http://localhost:4200',    // Angular
-        
       ];
     }
   };
 
   const corsOptions = {
     origin: (origin: string, callback: Function) => {
-      // Permitir cualquier dominio *.vercel.app en producción
-      if (origin && origin.includes('.vercel.app')) {
-        return callback(null, true);
-      }
-      
       const allowedOrigins = getCorsOrigins();
-      
-      // ✅ Permitir requests sin origen (mobile apps, curl, postman, etc.)
-      if (!origin) {
+
+      // Normalizar origin recibida (quitar slash final si existe)
+      const originNormalized = origin ? origin.replace(/\/$/, '') : origin;
+
+      // Permitir requests sin origin (curl, Postman, mobile apps)
+      if (!origin) return callback(null, true);
+
+      // Permitir cualquier dominio *.vercel.app en producción
+      if (originNormalized && originNormalized.includes('.vercel.app')) {
         return callback(null, true);
       }
-      
-      // ✅ Permitir orígenes explícitos
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        // ⚠️ En desarrollo, loggear el origen bloqueado pero permitirlo
-        if (nodeEnv === 'development') {
-          logger.warn(`CORS: Origen no configurado pero permitido en desarrollo: ${origin}`);
-          callback(null, true);
-        } else {
-          // 🚫 En producción, rechazar orígenes no permitidos
-          logger.error(`CORS: Origen no permitido en producción: ${origin}`);
-          callback(new Error('No permitido por CORS'), false);
-        }
+
+      // Permitir orígenes explícitos (comparación con lista normalizada)
+      const allowed = allowedOrigins.map(o => o.replace(/\/$/, ''));
+      if (allowed.indexOf(originNormalized) !== -1) {
+        return callback(null, true);
       }
+
+      // En desarrollo, loggear y permitir; en producción, rechazar
+      if (nodeEnv === 'development') {
+        logger.warn(`CORS: Origen no configurado pero permitido en desarrollo: ${origin}`);
+        return callback(null, true);
+      }
+
+      logger.error(`CORS: Origen no permitido en producción: ${origin}`);
+      return callback(new Error('No permitido por CORS'), false);
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
     allowedHeaders: [
