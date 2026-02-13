@@ -222,7 +222,7 @@
               <!-- City -->
               <div class="col-md-6">
                 
-                  <label class="form-label" for="city">City *</label>
+                  <label class="form-label" for="city">Address</label>
                   <input
                     class="form-control"
                     type="text"
@@ -234,10 +234,10 @@
                   @if (city?.invalid && city?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (city?.errors?.['required']) {
-                        <span>City is required</span>
+                        <span>Address is required</span>
                       }
                       @if (city?.errors?.['minlength']) {
-                        <span>City must be at least 2 characters</span>
+                        <span>Address must be at least 2 characters</span>
                       }
                     </div>
                   }

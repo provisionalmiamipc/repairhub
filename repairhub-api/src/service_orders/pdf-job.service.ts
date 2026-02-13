@@ -1,6 +1,5 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ServiceOrderPuppeteerPdfService } from './puppeteer-pdf.service';
-import { ServiceOrderSampleOverlayPdfService } from './sample-overlay-pdf.service';
 import { ServiceOrderPdfService } from './pdf.service';
 import { ServiceOrderMailService } from './mail.service';
 
@@ -14,7 +13,6 @@ export class ServiceOrderPdfJobService implements OnModuleDestroy {
 
   constructor(
     private readonly puppeteerService: ServiceOrderPuppeteerPdfService,
-    private readonly overlayService: ServiceOrderSampleOverlayPdfService,
     private readonly pdfService: ServiceOrderPdfService,
     private readonly mailService: ServiceOrderMailService,
   ) {}
@@ -65,10 +63,11 @@ export class ServiceOrderPdfJobService implements OnModuleDestroy {
     try {
       // handleJob start
       let pdfBuffer: Buffer | null = null;
-      if (this.puppeteerService && typeof this.puppeteerService.generate === 'function') {
+      // Prefer pdfService.generateRepairPdfBuffer (pdfkit) when available
+      if (this.pdfService && typeof (this.pdfService as any).generateRepairPdfBuffer === 'function') {
+        pdfBuffer = await (this.pdfService as any).generateRepairPdfBuffer(job.pdfData);
+      } else if (this.puppeteerService && typeof this.puppeteerService.generate === 'function') {
         pdfBuffer = await this.puppeteerService.generate(job.pdfData);
-      } else if (this.overlayService && typeof this.overlayService.generate === 'function') {
-        pdfBuffer = await this.overlayService.generate(job.pdfData);
       } else if (this.pdfService && typeof this.pdfService.generate === 'function') {
         pdfBuffer = await this.pdfService.generate(job.pdfData);
       }

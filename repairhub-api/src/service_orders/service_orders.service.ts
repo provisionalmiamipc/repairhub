@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { ServiceOrderPdfService } from './pdf.service';
 import { ServiceOrderPuppeteerPdfService } from './puppeteer-pdf.service';
-import { ServiceOrderSampleOverlayPdfService } from './sample-overlay-pdf.service';
 import { ServiceOrderMailService } from './mail.service';
 import { ServiceOrderPdfJobService } from './pdf-job.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +8,7 @@ import { Repository } from 'typeorm';
 import { ServiceOrder } from './entities/service_order.entity';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
+
 
 @Injectable()
 export class ServiceOrdersService {
@@ -18,9 +18,16 @@ export class ServiceOrdersService {
     private readonly pdfService: ServiceOrderPdfService,
     private readonly mailService: ServiceOrderMailService,
     @Optional() private readonly puppeteerPdfService?: ServiceOrderPuppeteerPdfService,
-    @Optional() private readonly sampleOverlayPdfService?: ServiceOrderSampleOverlayPdfService,
     private readonly pdfJobService?: ServiceOrderPdfJobService,
   ) {}
+
+  formatDateToDDMMYYYY(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
+}
 
   async create(createDto: CreateServiceOrderDto) {
     // Obtener el último orderCode
@@ -54,6 +61,8 @@ export class ServiceOrdersService {
         'soitems',
         'soitems.item',
         'sonotes',
+        'sodiagnostic',
+        'repairStatus'
       ],
     });
 
@@ -61,22 +70,25 @@ export class ServiceOrdersService {
     if (!fullOrder) {
       throw new NotFoundException('La orden de servicio no se encontró después de guardar.');
     }
+     const lastRepairStatus = (fullOrder.repairStatus && (Array.isArray(fullOrder.repairStatus)
+      ? fullOrder.repairStatus[fullOrder.repairStatus.length - 1]
+      : fullOrder.repairStatus)) || null;
       const pdfData = {
         orderCode: fullOrder.orderCode,
         customerName: fullOrder.customer ? `${fullOrder.customer.firstName} ${fullOrder.customer.lastName}` : '',
         customerEmail: fullOrder.customer?.email || '',
-        customerPhone: fullOrder.customer?.phone || fullOrder.customer?.phone || '',
-        customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '',
-        date: fullOrder.createdAt || new Date(),
+        customerPhone: fullOrder.customer?.phone || fullOrder.customer?.phone || '---',
+        customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '---',
+        date: this.formatDateToDDMMYYYY(fullOrder.createdAt || new Date()),
         device: fullOrder.device?.name || '',
-        model: fullOrder.model || '',
-        serial: fullOrder.serial || '',
-        defectivePart: fullOrder.defectivePart || '',
+        model: fullOrder.model || '-',
+        serial: fullOrder.serial || '-',
+        defectivePart: fullOrder.defectivePart || '---',
         price: fullOrder.price || 0,
         repairCost: fullOrder.repairCost || 0,
         advancePayment: fullOrder.advancePayment || 0,
         tax: fullOrder.price * fullOrder.tax / 100 || 0,
-        discount: fullOrder.costdiscount || 0,
+        discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
         total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
         paymentType: fullOrder.paymentType?.type || '',
         assignedTech: fullOrder.assignedTech ? `${fullOrder.assignedTech.firstName} ${fullOrder.assignedTech.lastName}` : '',
@@ -84,6 +96,25 @@ export class ServiceOrdersService {
         estimated: fullOrder.estimated || '',
         noteReception: fullOrder.noteReception || '',
         terms: '',
+        lastrepairStatus: lastRepairStatus ? ({
+          id: lastRepairStatus.id,
+          status: lastRepairStatus.status || '',          
+          date: this.formatDateToDDMMYYYY(lastRepairStatus.createdAt) || '',
+        }) : null,
+        repairStatus: (fullOrder.repairStatus || [])
+          .map(rs => ({
+            id: rs.id,
+            status: rs.status || '',
+            date: this.formatDateToDDMMYYYY(rs.createdAt) || '',
+          })),
+        diagnostics: (fullOrder.sodiagnostic || [])
+          .filter(d => d.sendEmail === true)
+          .map(d => ({
+            id: d.id,
+            title: d.diagnostic || '',
+            sendEmail: d.sendEmail || '',
+            date: this.formatDateToDDMMYYYY(d.createdAt ) || '',
+          })),
         items: (fullOrder.soitems || []).map(it => ({
           description: it.item?.product || it.note || '',
           quantity: it.quantity || 1,
@@ -97,12 +128,13 @@ export class ServiceOrdersService {
       } else {
         // Fallback: do it synchronously if job service is missing
         let pdfBuffer: Buffer;
-        if (this.puppeteerPdfService) {
+        // prefer pdfkit buffer generator to avoid Chromium dependency and speed up
+        if (this.pdfService && typeof (this.pdfService as any).generateRepairPdfBuffer === 'function') {
+          pdfBuffer = await (this.pdfService as any).generateRepairPdfBuffer(pdfData);
+        } else if (this.puppeteerPdfService) {
           pdfBuffer = await this.puppeteerPdfService.generate(pdfData);
-        } else if (this.sampleOverlayPdfService) {
-          pdfBuffer = await this.sampleOverlayPdfService.generate(pdfData);
         } else {
-          pdfBuffer = await this.pdfService.generate(pdfData);
+          pdfBuffer = await this.pdfService.generate(pdfData) as unknown as Buffer;
         }
         if (pdfData.customerEmail) {
           await this.mailService.sendOrderCreatedMail(pdfData, pdfBuffer);
@@ -122,6 +154,12 @@ export class ServiceOrdersService {
         'deviceBrand',
         'assignedTech',
         'employee',
+        'paymentType',
+        'soitems',
+        'soitems.item',
+        'sonotes',
+        'sodiagnostic',
+        'repairStatus'
         
       ],
     });
@@ -138,6 +176,12 @@ export class ServiceOrdersService {
         'deviceBrand',
         'assignedTech',
         'employee',
+        'paymentType',
+        'soitems',
+        'soitems.item',
+        'sonotes',
+        'sodiagnostic',
+        'repairStatus'
       ],
     });
     if (!entity) throw new NotFoundException(`ServiceOrder #${id} not found`);
@@ -181,10 +225,16 @@ export class ServiceOrdersService {
         'soitems',
         'soitems.item',
         'sonotes',
+        'sodiagnostic',
+        'repairStatus'
       ],
     });
 
     if (!fullOrder) throw new NotFoundException(`ServiceOrder #${id} not found`);
+
+    const lastRepairStatus = (fullOrder.repairStatus && (Array.isArray(fullOrder.repairStatus)
+      ? fullOrder.repairStatus[fullOrder.repairStatus.length - 1]
+      : fullOrder.repairStatus)) || null;
 
     const pdfData = {
       orderCode: fullOrder.orderCode,
@@ -192,16 +242,16 @@ export class ServiceOrdersService {
       customerEmail: fullOrder.customer?.email || '',
       customerPhone: fullOrder.customer?.phone || fullOrder.customer?.phone || '',
       customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '',
-      date: fullOrder.createdAt || new Date(),
-      device: fullOrder.device?.name || '',
-      model: fullOrder.model || '',
+      date: this.formatDateToDDMMYYYY(fullOrder.createdAt) || '',
+      device: fullOrder.device?.name || '-',
+      model: fullOrder.model || '-',
       serial: fullOrder.serial || '',
-      defectivePart: fullOrder.defectivePart || '',
+      defectivePart: fullOrder.defectivePart || '-',
       price: fullOrder.price || 0,
       repairCost: fullOrder.repairCost || 0,
       advancePayment: fullOrder.advancePayment || 0,
       tax: fullOrder.price * fullOrder.tax / 100 || 0,
-      discount: fullOrder.costdiscount || 0,
+      discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
       total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
       paymentType: fullOrder.paymentType?.type || '',
       assignedTech: fullOrder.assignedTech ? `${fullOrder.assignedTech.firstName} ${fullOrder.assignedTech.lastName}` : '',
@@ -209,6 +259,25 @@ export class ServiceOrdersService {
       estimated: fullOrder.estimated || '',
       noteReception: fullOrder.noteReception || '',
       terms: '',
+      lastrepairStatus: lastRepairStatus ? ({
+        id: lastRepairStatus.id,
+        status: lastRepairStatus.status || '',        
+        date: this.formatDateToDDMMYYYY(lastRepairStatus.createdAt) || '',
+      }) : null,
+      repairStatus: (fullOrder.repairStatus || [])
+          .map(rs => ({
+            id: rs.id,
+            status: rs.status || '',
+            date: this.formatDateToDDMMYYYY(rs.createdAt) || '',
+          })),
+      diagnostics: (fullOrder.sodiagnostic || [])
+        .filter(d => d.sendEmail === true)
+        .map(d => ({
+          id: d.id,
+          title: d.diagnostic || '',
+          sendEmail: d.sendEmail || '',
+          date: this.formatDateToDDMMYYYY(d.createdAt) || '',
+        })),
       items: (fullOrder.soitems || []).map(it => ({
         description: it.item?.product || it.note || '',
         quantity: it.quantity || 1,
@@ -224,12 +293,12 @@ export class ServiceOrdersService {
 
     // Fallback: generate PDF synchronously and send
     let pdfBuffer: Buffer;
-    if (this.puppeteerPdfService) {
+    if (this.pdfService && typeof (this.pdfService as any).generateRepairPdfBuffer === 'function') {
+      pdfBuffer = await (this.pdfService as any).generateRepairPdfBuffer(pdfData);
+    } else if (this.puppeteerPdfService) {
       pdfBuffer = await this.puppeteerPdfService.generate(pdfData);
-    } else if (this.sampleOverlayPdfService) {
-      pdfBuffer = await this.sampleOverlayPdfService.generate(pdfData);
     } else {
-      pdfBuffer = await this.pdfService.generate(pdfData);
+      pdfBuffer = await this.pdfService.generate(pdfData) as unknown as Buffer;
     }
 
     if (pdfData.customerEmail) {

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
@@ -6,6 +6,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 @Injectable()
 export class ServiceOrderSampleOverlayPdfService {
   private readonly logger = new Logger(ServiceOrderSampleOverlayPdfService.name);
+  constructor(@Optional() private readonly pdfService?: any) {}
 
   async generate(order: any): Promise<Buffer> {
     const samplePath = join(__dirname, 'templates', 'sample.pdf');
@@ -19,6 +20,22 @@ export class ServiceOrderSampleOverlayPdfService {
         this.logger.warn(`Sample PDF not found at ${samplePath}, trying ${altPath}`);
         existingPdfBytes = readFileSync(altPath);
       } catch (e2) {
+        this.logger.warn(`Sample PDF not found at ${samplePath} or ${altPath}`);
+        // If a pdf generator service is available, fallback to it instead of failing
+        if (this.pdfService) {
+          try {
+            this.logger.warn('Falling back to pdfService.generateRepairPdfBuffer or pdfService.generate');
+            if (typeof this.pdfService.generateRepairPdfBuffer === 'function') {
+              return await this.pdfService.generateRepairPdfBuffer(order);
+            }
+            if (typeof this.pdfService.generate === 'function') {
+              return await this.pdfService.generate(order) as Buffer;
+            }
+          } catch (fallbackErr) {
+            this.logger.error('Fallback pdfService also failed', fallbackErr);
+            throw fallbackErr;
+          }
+        }
         this.logger.error(`Sample PDF not found at ${samplePath} or ${altPath}`);
         throw new Error(`Sample PDF not found at ${samplePath} or ${altPath}`);
       }

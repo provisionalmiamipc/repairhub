@@ -3,12 +3,12 @@
     <div class="header-content">
       <div>
         <h1 class="page-title">
-          {{ isEditMode() ? 'Editar Cliente' : 'Nuevo Cliente' }}
+          {{ isEditMode() ? 'Edit Customer' : 'New Customer' }}
           @if (isEditMode() && customerCode()) {
             <span class="code-inline">- {{ customerCode() }}</span>
           }
         </h1>
-        <p class="page-subtitle">{{ isEditMode() ? 'Actualiza los datos del cliente' : 'Crea un nuevo cliente' }}</p>
+        <p class="page-subtitle">{{ isEditMode() ? 'Update the customer details' : 'Create a new customer' }}</p>
       </div>
     </div>
   </div>
@@ -16,7 +16,7 @@
   @if (isLoading()) {
   <div class="loading-container">
     <div class="spinner"></div>
-    <p>Cargando información...</p>
+    <p>Loading information...</p>
   </div>
   } @else {
 
@@ -34,8 +34,8 @@
   <div class="success-alert" @fadeInUp>
       <span class="success-icon"><i class="bi bi-check-circle"></i></span>
     <div>
-      <h3>¡Éxito!</h3>
-      <p>{{ isEditMode() ? 'Cliente actualizado' : 'Cliente creado' }} correctamente</p>
+      <h3>Success!</h3>
+      <p>{{ isEditMode() ? 'Customer updated' : 'Customer created' }} successfully</p>
     </div>
   </div>
   }
@@ -73,14 +73,14 @@
         <!-- Para USERs: Mostrar centerId y storeId -->
         @if (showCenterAndStoreFields()) {
           <div class="form-group">
-            <label for="centerId" class="form-label">Centro *</label>
+            <label for="centerId" class="form-label">Center *</label>
             <select
               id="centerId"
               formControlName="centerId"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('centerId')"
             >
-              <option value="">Selecciona un centro</option>
+              <option value="">Select a center</option>
               @for (center of centers(); track center.id) {
               <option [value]="center.id">{{ center.centerName }}</option>
               }
@@ -91,7 +91,7 @@
           </div>
 
           <div class="form-group">
-            <label for="storeId" class="form-label">Tienda *</label>
+            <label for="storeId" class="form-label">Store *</label>
             <select
               id="storeId"
               formControlName="storeId"
@@ -99,7 +99,7 @@
               [class.is-invalid]="isFieldInvalid('storeId')"
               [disabled]="!selectedCenterId()"
             >
-              <option value="">Selecciona una tienda</option>
+              <option value="">Select a store</option>
               @for (store of stores(); track store.id) {
               <option [value]="store.id">{{ store.storeName }}</option>
               }
@@ -113,14 +113,14 @@
         <!-- Para EMPLOYEEs adminCenter: Mostrar solo storeId -->
         @if (showOnlyStoreField()) {
           <div class="form-group">
-            <label for="storeId" class="form-label">Tienda</label>
+            <label for="storeId" class="form-label">Store</label>
             <select
               id="storeId"
               formControlName="storeId"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('storeId')"
             >
-              <option value="">Selecciona una tienda</option>
+              <option value="">Select a store</option>
               @for (store of stores(); track store.id) {
               <option [value]="store.id">{{ store.storeName }}</option>
               }
@@ -135,7 +135,7 @@
         @if (hideLocationFields()) {
           <div class="alert alert-success">
             <i class="bi bi-check-circle me-2"></i>
-            Los datos de centro y tienda se cargan automáticamente con tus credenciales.
+            Center and store data are automatically loaded with your credentials.
           </div>
         }
 
@@ -147,13 +147,13 @@
       <div class="form-step" @fadeInUp>
         <div class="form-row">
           <div class="form-group">
-            <label for="firstName" class="form-label">Nombre *</label>
+            <label for="firstName" class="form-label">First Name *</label>
             <input
               id="firstName"
               type="text"
               formControlName="firstName"
               class="form-control"
-              placeholder="Ej: Juan"
+              placeholder="e.g., John"
               [class.is-invalid]="isFieldInvalid('firstName')"
             />
             @if (isFieldInvalid('firstName')) {
@@ -162,13 +162,13 @@
           </div>
 
           <div class="form-group">
-            <label for="lastName" class="form-label">Apellido *</label>
+            <label for="lastName" class="form-label">Last Name *</label>
             <input
               id="lastName"
               type="text"
               formControlName="lastName"
               class="form-control"
-              placeholder="Ej: Pérez"
+              placeholder="e.g., Doe"
               [class.is-invalid]="isFieldInvalid('lastName')"
             />
             @if (isFieldInvalid('lastName')) {
@@ -179,17 +179,17 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="gender" class="form-label">Género *</label>
+            <label for="gender" class="form-label">Gender *</label>
             <select
               id="gender"
               formControlName="gender"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('gender')"
             >
-              <option value="">Selecciona un género</option>
-              <option value="Male">Masculino</option>
-              <option value="Female">Femenino</option>
-              <option value="Other">Otro</option>
+              <option value="">Select a gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
             </select>
             @if (isFieldInvalid('gender')) {
             <span class="error-text">{{ getFieldError('gender') }}</span>
@@ -204,7 +204,7 @@
                 formControlName="b2b"
                 class="form-checkbox"
               />
-              <span>Cliente B2B</span>
+              <span>B2B Customer</span>
             </label>
           </div>
         </div>
@@ -231,13 +231,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="phone" class="form-label">Teléfono</label>
+            <label for="phone" class="form-label">Phone</label>
             <input
               id="phone"
               type="tel"
               formControlName="phone"
               class="form-control"
-              placeholder="Ej: +57 1 234 5678"
+              placeholder="e.g., +1 234 567 8900"
               [class.is-invalid]="isFieldInvalid('phone')"
             />
             @if (isFieldInvalid('phone')) {
@@ -246,13 +246,13 @@
           </div>
 
           <div class="form-group">
-            <label for="city" class="form-label">Ciudad *</label>
+            <label for="city" class="form-label">Address</label>
             <input
               id="city"
               type="text"
               formControlName="city"
               class="form-control"
-              placeholder="Ej: Bogotá"
+              placeholder="e.g., Bogotá"
               [class.is-invalid]="isFieldInvalid('city')"
             />
             @if (isFieldInvalid('city')) {
@@ -268,7 +268,7 @@
       <div class="form-step" @fadeInUp>
         <div class="form-row">
           <div class="form-group">
-            <label for="discount" class="form-label">Descuento (%) *</label>
+            <label for="discount" class="form-label">Discount (%) *</label>
             <input
               id="discount"
               type="number"
@@ -285,12 +285,12 @@
         </div>
 
         <div class="form-group">
-          <label for="extraInfo" class="form-label">Información Extra</label>
+          <label for="extraInfo" class="form-label">Extra Information</label>
           <textarea
             id="extraInfo"
             formControlName="extraInfo"
             class="form-control form-textarea"
-            placeholder="Información adicional del cliente..."
+            placeholder="Additional customer information..."
             rows="3"
           ></textarea>
         </div>
@@ -305,7 +305,7 @@
           (click)="prevStep()"
           [disabled]="currentStep() === 0 || isSaving()"
         >
-          ← Anterior
+          ← Previous
         </button>
 
         <div class="action-buttons">
@@ -315,7 +315,7 @@
             (click)="onCancel()"
             [disabled]="isSaving()"
           >
-            Cancelar
+            Cancel
           </button>
 
           @if (currentStep() < steps.length - 1) {
@@ -325,7 +325,7 @@
             (click)="nextStep()"
             [disabled]="!canProceedToNextStep() || isSaving()"
           >
-            Siguiente →
+            Next →
           </button>
           } @else {
           <button
@@ -333,7 +333,7 @@
             class="btn-primary"
             [disabled]="customerForm.invalid || isSaving()"
           >
-            {{ isSaving() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Crear Cliente') }}
+            {{ isSaving() ? 'Saving...' : (isEditMode() ? 'Update' : 'Create Customer') }}
           </button>
           }
         </div>

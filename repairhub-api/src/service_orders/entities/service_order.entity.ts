@@ -162,7 +162,7 @@ export class ServiceOrder {
     sonotes: SONote[];
 
     @OneToMany(() => SODiagnostic, (SODiagnostic) => SODiagnostic.serviceOrder)
-    sodiagnostic: SONote[];
+    sodiagnostic: SODiagnostic[];
 
     @OneToMany(() => RepairStatus, (repairStatus) => repairStatus.serviceOrder)
     repairStatus: RepairStatus[];
