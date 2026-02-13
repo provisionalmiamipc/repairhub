@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build && cp -R src/templates dist/templates || true && mkdir -p dist/uploads && cp -R src/uploads/* dist/uploads/ || true && mkdir -p dist/src/service_orders/templates && cp -R src/service_orders/templates/* dist/src/service_orders/templates/ || true",
+    "build": "nest build && cp -R src/templates dist/src/templates || true && mkdir -p dist/src/uploads && cp -R src/uploads/* dist/src/uploads/ || true && mkdir -p dist/src/service_orders/templates && cp -R src/service_orders/templates/* dist/src/service_orders/templates/ || true",
     "postinstall": "npx puppeteer install chrome || npx @puppeteer/browsers install chrome",
     "heroku-postbuild": "npx puppeteer install chrome || npx @puppeteer/browsers install chrome",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

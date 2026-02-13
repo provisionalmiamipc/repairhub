@@ -108,7 +108,7 @@ export class RepairPdfService {
       // Si falla, ignora el logo
       doc
         .fillColor('#000000')
-        .fontSize(36)
+        .fontSize(28)
         .font('Helvetica-Bold')
         .text('MPC', marginLeft + 20, 80, { width: 70, align: 'center' });
     }
