@@ -144,7 +144,7 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
           this.listState.update(s => ({
             ...s,
             isLoading: false,
-            error: err?.error?.message || 'Error al cargar órdenes de servicio'
+            error: err?.error?.message || 'Error loading service orders'
           }));
         }
       });
@@ -180,8 +180,8 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
 
   deleteServiceOrder(order: ServiceOrders): void {
     (async () => {
-      const ok = await this.showConfirm(`Eliminar orden ${order.orderCode}`,
-        `¿Está seguro que desea eliminar la orden ${order.orderCode}?`);
+      const ok = await this.showConfirm(`Delete order ${order.orderCode}`,
+        `Are you sure you want to delete order ${order.orderCode}?`);
       if (!ok) return;
       this.serviceOrdersService.delete(order.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
@@ -190,7 +190,7 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.listState.update(s => ({
             ...s,
-            error: err?.error?.message || 'Error al eliminar la orden'
+            error: err?.error?.message || 'Error deleting order'
           }));
         }
       });
@@ -200,8 +200,8 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   resendOrderEmail(order: ServiceOrders): void {
     if (!order || !order.id) return;
     (async () => {
-      const ok = await this.showConfirm(`Reenviar correo ${order.orderCode}`,
-        `Reenviar correo de creación para la orden ${order.orderCode}?`);
+      const ok = await this.showConfirm(`Resend email ${order.orderCode}`,
+        `Resend creation email for order ${order.orderCode}?`);
       if (!ok) return;
 
       this.listState.update(s => ({ ...s, isLoading: true, error: null }));
@@ -211,7 +211,7 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
           this.listState.update(s => ({ ...s, error: null }));
         },
         error: (err) => {
-          this.listState.update(s => ({ ...s, isLoading: false, error: err?.error?.message || 'Error al reenviar correo' }));
+          this.listState.update(s => ({ ...s, isLoading: false, error: err?.error?.message || 'Error resending email' }));
         }
       });
     })();
@@ -245,9 +245,9 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   }
 
   getStatusBadge(order: ServiceOrders): string {
-    if (order.canceled) return 'Cancelada';
-    if (order.cloused) return 'Completada';
-    return 'Activa';
+    if (order.canceled) return 'Canceled';
+    if (order.cloused) return 'Completed';
+    return 'Active';
   }
 
   getStatusClass(order: ServiceOrders): string {

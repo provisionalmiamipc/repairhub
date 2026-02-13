@@ -100,14 +100,14 @@ export class RepairPdfService {
     const logoPath = resolveUpload(['sopdf.jpg', 'sopdf.png', 'logo.png', 'logo.jpg']);
     if (logoPath) {
       try {
-        doc.image(logoPath, 40, 40, { width: 120, height: 120 });
+        doc.image(logoPath, 40, 40, { width: 100 });
       } catch (e) {
         // fallback to placeholder box below
       }
     } else {
       // Yellow logo box (approximation - you would use an actual image)
       doc
-        .rect(marginLeft, 50, 110, 110)
+        .rect(marginLeft, 50, 100, 100)
         .fillAndStroke('#FFED00', '#FFED00');
 
       // If no image, print MPC text inside the box
@@ -307,8 +307,8 @@ export class RepairPdfService {
 
     // Row data
     const rowHeight = 95;
-    doc
-      .rect(marginLeft, yPos, contentWidth, rowHeight);
+    //doc
+     // .rect(marginLeft, yPos, contentWidth, rowHeight);
     //.stroke();
 
     // Device
@@ -373,7 +373,7 @@ export class RepairPdfService {
    */
   private drawDefectivePartsSection(doc: PDFDocument, data: any): void {
     const marginLeft = doc.page.margins.left;
-    let yPos = 470;
+    let yPos = 430;
 
     // Section title
     doc
@@ -388,7 +388,7 @@ export class RepairPdfService {
       .fontSize(11)
       .font('Helvetica')
       .fillColor('#000000')
-      .text(data.defectivePart, marginLeft + 20, yPos);
+      .text(data.defectivePart, marginLeft + 10, yPos);
 
     // Defective parts (with X)
     /*data.defectiveParts.forEach((part) => {
@@ -911,7 +911,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
-    let yPos = 580;
+    let yPos = 530;
 
     // Section title
     doc

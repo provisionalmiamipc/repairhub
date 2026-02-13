@@ -6,6 +6,7 @@ import { ServiceOrderPdfJobService } from './pdf-job.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceOrder } from './entities/service_order.entity';
+import { RepairStatus } from '../repair_status/entities/repair_status.entity';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
 
@@ -15,6 +16,8 @@ export class ServiceOrdersService {
   constructor(
     @InjectRepository(ServiceOrder)
     private readonly serviceOrderRepository: Repository<ServiceOrder>,
+    @InjectRepository(RepairStatus)
+    private readonly repairStatusRepository: Repository<RepairStatus>,
     private readonly pdfService: ServiceOrderPdfService,
     private readonly mailService: ServiceOrderMailService,
     @Optional() private readonly puppeteerPdfService?: ServiceOrderPuppeteerPdfService,
@@ -47,6 +50,20 @@ export class ServiceOrdersService {
 
     const entity = this.serviceOrderRepository.create({ ...createDto, orderCode });
     const savedOrder = await this.serviceOrderRepository.save(entity);
+
+    // Create initial repair status for the new service order
+    try {
+      const initialStatus = this.repairStatusRepository.create({
+        centerId: savedOrder.centerId,
+        storeId: savedOrder.storeId,
+        serviceOrderId: savedOrder.id,
+        status: 'Pending',
+        createdById: savedOrder.createdById,
+      });
+      await this.repairStatusRepository.save(initialStatus);
+    } catch (err) {
+      // Do not fail the creation of the service order if repair status cannot be created
+    }
 
     // Recuperar la orden con relaciones completas
     const fullOrder = await this.serviceOrderRepository.findOne({
