@@ -2,12 +2,12 @@
   <thead>
     <tr>
       <th>ID</th>
-      <th>Total Costo</th>
-      <th>Total Precio</th>
-      <th>Total Descuento</th>
-      <th>Cerrada</th>
-      <th>Cancelada</th>
-      <th>Acciones</th>
+      <th>Total Cost</th>
+      <th>Total Price</th>
+      <th>Total Discount</th>
+      <th>Closed</th>
+      <th>Canceled</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -16,12 +16,12 @@
       <td>{{ s.totalCost }}</td>
       <td>{{ s.totalPrice }}</td>
       <td>{{ s.totalDiscount }}</td>
-      <td>{{ s.cloused ? 'Sí' : 'No' }}</td>
-      <td>{{ s.canceled ? 'Sí' : 'No' }}</td>
-      <td>
-        <button (click)="select.emit(s)">Ver</button>
-        <button (click)="edit.emit(s)">Editar</button>
-        <button (click)="delete.emit(s)">Eliminar</button>
+      <td>{{ s.cloused ? 'Yes' : 'No' }}</td>
+      <td>{{ s.canceled ? 'Yes' : 'No' }}</td>
+        <td>
+        <button (click)="select.emit(s)">View</button>
+        <button (click)="edit.emit(s)">Edit</button>
+        <button (click)="delete.emit(s)">Delete</button>
       </td>
     </tr>
   </tbody>

@@ -7,9 +7,9 @@
           <button type="button" class="btn-close" aria-label="Close" (click)="cancel.emit()"></button>
         </div>
         <div class="modal-body">
-          <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" />
-            <input *ngIf="isModal" type="hidden" formControlName="createdById" />
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+            <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" autocomplete="off" />
+            <input *ngIf="isModal" type="hidden" formControlName="createdById" autocomplete="off" />
             <!-- Center -->
             <div class="mb-3" *ngIf="showCenterField">
               <label class="form-label" for="devicecenterId">Center *</label>
@@ -38,13 +38,13 @@
             <div class="mb-3">
               <label class="form-label">Status</label>
               <div class="input-group">
-                <input type="text" formControlName="status" class="form-control" readonly (click)="openStatusPicker()" />
+                <input type="text" formControlName="status" class="form-control" readonly (click)="openStatusPicker()" autocomplete="off" />
                 <button type="button" class="btn btn-outline-secondary" (click)="openStatusPicker()" aria-label="Choose status">
                   <i class="bi bi-list"></i>
                 </button>
               </div>
-              <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched" class="text-danger small">Estado
-                requerido</div>
+              <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched" class="text-danger small">Status
+                required</div>
             </div>
 
             <!-- Status picker modal -->
@@ -85,16 +85,16 @@
       <h5 class="mb-0">Repair Status</h5>
     </div>
     <div class="card-body">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
         <div class="mb-3">
-          <label class="form-label">Estado</label>
-          <input type="text" formControlName="status" class="form-control" />
-          <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched" class="text-danger small">Estado
-            requerido</div>
+          <label class="form-label">Status</label>
+          <input type="text" formControlName="status" class="form-control" autocomplete="off" />
+          <div *ngIf="form.get('status')?.invalid && form.get('status')?.touched" class="text-danger small">Status
+            required</div>
         </div>
         <div class="d-flex justify-content-end">
           <button type="button" class="btn btn-secondary me-2" (click)="cancel.emit()">Cancel</button>
-          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
         </div>
       </form>
     </div>

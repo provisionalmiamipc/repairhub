@@ -133,7 +133,7 @@ export class RepairPdfService {
       .fontSize(9)
       .font('Helvetica')
       .text(
-        '3911 SW 27th St, West Park, 33023. United States of America',
+        '3911 SW 27 St, West Park, FL 33023, USA',
         marginLeft + 140,
         70,
         { width: contentWidth - 140, align: 'right' },
@@ -207,7 +207,7 @@ export class RepairPdfService {
     // Table header
     const tableTop = yPos;
     const colWidths = [contentWidth * 0.25, contentWidth * 0.25, contentWidth * 0.25, contentWidth * 0.25];
-    const headers = ['EMPLOYEE', 'TECHNICIAN', 'CUSTOMER:', 'STATUS'];
+    const headers = ['EMPLOYEE', ' ', 'CUSTOMER:', 'STATUS'];
 
     // Header background
     doc
@@ -232,7 +232,7 @@ export class RepairPdfService {
     yPos = tableTop + 25;
 
     // Table row data
-    const rowData = [data.createdBy, data.assignedTech, data.customerName, data.lastrepairStatus?.status || ''];
+    const rowData = [data.createdBy, ' ', data.customerName, data.lastrepairStatus?.status || ''];
 
     // Row background
     //doc

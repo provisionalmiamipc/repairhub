@@ -1,5 +1,5 @@
-<h2>Citas</h2>
-<a [routerLink]="['/appointments/new']" class="btn btn-primary">Nueva cita</a>
+<h2>Appointments</h2>
+<a [routerLink]="['/appointments/new']" class="btn btn-primary">New appointment</a>
 <table *ngIf="appointments.length">
   <thead>
     <tr>
@@ -13,12 +13,12 @@
       <td>{{ appointment.id }}</td>
       <td>{{ appointment.date }}</td>
       <td>
-        <a [routerLink]="['/appointments', appointment.id]">Ver</a>
-        <a [routerLink]="['/appointments', appointment.id, 'edit']">Editar</a>
-        <button>Eliminar</button>
+        <a [routerLink]="['/appointments', appointment.id]">View</a>
+        <a [routerLink]="['/appointments', appointment.id, 'edit']">Edit</a>
+        <button>Delete</button>
       </td>
     </tr>
   </tbody>
 </table>
-<p *ngIf="!appointments.length && !loading">No hay citas.</p>
-<p *ngIf="loading">Cargando...</p>
+<p *ngIf="!appointments.length && !loading">No appointments.</p>
+<p *ngIf="loading">Loading...</p>

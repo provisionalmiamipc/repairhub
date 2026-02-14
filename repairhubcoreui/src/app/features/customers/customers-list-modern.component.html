@@ -30,7 +30,7 @@
       <select
         class="select-filter"
         (change)="onFilterChange($any($event).target.value)"
-        [attr.aria-label]="'Filtrar clientes'"
+          [attr.aria-label]="'Filter customers'"
       >
         <option value="all">All</option>
         <option value="b2b">B2B</option>
@@ -40,7 +40,7 @@
       <select
         class="select-filter"
         (change)="onSortChange($any($event).target.value)"
-        [attr.aria-label]="'Ordenar clientes'"
+        [attr.aria-label]="'Sort customers'"
       >
         <option value="name">Sort by: Name</option>
         <option value="code">Code</option>
@@ -113,8 +113,8 @@
           <!--button
             class="btn-action btn-delete"
             (click)="onDelete(customer)"
-            title="Eliminar"
-            [attr.aria-label]="'Eliminar cliente ' + customer.firstName + ' ' + customer.lastName"
+            title="Delete"
+            [attr.aria-label]="'Delete customer ' + customer.firstName + ' ' + customer.lastName"
           >
             <i class="bi bi-trash"></i>
           </button-->

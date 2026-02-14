@@ -1,9 +1,9 @@
 <table class="table">
   <thead>
     <tr>
-      <th>Nota</th>
-      <th>Fecha de creación</th>
-      <th>Acciones</th>
+      <th>Note</th>
+      <th>Created At</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -11,9 +11,9 @@
       <td>{{ soNotes.note }}</td>
       <td>{{ soNotes.createdAt | date:'short' }}</td>
       <td>
-        <button (click)="select.emit(soNotes)">Ver</button>
-        <button (click)="edit.emit(soNotes)">Editar</button>
-        <button (click)="delete.emit(soNotes)">Eliminar</button>
+        <button (click)="select.emit(soNotes)">View</button>
+        <button (click)="edit.emit(soNotes)">Edit</button>
+        <button (click)="delete.emit(soNotes)">Delete</button>
       </td>
     </tr>
   </tbody>

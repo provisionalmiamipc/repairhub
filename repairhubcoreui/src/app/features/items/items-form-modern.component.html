@@ -16,7 +16,7 @@
             </div>
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
-                Cancelar
+                Cancel
               </button>
             </div>
           </div>
@@ -30,7 +30,7 @@
           }
 
           <!-- Single-step Form -->
-          <form [formGroup]="itemForm" class="needs-validation" novalidate>
+          <form [formGroup]="itemForm" class="needs-validation" novalidate autocomplete="off">
             <div class="vstack gap-4" [@slideInFrom]>
               <div>
                 <h2 class="h5 mb-1">Select Center, Store and Type</h2>
@@ -40,7 +40,7 @@
               @if (showCenterAndStoreFields()) {
                 <div class="row g-3">
                   <div class="col-12 col-md-6">
-                    <label for="centerId" class="form-label">Centro <span class="text-danger">*</span></label>
+                    <label for="centerId" class="form-label">Center <span class="text-danger">*</span></label>
                     <select id="centerId" formControlName="centerId" class="form-select">
                       <option [ngValue]="null">Select a center</option>
                       <option *ngFor="let center of centers()" [ngValue]="center.id">{{ center.centerName }}</option>
@@ -69,9 +69,9 @@
               @if (showOnlyStoreField()) {
                 <div class="row g-3">
                   <div class="col-12 col-md-6">
-                    <label for="storeId" class="form-label">Tienda <span class="text-danger">*</span></label>
+                    <label for="storeId" class="form-label">Store <span class="text-danger">*</span></label>
                     <select id="storeId" formControlName="storeId" class="form-select">
-                      <option [ngValue]="null">Selecciona una tienda</option>
+                      <option [ngValue]="null">Select a store</option>
                       <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
                     </select>
                     @if (getFieldError('storeId')) {
@@ -82,7 +82,7 @@
               }
 
               @if (hideLocationFields()) {
-                <div class="alert alert-info mb-0" role="status">Centro y tienda se asignan automáticamente.</div>
+                <div class="alert alert-info mb-0" role="status">Center and store are assigned automatically.</div>
               }
 
               <div>
@@ -111,7 +111,7 @@
               <div class="row g-3">
                 <div class="col-12 col-md-6">
                   <label for="product" class="form-label">Product Name <span class="text-danger">*</span></label>
-                  <input type="text" id="product" formControlName="product" class="form-control" placeholder="e.g., 32-inch LCD Screen">
+                  <input type="text" id="product" formControlName="product" class="form-control" placeholder="e.g., 32-inch LCD Screen" autocomplete="off">
                   @if (getFieldError('product')) {
                     <div class="invalid-feedback d-block">{{ getFieldError('product') }}</div>
                   }
@@ -119,7 +119,7 @@
 
                 <div class="col-12 col-md-6">
                   <label for="sku" class="form-label">SKU <span class="text-danger">*</span></label>
-                  <input type="text" id="sku" formControlName="sku" class="form-control" placeholder="e.g., LCD32-001">
+                  <input type="text" id="sku" formControlName="sku" class="form-control" placeholder="e.g., LCD32-001" autocomplete="off">
                   @if (getFieldError('sku')) {
                     <div class="invalid-feedback d-block">{{ getFieldError('sku') }}</div>
                   }
@@ -129,12 +129,12 @@
               <div class="row g-3">
                 <div class="col-12 col-md-6">
                   <label for="barcode" class="form-label">Barcode</label>
-                  <input type="text" id="barcode" formControlName="barcode" class="form-control" placeholder="e.g., 1234567890123">
+                  <input type="text" id="barcode" formControlName="barcode" class="form-control" placeholder="e.g., 1234567890123" autocomplete="off">
                 </div>
 
                 <div class="col-12 col-md-6">
                   <label for="shortTitleDesc" class="form-label">Short Description</label>
-                  <input type="text" id="shortTitleDesc" formControlName="shortTitleDesc" class="form-control" placeholder="Short description">
+                  <input type="text" id="shortTitleDesc" formControlName="shortTitleDesc" class="form-control" placeholder="Short description" autocomplete="off">
                 </div>
               </div>
 
@@ -147,7 +147,7 @@
                 <div class="row g-3">
                   <div class="col-12 col-md-4">
                         <label for="cost" class="form-label">Cost <span class="text-danger">*</span></label>
-                    <input type="number" id="cost" formControlName="cost" class="form-control" placeholder="0" min="0">
+                    <input type="number" id="cost" formControlName="cost" class="form-control" placeholder="0" min="0" autocomplete="off">
                     @if (getFieldError('cost')) {
                       <div class="invalid-feedback d-block">{{ getFieldError('cost') }}</div>
                     }
@@ -155,7 +155,7 @@
 
                   <div class="col-12 col-md-4">
                         <label for="price" class="form-label">Sale Price <span class="text-danger">*</span></label>
-                    <input type="number" id="price" formControlName="price" class="form-control" placeholder="0" min="0">
+                    <input type="number" id="price" formControlName="price" class="form-control" placeholder="0" min="0" autocomplete="off">
                     @if (getFieldError('price')) {
                       <div class="invalid-feedback d-block">{{ getFieldError('price') }}</div>
                     }
@@ -163,7 +163,7 @@
 
                   <div class="col-12 col-md-4">
                         <label for="discount" class="form-label">Discount (%)</label>
-                    <input type="number" id="discount" formControlName="discount" class="form-control" placeholder="0" min="0" max="100">
+                    <input type="number" id="discount" formControlName="discount" class="form-control" placeholder="0" min="0" max="100" autocomplete="off">
                   </div>
                 </div>
               </div>
@@ -177,7 +177,7 @@
                 <div class="row g-3">
                   <div class="col-12 col-md-4">
                         <label for="stock" class="form-label">Current Stock <span class="text-danger">*</span></label>
-                    <input type="number" id="stock" formControlName="stock" class="form-control" placeholder="0" min="0">
+                    <input type="number" id="stock" formControlName="stock" class="form-control" placeholder="0" min="0" autocomplete="off">
                     @if (getFieldError('stock')) {
                       <div class="invalid-feedback d-block">{{ getFieldError('stock') }}</div>
                     }
@@ -185,12 +185,12 @@
 
                   <div class="col-12 col-md-4">
                         <label for="minimunStock" class="form-label">Minimum Stock <span class="text-danger">*</span></label>
-                    <input type="number" id="minimunStock" formControlName="minimunStock" class="form-control" placeholder="0" min="0">
+                    <input type="number" id="minimunStock" formControlName="minimunStock" class="form-control" placeholder="0" min="0" autocomplete="off">
                   </div>
 
                   <div class="col-12 col-md-4">
                         <label for="warranty" class="form-label">Warranty (months)</label>
-                    <input type="number" id="warranty" formControlName="warranty" class="form-control" placeholder="0" min="0">
+                    <input type="number" id="warranty" formControlName="warranty" class="form-control" placeholder="0" min="0" autocomplete="off">
                   </div>
                 </div>
               </div>
@@ -204,14 +204,14 @@
                 <div class="row g-3 align-items-center">
                   <div class="col-12 col-md-6" *ngIf="!(authService.isExpert() && !isCenterAdmin())">
                     <div class="form-check">
-                      <input type="checkbox" id="taxable" formControlName="taxable" class="form-check-input">
+                      <input type="checkbox" id="taxable" formControlName="taxable" class="form-check-input" autocomplete="off">
                       <label for="taxable" class="form-check-label">Taxable (VAT)</label>
                     </div>
                   </div>
 
                   <div class="col-12 col-md-6">
                     <div class="form-check">
-                      <input type="checkbox" id="isActive" formControlName="isActive" class="form-check-input">
+                      <input type="checkbox" id="isActive" formControlName="isActive" class="form-check-input" autocomplete="off">
                       <label for="isActive" class="form-check-label">Active</label>
                     </div>
                   </div>
@@ -239,7 +239,7 @@
                             <strong class="d-block">Drag &amp; drop an image here, or</strong>
                             <label class="btn btn-sm btn-outline-primary mt-2">
                               Select file
-                              <input type="file" accept="image/*" style="display:none"  />
+                              <input type="file" accept="image/*" style="display:none" autocomplete="off" />
                             </label>
                           </div>
 
@@ -261,7 +261,7 @@
                       <div class="form-text">Allowed: JPG, PNG, GIF. Max size: {{ ( (environment.files.maxUploadSize || 10485760) / 1024 / 1024 ) | number:'1.1-1' }} MB</div>
                     </div>
 
-                    <input type="hidden" id="image" formControlName="image" />
+                    <input type="hidden" id="image" formControlName="image" autocomplete="off" />
                     
                   </div>
 
@@ -291,7 +291,7 @@
 
             <!-- Actions -->
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-4 mt-2 border-top">
-              <button type="button" class="btn btn-outline-secondary" (click)="onCancel()" [disabled]="isSaving()">Cancelar</button>
+              <button type="button" class="btn btn-outline-secondary" (click)="onCancel()" [disabled]="isSaving()">Cancel</button>
 
               <div>
                 <button type="submit" class="btn btn-success" [disabled]="!itemForm.valid || isSaving()" (click)="onSubmit()">
@@ -322,13 +322,13 @@
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title h5" id="itemTypeModalLabel">New item type</h2>
-          <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeItemTypeModal()" [disabled]="isCreatingItemType()"></button>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeItemTypeModal()" [disabled]="isCreatingItemType()"></button>
         </div>
         <div class="modal-body">
-          <form [formGroup]="itemTypeForm" class="vstack gap-3">
+          <form [formGroup]="itemTypeForm" class="vstack gap-3" autocomplete="off">
             <div>
               <label for="itemTypeName" class="form-label">Name <span class="text-danger">*</span></label>
-              <input id="itemTypeName" type="text" formControlName="name" class="form-control" placeholder="Ej: Repuesto, Accesorio">
+              <input id="itemTypeName" type="text" formControlName="name" class="form-control" placeholder="e.g., Spare, Accessory" autocomplete="off">
               @if (itemTypeForm.get('name')?.touched && itemTypeForm.get('name')?.errors?.['required']) {
                 <div class="invalid-feedback d-block">Name is required.</div>
               }
@@ -336,11 +336,11 @@
 
             <div>
               <label for="itemTypeDescription" class="form-label">Description</label>
-              <textarea id="itemTypeDescription" rows="3" formControlName="description" class="form-control" placeholder="Describe el tipo de artículo"></textarea>
+              <textarea id="itemTypeDescription" rows="3" formControlName="description" class="form-control" placeholder="Describe the item type"></textarea>
             </div>
 
             <div class="form-check">
-              <input id="itemTypeIsActive" type="checkbox" formControlName="isActive" class="form-check-input">
+              <input id="itemTypeIsActive" type="checkbox" formControlName="isActive" class="form-check-input" autocomplete="off">
               <label for="itemTypeIsActive" class="form-check-label">Active</label>
             </div>
 
@@ -350,7 +350,7 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeItemTypeModal()" [disabled]="isCreatingItemType()">Cancelar</button>
+          <button type="button" class="btn btn-outline-secondary" (click)="closeItemTypeModal()" [disabled]="isCreatingItemType()">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="createItemType()" [disabled]="isCreatingItemType()">
             @if (isCreatingItemType()) {
               <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

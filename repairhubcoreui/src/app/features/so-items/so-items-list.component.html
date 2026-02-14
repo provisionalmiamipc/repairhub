@@ -2,11 +2,11 @@
   <thead>
     <tr>
       <th>ID</th>
-      <th>Orden de Servicio ID</th>
-      <th>Cantidad</th>
-      <th>Precio</th>
-      <th>Creación</th>
-      <th>Acciones</th>
+      <th>Service Order ID</th>
+      <th>Quantity</th>
+      <th>Price</th>
+      <th>Created</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -17,9 +17,9 @@
       <td>{{ s.price }}</td>
       <td>{{ s.createdAt | date:'shortDate' }}</td>
       <td>
-        <button (click)="select.emit(s)">Ver</button>
-        <button (click)="edit.emit(s)">Editar</button>
-        <button (click)="delete.emit(s)">Eliminar</button>
+        <button (click)="select.emit(s)">View</button>
+        <button (click)="edit.emit(s)">Edit</button>
+        <button (click)="delete.emit(s)">Delete</button>
       </td>
     </tr>
   </tbody>

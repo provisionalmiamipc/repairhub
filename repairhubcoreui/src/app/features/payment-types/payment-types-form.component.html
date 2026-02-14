@@ -80,21 +80,21 @@
         </div>
       </ng-container>
       <ng-template #hideLocation>
-        <input type="hidden" formControlName="centerId" />
-        <input type="hidden" formControlName="storeId" />
+        <input type="hidden" formControlName="centerId" autocomplete="off" />
+        <input type="hidden" formControlName="storeId" autocomplete="off" />
       </ng-template>
     </ng-template>
 
     <div class="mb-3">
       <label class="form-label" for="type">Type *</label>
-      <input id="type" class="form-control" type="text" formControlName="type" />
+      <input id="type" class="form-control" type="text" formControlName="type" autocomplete="off" />
       <div class="invalid-feedback d-block" *ngIf="form.get('type')?.invalid && form.get('type')?.touched">Tipo
         requerido</div>
     </div>
 
     <div class="mb-3">
       <label class="form-label" for="description">Description</label>
-      <input id="description" class="form-control" type="text" formControlName="description" />
+      <input id="description" class="form-control" type="text" formControlName="description" autocomplete="off" />
     </div>
 
   </form>

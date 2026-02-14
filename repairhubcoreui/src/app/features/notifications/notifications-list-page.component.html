@@ -1,15 +1,15 @@
-<h2>Notificaciones</h2>
+<h2>Notifications</h2>
 <div *ngIf="loading">Loading...</div>
 <table *ngIf="!loading">
   <thead>
     <tr>
       <th>ID</th>
-      <th>Título</th>
-      <th>Mensaje</th>
-      <th>Tipo</th>
-      <th>Prioridad</th>
-      <th>Estado</th>
-      <th>Acciones</th>
+      <th>Title</th>
+      <th>Message</th>
+      <th>Type</th>
+      <th>Priority</th>
+      <th>Status</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -21,10 +21,10 @@
       <td>{{ n.priority }}</td>
       <td>{{ n.status }}</td>
       <td>
-  <a [routerLink]="['/notifications', n.id]">Ver</a> |
-  <a [routerLink]="['/notifications', n.id, 'edit']">Editar</a>
+  <a [routerLink]="['/notifications', n.id]">View</a> |
+  <a [routerLink]="['/notifications', n.id, 'edit']">Edit</a>
       </td>
     </tr>
   </tbody>
 </table>
-<a [routerLink]="['/notifications', 'new']">Crear nueva notificación</a>
+<a [routerLink]="['/notifications', 'new']">Create new notification</a>

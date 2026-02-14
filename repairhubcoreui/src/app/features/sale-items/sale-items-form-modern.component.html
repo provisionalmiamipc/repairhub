@@ -7,7 +7,7 @@
         </svg>
         Back
       </button>
-      <h1>{{ formState().isEditMode ? '✏️ Editar Ítem de Venta' : '🛒 Nuevo Ítem de Venta' }}</h1>
+      <h1>{{ formState().isEditMode ? '✏️ Edit Sale Item' : '🛒 New Sale Item' }}</h1>
     </div>
 
     <div class="progress-bar">
@@ -21,7 +21,7 @@
         <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
       </svg>
-      <span>Ítem de venta {{ formState().isEditMode ? 'actualizado' : 'creado' }} exitosamente</span>
+      <span>Sale item {{ formState().isEditMode ? 'updated' : 'created' }} successfully</span>
     </div>
   }
 
@@ -37,28 +37,28 @@
   }
 
   <div class="stepper">
-    <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
+      <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
       <div class="step-circle">1</div>
-      <span class="step-label">Venta y Producto</span>
+      <span class="step-label">Sale and Product</span>
     </div>
     <div class="step-line" [class.completed]="currentStep() > 0"></div>
-    <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
+      <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
       <div class="step-circle">2</div>
-      <span class="step-label">Cantidad y Precios</span>
+      <span class="step-label">Quantity and Prices</span>
     </div>
   </div>
 
-  <form [formGroup]="saleItemForm" (ngSubmit)="onSubmit()">
+  <form [formGroup]="saleItemForm" (ngSubmit)="onSubmit()" autocomplete="off">
     @if (currentStep() === 0) {
       <div class="step-content">
-        <h3>Venta, Centro, Tienda y Producto</h3>
+        <h3>Sale, Center, Store and Product</h3>
         
         <div class="form-group">
-          <label>Venta *</label>
+          <label>Sale *</label>
           <select formControlName="saleId" [class.invalid]="isFieldInvalid('saleId')">
-            <option [value]="null">Seleccione una venta</option>
+            <option [value]="null">Select a sale</option>
             @for (sale of sales(); track sale.id) {
-              <option [value]="sale.id">Venta #{{ sale.id }} - {{ sale.totalPrice | currency: 'COP':'symbol-narrow' }}</option>
+              <option [value]="sale.id">Sale #{{ sale.id }} - {{ sale.totalPrice | currency: 'COP':'symbol-narrow' }}</option>
             }
           </select>
           @if (isFieldInvalid('saleId')) {
@@ -68,9 +68,9 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>Centro *</label>
+            <label>Center *</label>
             <select formControlName="centerId" [class.invalid]="isFieldInvalid('centerId')">
-              <option [value]="null">Seleccione un centro</option>
+              <option [value]="null">Select a center</option>
               @for (center of centers(); track center.id) {
                 <option [value]="center.id">{{ center.centerName }}</option>
               }
@@ -81,9 +81,9 @@
           </div>
 
           <div class="form-group">
-            <label>Tienda *</label>
+            <label>Store *</label>
             <select formControlName="storeId" [class.invalid]="isFieldInvalid('storeId')" [disabled]="!saleItemForm.get('centerId')?.value">
-              <option [value]="null">Seleccione una tienda</option>
+              <option [value]="null">Select a store</option>
               @for (store of filteredStores(); track store.id) {
                 <option [value]="store.id">{{ store.storeName }}</option>
               }
@@ -95,9 +95,9 @@
         </div>
 
         <div class="form-group">
-          <label>Producto *</label>
+          <label>Product *</label>
           <select formControlName="itemId" [class.invalid]="isFieldInvalid('itemId')">
-            <option [value]="null">Seleccione un producto</option>
+            <option [value]="null">Select a product</option>
             @for (item of items(); track item.id) {
               <option [value]="item.id">{{ item.product }} ({{ item.sku }})</option>
             }
@@ -111,10 +111,10 @@
 
     @if (currentStep() === 1) {
       <div class="step-content">
-        <h3>Cantidad, Precios y Descuento</h3>
+        <h3>Quantity, Prices and Discount</h3>
         
         <div class="form-group">
-          <label>Cantidad *</label>
+          <label>Quantity *</label>
           <input 
             type="number" 
             formControlName="quantity" 
@@ -129,7 +129,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>Costo Unitario *</label>
+            <label>Unit Cost *</label>
             <input 
               type="number" 
               formControlName="cost" 
@@ -144,7 +144,7 @@
           </div>
 
           <div class="form-group">
-            <label>Precio Unitario *</label>
+            <label>Unit Price *</label>
             <input 
               type="number" 
               formControlName="price" 
@@ -160,7 +160,7 @@
         </div>
 
         <div class="form-group">
-          <label>Descuento Total *</label>
+          <label>Total Discount *</label>
           <input 
             type="number" 
             formControlName="discount" 
@@ -179,18 +179,18 @@
     <div class="form-actions">
       @if (currentStep() > 0) {
         <button type="button" class="btn-secondary" (click)="previousStep()">
-          Anterior
+          Previous
         </button>
       }
 
       @if (currentStep() < 1) {
-        <button 
+          <button 
           type="button" 
           class="btn-primary" 
           (click)="nextStep()"
           [disabled]="!canProceedToNextStep()"
         >
-          Siguiente
+          Next
         </button>
       }
 
@@ -200,11 +200,11 @@
           class="btn-primary"
           [disabled]="formState().isLoading || !saleItemForm.valid"
         >
-          @if (formState().isLoading) {
+            @if (formState().isLoading) {
             <span class="spinner"></span>
-            Guardando...
+            Saving...
           } @else {
-            {{ formState().isEditMode ? 'Actualizar' : 'Crear' }} Ítem
+            {{ formState().isEditMode ? 'Update' : 'Create' }} Item
           }
         </button>
       }

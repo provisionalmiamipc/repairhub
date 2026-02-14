@@ -1,4 +1,4 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
   <div class="row g-3">
     <div class="col-md-4" *ngIf="showCenterField">
       <label class="form-label">Center *</label>
@@ -43,7 +43,7 @@
 
     <div class="col-md-6">
       <label class="form-label">Product *</label>
-      <input class="form-control" [class.is-invalid]="form.get('product')?.invalid && form.get('product')?.touched" formControlName="product" />
+      <input class="form-control" [class.is-invalid]="form.get('product')?.invalid && form.get('product')?.touched" formControlName="product" autocomplete="off" />
       <div class="invalid-feedback" *ngIf="form.get('product')?.invalid && form.get('product')?.touched">
         Product name is required
       </div>
@@ -51,7 +51,7 @@
 
     <div class="col-md-6">
       <label class="form-label">SKU *</label>
-      <input class="form-control" [class.is-invalid]="form.get('sku')?.invalid && form.get('sku')?.touched" formControlName="sku" />
+      <input class="form-control" [class.is-invalid]="form.get('sku')?.invalid && form.get('sku')?.touched" formControlName="sku" autocomplete="off" />
       <div class="invalid-feedback" *ngIf="form.get('sku')?.invalid && form.get('sku')?.touched">
         SKU is required
       </div>
@@ -59,7 +59,7 @@
 
     <div class="col-md-6">
       <label class="form-label">Price *</label>
-      <input class="form-control" type="number" [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched" formControlName="price" min="0" />
+      <input class="form-control" type="number" [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched" formControlName="price" min="0" autocomplete="off" />
       <div class="invalid-feedback" *ngIf="form.get('price')?.invalid && form.get('price')?.touched">
         <span *ngIf="form.get('price')?.getError('required')">Price is required</span>
         <span *ngIf="form.get('price')?.getError('min')">Price must be greater than or equal to 0</span>
@@ -68,7 +68,7 @@
 
     <div class="col-md-6">
       <label class="form-label">Cost *</label>
-      <input class="form-control" type="number" [class.is-invalid]="form.get('cost')?.invalid && form.get('cost')?.touched" formControlName="cost" min="0" />
+      <input class="form-control" type="number" [class.is-invalid]="form.get('cost')?.invalid && form.get('cost')?.touched" formControlName="cost" min="0" autocomplete="off" />
       <div class="invalid-feedback" *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">
         <span *ngIf="form.get('cost')?.getError('required')">Cost is required</span>
         <span *ngIf="form.get('cost')?.getError('min')">Cost must be greater than or equal to 0</span>
@@ -77,12 +77,12 @@
 
     <div class="col-md-6">
       <label class="form-label">Short Description</label>
-      <input class="form-control" formControlName="shortTitleDesc" />
+      <input class="form-control" formControlName="shortTitleDesc" autocomplete="off" />
     </div>
 
     <div class="col-md-3">
       <label class="form-label">Stock *</label>
-      <input class="form-control" type="number" [class.is-invalid]="form.get('stock')?.invalid && form.get('stock')?.touched" formControlName="stock" min="0" />
+      <input class="form-control" type="number" [class.is-invalid]="form.get('stock')?.invalid && form.get('stock')?.touched" formControlName="stock" min="0" autocomplete="off" />
       <div class="invalid-feedback" *ngIf="form.get('stock')?.invalid && form.get('stock')?.touched">
         <span *ngIf="form.get('stock')?.getError('required')">Stock is required</span>
         <span *ngIf="form.get('stock')?.getError('min')">Stock must be greater than or equal to 0</span>
@@ -91,7 +91,7 @@
 
     <div class="col-md-3">
       <label class="form-label">Min Stock *</label>
-      <input class="form-control" type="number" [class.is-invalid]="form.get('minimunStock')?.invalid && form.get('minimunStock')?.touched" formControlName="minimunStock" min="0" />
+      <input class="form-control" type="number" [class.is-invalid]="form.get('minimunStock')?.invalid && form.get('minimunStock')?.touched" formControlName="minimunStock" min="0" autocomplete="off" />
       <div class="invalid-feedback" *ngIf="form.get('minimunStock')?.invalid && form.get('minimunStock')?.touched">
         <span *ngIf="form.get('minimunStock')?.getError('required')">Min Stock is required</span>
         <span *ngIf="form.get('minimunStock')?.getError('min')">Min Stock must be greater than or equal to 0</span>
@@ -105,31 +105,31 @@
 
     <div class="col-md-6">
       <label class="form-label">Image URL</label>
-      <input class="form-control" formControlName="image" />
+      <input class="form-control" formControlName="image" autocomplete="off" />
     </div>
 
     <div class="col-md-6">
       <label class="form-label">Barcode</label>
-      <input class="form-control" formControlName="barcode" />
+      <input class="form-control" formControlName="barcode" autocomplete="off" />
     </div>
 
     <div class="col-md-4">
       <label class="form-label">Warranty (months)</label>
-      <input class="form-control" type="number" formControlName="warranty" min="0" />
+      <input class="form-control" type="number" formControlName="warranty" min="0" autocomplete="off" />
     </div>
 
     <div class="col-md-4">
       <label class="form-label">Discount</label>
-      <input class="form-control" type="number" formControlName="discount" min="0" />
+      <input class="form-control" type="number" formControlName="discount" min="0" autocomplete="off" />
     </div>
 
     <div class="col-md-4 d-flex align-items-end gap-4">
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" formControlName="taxable" id="taxable" />
+        <input class="form-check-input" type="checkbox" formControlName="taxable" id="taxable" autocomplete="off" />
         <label class="form-check-label" for="taxable">Taxable</label>
       </div>
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" formControlName="isActive" id="isActive" />
+        <input class="form-check-input" type="checkbox" formControlName="isActive" id="isActive" autocomplete="off" />
         <label class="form-check-label" for="isActive">Active</label>
       </div>
     </div>

@@ -1,10 +1,10 @@
 <div *ngIf="sale">
-  <h2>Venta #{{ sale.id }}</h2>
-  <p><strong>Total Costo:</strong> {{ sale.totalCost }}</p>
-  <p><strong>Total Precio:</strong> {{ sale.totalPrice }}</p>
-  <p><strong>Total Descuento:</strong> {{ sale.totalDiscount }}</p>
-  <p><strong>Cerrada:</strong> {{ sale.cloused ? 'Sí' : 'No' }}</p>
-  <p><strong>Cancelada:</strong> {{ sale.canceled ? 'Sí' : 'No' }}</p>
-  <p><strong>Creada:</strong> {{ sale.createdAt | date:'short' }}</p>
-  <p><strong>Actualizada:</strong> {{ sale.updatedAt | date:'short' }}</p>
+  <h2>Sale #{{ sale.id }}</h2>
+  <p><strong>Total Cost:</strong> {{ sale.totalCost }}</p>
+  <p><strong>Total Price:</strong> {{ sale.totalPrice }}</p>
+  <p><strong>Total Discount:</strong> {{ sale.totalDiscount }}</p>
+  <p><strong>Closed:</strong> {{ sale.cloused ? 'Yes' : 'No' }}</p>
+  <p><strong>Canceled:</strong> {{ sale.canceled ? 'Yes' : 'No' }}</p>
+  <p><strong>Created:</strong> {{ sale.createdAt | date:'short' }}</p>
+  <p><strong>Updated:</strong> {{ sale.updatedAt | date:'short' }}</p>
 </div>

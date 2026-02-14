@@ -50,7 +50,7 @@
     <p class="text-muted mb-0">Loading information...</p>
   </div>
   } @else {
-  <form class="needs-validation" [formGroup]="serviceOrderForm" (ngSubmit)="onSubmit()">
+  <form class="needs-validation" autocomplete="off" [formGroup]="serviceOrderForm" (ngSubmit)="onSubmit()">
     <!-- EDIT MODE: Show all fields at once -->
     @if (isEditMode()) {
     <div class="row g-4">
@@ -110,8 +110,8 @@
                 </div>
                 } @else if (hideLocationFields()) {
                 <!-- EMPLOYEE normal: ocultar ambos campos, usar valores por defecto -->
-                <input type="hidden" formControlName="centerId" />
-                <input type="hidden" formControlName="storeId" />
+                <input type="hidden" autocomplete="off" formControlName="centerId" />
+                <input type="hidden" autocomplete="off" formControlName="storeId" />
                 }
               </div>
             </div>
@@ -231,7 +231,7 @@
                 <!-- Model -->
                 <div class="col-md-6 col-xl-4">
                   <label for="model" class="form-label">Model *</label>
-                  <input type="text" id="model" class="form-control" [class.is-invalid]="isFieldInvalid('model')"
+                  <input type="text" id="model" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('model')"
                     formControlName="model" placeholder="Device model" />
                   @if (isFieldInvalid('model')) {
                   <span class="error-message">{{ getFieldError('model') }}</span>
@@ -241,28 +241,28 @@
                 <!-- Serial -->
                 <div class="col-md-6 col-xl-4">
                   <label for="serial" class="form-label">Serial</label>
-                  <input type="text" id="serial" class="form-control" formControlName="serial"
+                  <input type="text" id="serial" autocomplete="off" class="form-control" formControlName="serial"
                     placeholder="Serial number" />
                 </div>
 
                 <!-- Defective Part -->
                 <div class="col-12">
                   <label for="defectivePart" class="form-label">Defective Part</label>
-                  <input type="text" id="defectivePart" class="form-control" formControlName="defectivePart"
+                  <input type="text" id="defectivePart" autocomplete="off" class="form-control" formControlName="defectivePart"
                     placeholder="Describe the defective part" />
                 </div>
 
                 <!-- Reception Note -->
                 <div class="col-12">
                   <label for="noteReception" class="form-label">Reception Notes</label>
-                  <textarea id="noteReception" class="form-control" formControlName="noteReception"
+                  <textarea id="noteReception" autocomplete="off" class="form-control" formControlName="noteReception"
                     placeholder="Additional notes..." rows="3"></textarea>
                 </div>
 
                 <!-- Estimated -->
                 <div class="col-12">
                   <label for="estimated" class="form-label">Estimated</label>
-                  <textarea id="estimated" class="form-control" formControlName="estimated"
+                  <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
                     placeholder="Estimated repair..." rows="3"></textarea>
                 </div>
 
@@ -270,7 +270,7 @@
                 @if (showCenterAndStoreFields()) {
                 <div class="col-12">
                   <div class="form-check">
-                    <input id="lock" type="checkbox" formControlName="lock" class="form-check-input" />
+                    <input id="lock" type="checkbox" formControlName="lock" class="form-check-input" autocomplete="off" />
                     <label class="form-check-label" for="lock">Lock order</label>
                   </div>
                 </div>
@@ -287,7 +287,7 @@
                 <!-- Price -->
                 <div class="col-md-6 col-xl-4">
                   <label for="price" class="form-label">Price *</label>
-                  <input type="number" id="price" class="form-control" [class.is-invalid]="isFieldInvalid('price')"
+                  <input type="number" id="price" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('price')"
                     formControlName="price" min="0" step="0" />
                   @if (isFieldInvalid('price')) {
                   <span class="error-message">{{ getFieldError('price') }}</span>
@@ -297,7 +297,7 @@
                 <!-- Repair Cost -->
                 <div class="col-md-6 col-xl-4">
                   <label for="repairCost" class="form-label">Repair Cost *</label>
-                  <input type="number" id="repairCost" class="form-control"
+                  <input type="number" id="repairCost" autocomplete="off" class="form-control"
                     [class.is-invalid]="isFieldInvalid('repairCost')" formControlName="repairCost" min="0" step="0" />
                   @if (isFieldInvalid('repairCost')) {
                   <span class="error-message">{{ getFieldError('repairCost') }}</span>
@@ -307,14 +307,14 @@
                 <!-- Discount -->
                 <div class="col-md-6 col-xl-4">
                   <label for="costdiscount" class="form-label">Discount (%)</label>
-                  <input type="number" id="costdiscount" class="form-control" formControlName="costdiscount" min="0"
+                  <input type="number" id="costdiscount" autocomplete="off" class="form-control" formControlName="costdiscount" min="0"
                     step="0" />
                 </div>
 
                 <!-- Advance Payment -->
                 <div class="col-md-6 col-xl-4">
                   <label for="advancePayment" class="form-label">Advance Payment</label>
-                  <input type="number" id="advancePayment" class="form-control" formControlName="advancePayment" min="0"
+                  <input type="number" id="advancePayment" autocomplete="off" class="form-control" formControlName="advancePayment" min="0"
                     step="0" />
                 </div>
 
@@ -336,13 +336,13 @@
                 <!-- Tax -->
                 <div class="col-md-6 col-xl-4">
                   <label for="tax" class="form-label">Tax (%)</label>
-                  <input type="number" id="tax" class="form-control" formControlName="tax" min="0" step="0" />
+                  <input type="number" id="tax" autocomplete="off" class="form-control" formControlName="tax" min="0" step="0" />
                 </div>
 
                 <!-- Total Cost (read-only) -->
                 <div class="col-md-6 col-xl-">
                   <label for="totalCost" class="form-label">Total Cost</label>
-                  <input type="number" id="totalCost" class="form-control" formControlName="totalCost" readonly />
+                  <input type="number" id="totalCost" autocomplete="off" class="form-control" formControlName="totalCost" readonly />
                   <small class="text-muted">Calculated automatically</small>
                 </div>
                 <div class="col-md-2 col-xl-2"></div>
@@ -548,8 +548,8 @@
             </div>
             } @else if (hideLocationFields()) {
             <!-- EMPLOYEE normal: ocultar ambos campos, usar valores por defecto -->
-            <input type="hidden" formControlName="centerId" />
-            <input type="hidden" formControlName="storeId" />
+            <input type="hidden" autocomplete="off" formControlName="centerId" />
+            <input type="hidden" autocomplete="off" formControlName="storeId" />
             }
           </div>
         </div>
@@ -628,7 +628,7 @@
             <!-- Reception Note -->
             <div class="col-12">
               <label for="noteReception" class="form-label">Reception Notes</label>
-              <textarea id="noteReception" class="form-control" formControlName="noteReception"
+              <textarea id="noteReception" autocomplete="off" class="form-control" formControlName="noteReception"
                 placeholder="Additional notes..." rows="3"></textarea>
             </div>
           </div>
@@ -645,7 +645,7 @@
             <!-- Model -->
             <div class="col-md-6 col-xl-4">
               <label for="model" class="form-label">Model *</label>
-              <input type="text" id="model" class="form-control" [class.is-invalid]="isFieldInvalid('model')"
+              <input type="text" id="model" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('model')"
                 formControlName="model" placeholder="Device model" />
               @if (isFieldInvalid('model')) {
               <span class="error-message">{{ getFieldError('model') }}</span>
@@ -655,7 +655,7 @@
             <!-- Serial -->
             <div class="col-md-6 col-xl-4">
               <label for="serial" class="form-label">Serial</label>
-              <input type="text" id="serial" class="form-control" formControlName="serial"
+              <input type="text" id="serial" autocomplete="off" class="form-control" formControlName="serial"
                 placeholder="Serial number" />
             </div>
 
@@ -694,14 +694,14 @@
             <!-- Defective Part -->
             <div class="col-12">
               <label for="defectivePart" class="form-label">Defective Part</label>
-              <input type="text" id="defectivePart" class="form-control" formControlName="defectivePart"
+              <input type="text" id="defectivePart" autocomplete="off" class="form-control" formControlName="defectivePart"
                 placeholder="Describe the defective part" />
             </div>
 
             <!-- Estimated -->
             <div class="col-12">
               <label for="estimated" class="form-label">Estimated</label>
-              <textarea id="estimated" class="form-control" formControlName="estimated"
+              <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
                 placeholder="Estimated repair..." rows="3"></textarea>
             </div>
 
@@ -719,7 +719,7 @@
             <!-- Price -->
             <div class="col-md-6 col-xl-4">
               <label for="price" class="form-label">Price *</label>
-              <input type="number" id="price" class="form-control" [class.is-invalid]="isFieldInvalid('price')"
+              <input type="number" id="price" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('price')"
                 formControlName="price" min="0" step="0" />
               @if (isFieldInvalid('price')) {
               <span class="error-message">{{ getFieldError('price') }}</span>
@@ -729,7 +729,7 @@
             <!-- Repair Cost -->
             <div class="col-md-6 col-xl-4">
               <label for="repairCost" class="form-label">Repair Cost *</label>
-              <input type="number" id="repairCost" class="form-control"
+              <input type="number" id="repairCost" autocomplete="off" class="form-control"
                 [class.is-invalid]="isFieldInvalid('repairCost')" formControlName="repairCost" min="0" step="0" />
               @if (isFieldInvalid('repairCost')) {
               <span class="error-message">{{ getFieldError('repairCost') }}</span>
@@ -739,20 +739,20 @@
             <!-- Discount -->
             <div class="col-md-6 col-xl-4">
               <label for="costdiscount" class="form-label">Discount (%)</label>
-              <input type="number" id="costdiscount" class="form-control" formControlName="costdiscount" min="0"
+              <input type="number" id="costdiscount" autocomplete="off" class="form-control" formControlName="costdiscount" min="0"
                 step="0" />
             </div>
 
             <!-- Tax -->
             <div class="col-md-6 col-xl-4">
               <label for="tax" class="form-label">Tax (%)</label>
-              <input type="number" id="tax" class="form-control" formControlName="tax" min="0" step="0" />
+              <input type="number" id="tax" autocomplete="off" class="form-control" formControlName="tax" min="0" step="0" />
             </div>
 
             <!-- Advance Payment -->
             <div class="col-md-6 col-xl-4">
               <label for="advancePayment" class="form-label">Advance Payment</label>
-              <input type="number" id="advancePayment" class="form-control" formControlName="advancePayment" min="0"
+              <input type="number" id="advancePayment" autocomplete="off" class="form-control" formControlName="advancePayment" min="0"
                 step="0" />
             </div>
 
@@ -781,7 +781,7 @@
             <div class="col-6">
               <div class="alert alert-info mb-0">
                 <label for="totalCost" class="form-label">Total Price (Calculated)</label>
-                <input type="number" id="totalCost" hidden class="form-control" formControlName="totalCost" readonly />
+                <input type="number" id="totalCost" hidden autocomplete="off" class="form-control" formControlName="totalCost" readonly />
                 <div class="col-md-2 col-xl-2"></div>
                 <div class="col-md-6 col-xl-4">
                   @if (!isEditMode()) {

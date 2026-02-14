@@ -2,12 +2,12 @@
   <thead>
     <tr>
       <th>ID</th>
-      <th>Cantidad</th>
-      <th>Costo</th>
-      <th>Precio</th>
-      <th>Condición</th>
-      <th>Recibido</th>
-      <th>Acciones</th>
+      <th>Quantity</th>
+      <th>Cost</th>
+      <th>Price</th>
+      <th>Condition</th>
+      <th>Received</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -17,11 +17,11 @@
       <td>{{ oi.cost }}</td>
       <td>{{ oi.price }}</td>
       <td>{{ oi.condition }}</td>
-      <td>{{ oi.received ? 'Sí' : 'No' }}</td>
+      <td>{{ oi.received ? 'Yes' : 'No' }}</td>
       <td>
-        <button (click)="select.emit(oi)">Ver</button>
-        <button (click)="edit.emit(oi)">Editar</button>
-        <button (click)="delete.emit(oi)">Eliminar</button>
+        <button (click)="select.emit(oi)">View</button>
+        <button (click)="edit.emit(oi)">Edit</button>
+        <button (click)="delete.emit(oi)">Delete</button>
       </td>
     </tr>
   </tbody>

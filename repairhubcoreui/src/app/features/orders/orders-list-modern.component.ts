@@ -193,13 +193,13 @@ export class OrdersListModernComponent implements OnInit {
   }
 
   deleteOrder(order: Orders) {
-    if (confirm(`¿Eliminar orden #${order.id}?`)) {
+    if (confirm(`Delete order #${order.id}?`)) {
       this.ordersService.delete(order.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.orders.update(orders => orders.filter(o => o.id !== order.id));
         },
         error: (err) => {
-          alert(`Error al eliminar: ${err.message}`);
+          alert(`Error deleting: ${err.message}`);
         }
       });
     }

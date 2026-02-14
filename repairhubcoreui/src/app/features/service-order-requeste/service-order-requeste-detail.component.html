@@ -1,13 +1,13 @@
 <div *ngIf="request">
-  <h2>Detalle de Solicitud de Orden de Servicio</h2>
+  <h2>Service Order Request Details</h2>
   <div><strong>ID:</strong> {{ request.id }}</div>
-  <div><strong>Estado:</strong> {{ request.status }}</div>
-  <div><strong>Cerrado:</strong> {{ request.cloused ? 'Sí' : 'No' }}</div>
-  <div><strong>Cancelado:</strong> {{ request.canceled ? 'Sí' : 'No' }}</div>
-  <div><strong>Fecha de creación:</strong> {{ request.createdAt | date:'shortDate' }}</div>
-  <div><strong>Fecha de actualización:</strong> {{ request.updatedAt | date:'shortDate' }}</div>
-  <div *ngIf="request.center"><strong>Centro:</strong> {{ request.center.centerName }}</div>
-  <div *ngIf="request.store"><strong>Tienda:</strong> {{ request.store.storeName }}</div>
-  <div *ngIf="request.order"><strong>Orden:</strong> {{ request.order.id }}</div>
-  <div *ngIf="request.serviceOrder"><strong>Orden de Servicio:</strong> {{ request.serviceOrder.id }}</div>
+  <div><strong>Status:</strong> {{ request.status }}</div>
+  <div><strong>Closed:</strong> {{ request.cloused ? 'Yes' : 'No' }}</div>
+  <div><strong>Canceled:</strong> {{ request.canceled ? 'Yes' : 'No' }}</div>
+  <div><strong>Created At:</strong> {{ request.createdAt | date:'shortDate' }}</div>
+  <div><strong>Updated At:</strong> {{ request.updatedAt | date:'shortDate' }}</div>
+  <div *ngIf="request.center"><strong>Center:</strong> {{ request.center.centerName }}</div>
+  <div *ngIf="request.store"><strong>Store:</strong> {{ request.store.storeName }}</div>
+  <div *ngIf="request.order"><strong>Order:</strong> {{ request.order.id }}</div>
+  <div *ngIf="request.serviceOrder"><strong>Service Order:</strong> {{ request.serviceOrder.id }}</div>
 </div>

@@ -1,10 +1,10 @@
 <div *ngIf="itemType">
-  <h2>Detalle de Tipo de Item</h2>
+  <h2>Item Type Details</h2>
   <div><strong>ID:</strong> {{ itemType.id }}</div>
-  <div><strong>Nombre:</strong> {{ itemType.name }}</div>
-  <div><strong>Descripción:</strong> {{ itemType.description }}</div>
-  <div><strong>Activo:</strong> {{ itemType.isActive ? 'Sí' : 'No' }}</div>
-  <div><strong>Fecha de creación:</strong> {{ itemType.createdAt | date:'shortDate' }}</div>
-  <div *ngIf="itemType.center"><strong>Centro:</strong> {{ itemType.center.centerName }}</div>
-  <div *ngIf="itemType.store"><strong>Tienda:</strong> {{ itemType.store.storeName }}</div>
+  <div><strong>Name:</strong> {{ itemType.name }}</div>
+  <div><strong>Description:</strong> {{ itemType.description }}</div>
+  <div><strong>Active:</strong> {{ itemType.isActive ? 'Yes' : 'No' }}</div>
+  <div><strong>Created At:</strong> {{ itemType.createdAt | date:'shortDate' }}</div>
+  <div *ngIf="itemType.center"><strong>Center:</strong> {{ itemType.center.centerName }}</div>
+  <div *ngIf="itemType.store"><strong>Store:</strong> {{ itemType.store.storeName }}</div>
 </div>

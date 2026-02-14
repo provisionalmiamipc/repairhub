@@ -2,11 +2,11 @@
   <thead>
     <tr>
       <th>ID</th>
-      <th>Cantidad</th>
-      <th>Costo</th>
-      <th>Precio</th>
-      <th>Descuento</th>
-      <th>Acciones</th>
+      <th>Quantity</th>
+      <th>Cost</th>
+      <th>Price</th>
+      <th>Discount</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
@@ -16,10 +16,10 @@
       <td>{{ si.cost }}</td>
       <td>{{ si.price }}</td>
       <td>{{ si.discount }}</td>
-      <td>
-        <button (click)="select.emit(si)">Ver</button>
-        <button (click)="edit.emit(si)">Editar</button>
-        <button (click)="delete.emit(si)">Eliminar</button>
+        <td>
+        <button (click)="select.emit(si)">View</button>
+        <button (click)="edit.emit(si)">Edit</button>
+        <button (click)="delete.emit(si)">Delete</button>
       </td>
     </tr>
   </tbody>

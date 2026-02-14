@@ -3,12 +3,12 @@
   <div class="list-header" @slideDown>
     <div class="header-content">
       <div>
-        <h1 class="page-title">Tiendas</h1>
-        <p class="page-subtitle">Administra todas las tiendas de tu sistema</p>
+        <h1 class="page-title">Stores</h1>
+        <p class="page-subtitle">Manage all stores in your system</p>
       </div>
-      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'Nueva tienda'">
+      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'New store'">
         <span class="btn-icon"><i class="bi bi-plus"></i></span>
-        Nueva Tienda
+        New Store
       </button>
     </div>
   </div>
@@ -20,9 +20,9 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Busca por nombre, código, ciudad o email..."
+        placeholder="Search by name, code, city or email..."
         (input)="onSearchChange($any($event).target.value)"
-        [attr.aria-label]="'Buscar tiendas'"
+        [attr.aria-label]="'Search stores'"
       />
     </div>
 
@@ -30,21 +30,21 @@
       <select
         class="select-filter"
         (change)="onFilterChange($any($event).target.value)"
-        [attr.aria-label]="'Filtrar tiendas'"
+        [attr.aria-label]="'Filter stores'"
       >
-        <option value="all">Todos</option>
-        <option value="1">Centro 1</option>
-        <option value="2">Centro 2</option>
+        <option value="all">All</option>
+        <option value="1">Center 1</option>
+        <option value="2">Center 2</option>
       </select>
 
       <select
         class="select-filter"
         (change)="onSortChange($any($event).target.value)"
-        [attr.aria-label]="'Ordenar tiendas'"
+        [attr.aria-label]="'Sort stores'"
       >
-        <option value="name">Ordenar por: Nombre</option>
-        <option value="code">Código</option>
-        <option value="city">Ciudad</option>
+        <option value="name">Sort by: Name</option>
+        <option value="code">Code</option>
+        <option value="city">City</option>
       </select>
     </div>
   </div>
@@ -55,10 +55,10 @@
     <div class="error-content">
       <span class="error-icon"><i class="bi bi-exclamation-triangle-fill"></i></span>
       <div>
-        <h3>Error al cargar</h3>
+        <h3>Error loading</h3>
         <p>{{ error() }}</p>
       </div>
-      <button class="btn-retry" (click)="retryLoad()">Reintentar</button>
+      <button class="btn-retry" (click)="retryLoad()">Retry</button>
     </div>
   </div>
   }
@@ -83,9 +83,9 @@
     @if (isEmptyState()) {
     <div class="empty-state" @fadeInUp>
       <div class="empty-icon"><i class="bi bi-shop"></i></div>
-      <h3>No hay tiendas</h3>
-      <p>Comienza creando tu primera tienda</p>
-      <button class="btn-empty" (click)="onNew()">Crear Tienda</button>
+      <h3>No stores</h3>
+      <p>Start by creating your first store</p>
+      <button class="btn-empty" (click)="onNew()">Create Store</button>
     </div>
     } @else {
     @for (store of filteredStores(); track store.id) {
@@ -97,24 +97,24 @@
           <button
             class="btn-action btn-view"
             (click)="onView(store)"
-            title="Ver detalles"
-            [attr.aria-label]="'Ver detalles de ' + store.storeName"
+            title="View details"
+            [attr.aria-label]="'View details of ' + store.storeName"
           >
             <i class="bi bi-eye"></i>
           </button>
           <button
             class="btn-action btn-edit"
             (click)="onEdit(store)"
-            title="Editar"
-            [attr.aria-label]="'Editar ' + store.storeName"
+            title="Edit"
+            [attr.aria-label]="'Edit ' + store.storeName"
           >
             <i class="bi bi-pencil"></i>
           </button>
           <!--button
             class="btn-action btn-delete"
             (click)="onDelete(store)"
-            title="Eliminar"
-            [attr.aria-label]="'Eliminar ' + store.storeName"
+            title="Delete"
+            [attr.aria-label]="'Delete ' + store.storeName"
           >
             🗑️
           </button-->
@@ -130,7 +130,7 @@
       <!-- Store Details Grid -->
       <div class="details-grid">
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-geo-alt"></i> Dirección</span>
+          <span class="detail-label"><i class="bi bi-geo-alt"></i> Address</span>
           <span class="detail-value">{{ store.address }}</span>
         </div>
         <div class="detail-item">
@@ -138,26 +138,26 @@
           <span class="detail-value">{{ store.email }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-telephone"></i> Teléfono</span>
+          <span class="detail-label"><i class="bi bi-telephone"></i> Phone</span>
           <span class="detail-value">{{ store.phoneNumber || 'N/A' }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-globe"></i> Sitio Web</span>
+          <span class="detail-label"><i class="bi bi-globe"></i> Website</span>
           <span class="detail-value">{{ store.webSite || 'N/A' }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-mailbox2"></i> Código Postal</span>
+          <span class="detail-label"><i class="bi bi-mailbox2"></i> Postal Code</span>
           <span class="detail-value">{{ store.zipCode }}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label"><i class="bi bi-clock"></i> Zona Horaria</span>
+          <span class="detail-label"><i class="bi bi-clock"></i> Time Zone</span>
           <span class="detail-value">{{ store.time_zone }}</span>
         </div>
       </div>
 
       <!-- Card Footer -->
       <div class="card-footer">
-        <span class="created-date">Creado: {{ store.createdAt | date: 'short' }}</span>
+        <span class="created-date">Created: {{ store.createdAt | date: 'short' }}</span>
       </div>
     </div>
     }
@@ -168,7 +168,7 @@
   <!-- Results Counter -->
   @if (!isLoading() && filteredStores().length > 0) {
   <div class="results-info">
-    Mostrando {{ filteredStores().length }} de {{ stores().length }} tiendas
+    Showing {{ filteredStores().length }} of {{ stores().length }} stores
   </div>
   }
 </div>

@@ -5,10 +5,40 @@
       <h1 class="list-title">Service Orders</h1>
       <p class="list-subtitle">Manage and monitor all repair orders</p>
     </div>
-    <button class="btn btn-primary" (click)="goToNew()">
-      <span>+</span> New Order
-    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" (click)="toggleViewMode()" [class.active]="!isProfessional()">
+        <i *ngIf="!isProfessional()" class="bi bi-list-ul" aria-hidden="true"></i>
+        <i *ngIf="isProfessional()" class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>
+        
+      </button>
+
+      <button class="btn btn-primary" (click)="goToNew()">
+        <span>+</span> New Order
+      </button>
+    </div>
   </div>
+
+  @if (modalVisible()) {
+    <!-- Confirmation Modal -->
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ modalTitle() }}</h5>
+            <button type="button" class="btn-close" aria-label="Close" (click)="onCancelModal()"></button>
+          </div>
+          <div class="modal-body">
+            <p>{{ modalMessage() }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="onCancelModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="onConfirmModal()">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+  }
 
   <!-- Search and Filters -->
   <div class="search-filter-section" @slideDown>
@@ -29,7 +59,7 @@
       <div class="filter-group">
         <label class="filter-label">Status</label>
         <select
-          class="filter-select"
+          class="form-select form-select-lg mb-3"
           [value]="filterStatus()"
           (change)="onFilterChange($any($event).target.value)"
         >
@@ -43,7 +73,7 @@
       <div class="filter-group">
         <label class="filter-label">Lock</label>
         <select
-          class="filter-select"
+          class="form-select form-select-lg mb-3"
           [value]="filterLock()"
           (change)="onLockFilterChange($any($event).target.value)"
         >
@@ -56,7 +86,7 @@
       <div class="filter-group">
         <label class="filter-label">Sort by</label>
         <select
-          class="filter-select"
+          class="form-select form-select-lg mb-3"
           [value]="sortBy()"
           (change)="onSortChange($any($event).target.value)"
         >
@@ -90,125 +120,168 @@
       </button>
     </div>
   } @else {
-    <!-- Service Orders Grid -->
-    <div class="orders-grid">
-      @for (order of filteredServiceOrders(); track order.id) {
-        <div class="order-card" [ngClass]="getStatusClass(order)">
-          <!-- Top Border Gradient -->
-          <div class="card-top-border"></div>
-
-          <!-- Header -->
-          <div class="card-header">
-            <div class="order-title">
-              <h3 class="order-code">{{ order.orderCode }}</h3>
-              <span class="status-badge" [ngClass]="getStatusClass(order)">
-                {{ getStatusBadge(order) }}
-              </span>
-            </div>
-            <div class="lock-indicator" *ngIf="order.lock">
-              <span class="lock-icon"><i class="bi bi-lock-fill"></i></span> Locked
-            </div>
-          </div>
-
-          <!-- Customer Info -->
-          <div class="card-section">
-            <div class="info-row">
-              <span class="label">Customer</span>
-              <span class="value">{{ order.customer?.firstName }} {{ order.customer?.lastName }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Center</span>
-              <span class="value">{{ order.center?.centerName || 'N/A' }}</span>
-            </div>
-          </div>
-
-          <!-- Device Info -->
-          <div class="card-section">
-            <div class="info-row">
-              <span class="label">Device</span>
-              <span class="value">{{ order.device?.name || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Model</span>
-              <span class="value">{{ order.model || '-' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Serial</span>
-              <span class="value">{{ order.serial || '-' }}</span>
-            </div>
-          </div>
-
-          <!-- Repair Info -->
-          <div class="card-section">
-            <div class="info-row">
-              <span class="label">Defective Part</span>
-              <span class="value">{{ order.defectivePart || '-' }}</span>
-            </div>
-          </div>
-
-          <!-- Cost Section -->
-          @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
-          <div class="cost-section">
-            <div class="cost-row">
-              <span class="label">Total Cost</span>
-              <span class="amount highlight">{{ formatCurrency(order.totalCost) }}</span>
-            </div>
-            <div class="cost-details">
-              <div class="detail">
-                <span>Price: {{ formatCurrency(order.price) }}</span>
-              </div>
-              <div class="detail">
-                <span>Repair: {{ formatCurrency(order.repairCost) }}</span>
-              </div>
-              <div class="detail">
-                <span>Advance: {{ formatCurrency(order.advancePayment) }}</span>
-              </div>
-            </div>
-          </div>
-          }
-
-          <!-- Dates -->
-          <div class="card-footer">
-            <div class="date-info">
-              <span class="label">Created</span>
-              <span class="value">{{ order.createdAt | date: 'short' }}</span>
-            </div>
-            @if (order.updatedAt) {
-              <div class="date-info">
-                <span class="label">Updated</span>
-                <span class="value">{{ order.updatedAt | date: 'short' }}</span>
-              </div>
+    @if (isProfessional()) {
+      <div class="table-responsive" @fadeInUp>
+        <table class="table table-hover align-middle">
+          <thead class="table small text-muted">
+            <tr>
+              <th scope="col">Order</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Device</th>
+              <th scope="col">Center</th>
+              <th scope="col">Status</th>
+              @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
+              <th scope="col" class="text-end">Total</th>
+              }
+              <th scope="col">Created</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of filteredServiceOrders(); track order.id) {
+              <tr [ngClass]="getStatusClass(order)">
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-credit-card-2-front fs-5 text-secondary"></i>
+                    <div>
+                      <div class="fw-semibold">{{ order.orderCode }}</div>
+                      <div class="small text-muted">{{ order.serial || '-' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex flex-column">
+                    <div class="fw-medium">{{ order.customer?.firstName }} {{ order.customer?.lastName }}</div>
+                    <div class="small text-muted">{{ order.customer?.phone || '' }}</div>
+                  </div>
+                </td>
+                <td>{{ order.device?.name || '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
+                <td>{{ order.center?.centerName || 'N/A' }}</td>                
+                <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span></td>
+                @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
+                <td class="text-end fw-semibold">{{ formatCurrency(order.price) }}</td>
+                }
+                <td class="small text-muted">{{ order.createdAt | date: 'short' }}</td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="goToDetail(order); $event.stopPropagation()"><i class="bi bi-eye"></i></button>
+                    <button type="button" *ngIf="!(order.cloused || order.canceled)" class="btn btn-sm btn-outline-secondary" (click)="goToEdit(order); $event.stopPropagation()"><i class="bi bi-pencil"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-success" (click)="resendOrderEmail(order); $event.stopPropagation()" [disabled]="!order.id || order.canceled" title="Resend email"><i class="bi bi-envelope"></i></button>
+                  </div>
+                </td>
+              </tr>
             }
-          </div>
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <!-- Service Orders Grid (existing modern cards) -->
+      <div class="orders-grid">
+        @for (order of filteredServiceOrders(); track order.id) {
+          <div class="order-card" [ngClass]="getStatusClass(order)">
+            <!-- Top Border Gradient -->
+            <div class="card-top-border"></div>
 
-          <!-- Actions -->
-          <div class="card-actions">
-            <button
-              class="action-btn view"
-              (click)="goToDetail(order)"
-              title="View details"
-            >
+            <!-- Header -->
+            <div class="card-header">
+              <div class="order-title">
+                <h3 class="order-code">{{ order.orderCode }}</h3>
+                <span class="status-badge" [ngClass]="getStatusClass(order)">
+                  {{ getStatusBadge(order) }}
+                </span>
+              </div>
+              <div class="lock-indicator" *ngIf="order.lock">
+                <span class="lock-icon"><i class="bi bi-lock-fill"></i></span> Locked
+              </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="card-section">
+              <div class="info-row">
+                <span class="label">Customer</span>
+                <span class="value">{{ order.customer?.firstName }} {{ order.customer?.lastName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Center</span>
+                <span class="value">{{ order.center?.centerName || 'N/A' }}</span>
+              </div>
+            </div>
+
+            <!-- Device Info -->
+            <div class="card-section">
+              <div class="info-row">
+                <span class="label">Device</span>
+                <span class="value">{{ order.device?.name || 'N/A' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Model</span>
+                <span class="value">{{ order.model || '-' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Serial</span>
+                <span class="value">{{ order.serial || '-' }}</span>
+              </div>
+            </div>
+
+            <!-- Repair Info -->
+            <div class="card-section">
+              <div class="info-row">
+                <span class="label">Defective Part</span>
+                <span class="value">{{ order.defectivePart || '-' }}</span>
+              </div>
+            </div>
+
+            <!-- Cost Section -->
+            @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
+            <div class="cost-section">
+              <div class="cost-row">
+                <span class="label">Total Cost</span>
+                <span class="amount highlight">{{ formatCurrency(order.totalCost) }}</span>
+              </div>
+              <div class="cost-details">
+                <div class="detail">
+                  <span>Price: {{ formatCurrency(order.price) }}</span>
+                </div>
+                <div class="detail">
+                  <span>Repair: {{ formatCurrency(order.repairCost) }}</span>
+                </div>
+                <div class="detail">
+                  <span>Advance: {{ formatCurrency(order.advancePayment) }}</span>
+                </div>
+              </div>
+            </div>
+            }
+
+            <!-- Dates -->
+            <div class="card-footer">
+              <div class="date-info">
+                <span class="label">Created</span>
+                <span class="value">{{ order.createdAt | date: 'short' }}</span>
+              </div>
+              @if (order.updatedAt) {
+                <div class="date-info">
+                  <span class="label">Updated</span>
+                  <span class="value">{{ order.updatedAt | date: 'short' }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Actions -->
+            <div class="card-actions d-flex gap-2">
+              <button type="button" class="action-btn view btn btn-sm btn-outline-primary" (click)="goToDetail(order); $event.stopPropagation()" title="View details">
                 <i class="bi bi-eye"></i> View
               </button>
-              <button
-                *ngIf="!(order.cloused || order.canceled)"
-                class="action-btn edit"
-                (click)="goToEdit(order)"
-                title="Edit order"
-              >
+              <button type="button" *ngIf="!(order.cloused || order.canceled)" class="action-btn edit btn btn-sm btn-outline-secondary" (click)="goToEdit(order); $event.stopPropagation()" title="Edit order">
                 <i class="bi bi-pencil"></i> Edit
               </button>
-            <!--button
-              class="action-btn delete"
-              (click)="deleteServiceOrder(order)"
-              title="Eliminar orden"
-            >
-              <i class="bi bi-trash"></i> Eliminar
-            </button -->
+              <button type="button" class="action-btn resend btn btn-sm btn-outline-secondary" (click)="resendOrderEmail(order); $event.stopPropagation()" [disabled]="!order.id || order.canceled" title="Resend email">
+                <i class="bi bi-envelope"></i> Resend
+              </button>
+            </div>
           </div>
-        </div>
-      }
-    </div>
+        }
+      </div>
+    }
 
     <!-- Results Info -->
     <div class="results-info">

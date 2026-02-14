@@ -1,8 +1,8 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
   <div class="card">
     <div class="card-header">
-      <h5 class="card-title mb-0">
-        {{ isEditMode ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}
+        <h5 class="card-title mb-0">
+        {{ isEditMode ? 'Edit User' : 'Create New User' }}
       </h5>
     </div>
 
@@ -16,7 +16,7 @@
           class="form-control"
           [class.is-invalid]="isFieldInvalid('email')"
           formControlName="email"
-          placeholder="usuario@example.com"
+          placeholder="user@example.com"
           [disabled]="isLoading"
         />
         <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('email')">
@@ -24,16 +24,16 @@
         </div>
       </div>
 
-      <!-- Nombre -->
+      <!-- First Name -->
       <div class="mb-3">
-        <label for="firstName" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
         <input
           id="firstName"
           type="text"
           class="form-control"
           [class.is-invalid]="isFieldInvalid('firstName')"
           formControlName="firstName"
-          placeholder="Juan"
+          placeholder="John"
           [disabled]="isLoading"
         />
         <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('firstName')">
@@ -41,16 +41,16 @@
         </div>
       </div>
 
-      <!-- Apellido -->
+      <!-- Last Name -->
       <div class="mb-3">
-        <label for="lastName" class="form-label">Apellido <span class="text-danger">*</span></label>
+        <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
         <input
           id="lastName"
           type="text"
           class="form-control"
           [class.is-invalid]="isFieldInvalid('lastName')"
           formControlName="lastName"
-          placeholder="Pérez"
+          placeholder="Doe"
           [disabled]="isLoading"
         />
         <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('lastName')">
@@ -58,11 +58,11 @@
         </div>
       </div>
 
-      <!-- Contraseña -->
+      <!-- Password -->
       <div class="mb-3">
         <label for="password" class="form-label">
-          Contraseña <span class="text-danger" *ngIf="!isEditMode">*</span>
-          <span class="text-muted">({{ isEditMode ? 'Opcional' : 'Requerida' }})</span>
+          Password <span class="text-danger" *ngIf="!isEditMode">*</span>
+          <span class="text-muted">({{ isEditMode ? 'Optional' : 'Required' }})</span>
         </label>
         <div class="input-group">
           <input
@@ -71,7 +71,7 @@
             class="form-control"
             [class.is-invalid]="isFieldInvalid('password')"
             formControlName="password"
-            placeholder="Min. 8 caracteres, mayúscula, número, carácter especial"
+            placeholder="Min. 8 characters, uppercase, number, special char"
             [disabled]="isLoading"
           />
           <button
@@ -87,14 +87,14 @@
           {{ getErrorMessage('password') }}
         </div>
         <small class="form-text text-muted d-block mt-2" *ngIf="!isEditMode">
-          <i class="icon-info"></i> Mínimo 8 caracteres con mayúscula, número y carácter especial
+          <i class="icon-info"></i> Minimum 8 characters with uppercase, number and special character
         </small>
       </div>
 
-      <!-- Confirmar Contraseña -->
+      <!-- Confirm Password -->
       <div class="mb-3" *ngIf="!isEditMode || form.get('password')?.value">
         <label for="confirmPassword" class="form-label">
-          Confirmar Contraseña <span class="text-danger" *ngIf="!isEditMode">*</span>
+          Confirm Password <span class="text-danger" *ngIf="!isEditMode">*</span>
         </label>
         <div class="input-group">
           <input
@@ -105,7 +105,7 @@
               isFieldInvalid('confirmPassword') || hasPasswordMismatch()
             "
             formControlName="confirmPassword"
-            placeholder="Repetir contraseña"
+            placeholder="Repeat password"
             [disabled]="isLoading"
           />
           <button
@@ -118,12 +118,12 @@
           </button>
         </div>
         <div class="invalid-feedback d-block" *ngIf="hasPasswordMismatch()">
-          Las contraseñas no coinciden
+          Passwords do not match
         </div>
       </div>
     </div>
 
-    <!-- Acciones -->
+    <!-- Actions -->
     <div class="card-footer bg-light">
       <div class="d-flex gap-2 justify-content-end">
         <button
@@ -132,7 +132,7 @@
           (click)="onCancel()"
           [disabled]="isLoading"
         >
-          Cancelar
+          Cancel
         </button>
         <button
           type="submit"
@@ -140,12 +140,12 @@
           [disabled]="form.invalid || isLoading"
         >
           <i class="icon-save me-2" *ngIf="!isLoading"></i>
-          <span *ngIf="isLoading">
+            <span *ngIf="isLoading">
             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Guardando...
+            Saving...
           </span>
           <span *ngIf="!isLoading">
-            {{ isEditMode ? 'Actualizar' : 'Crear Usuario' }}
+            {{ isEditMode ? 'Update' : 'Create User' }}
           </span>
         </button>
       </div>

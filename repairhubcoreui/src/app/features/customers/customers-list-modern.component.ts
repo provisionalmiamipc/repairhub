@@ -118,7 +118,7 @@ export class CustomersListModernComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error loading customers:', err);
-          this.error.set('Error al cargar los clientes. Intenta de nuevo.');
+          this.error.set('Error loading customers. Try again.');
           this.isLoading.set(false);
         }
       });
@@ -162,7 +162,7 @@ export class CustomersListModernComponent implements OnInit, OnDestroy {
 
   onDelete(customer: Customers) {
     const fullName = `${customer.firstName} ${customer.lastName}`;
-    if (confirm(`¿Estás seguro de que deseas eliminar el cliente "${fullName}"?`)) {
+    if (confirm(`Are you sure you want to delete customer "${fullName}"?`)) {
       this.customersService
         .delete(customer.id)
         .pipe(takeUntil(this.destroy$))
@@ -172,7 +172,7 @@ export class CustomersListModernComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error deleting customer:', err);
-            this.error.set('Error al eliminar el cliente. Intenta de nuevo.');
+            this.error.set('Error deleting customer. Try again.');
           }
         });
     }

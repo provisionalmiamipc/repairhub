@@ -248,13 +248,13 @@ export class ItemsListModernComponent implements OnInit {
   }
 
   deleteItem(item: Items) {
-    if (confirm(`¿Eliminar artículo "${item.product}"?`)) {
+    if (confirm(`Delete item "${item.product}"?`)) {
       this.itemsService.delete(item.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.items.update(items => items.filter(i => i.id !== item.id));
         },
         error: (err) => {
-          alert(`Error al eliminar: ${err.message}`);
+          alert(`Error deleting: ${err.message}`);
         }
       });
     }

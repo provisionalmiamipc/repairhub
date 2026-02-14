@@ -1,43 +1,43 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <label>Cantidad:
-    <input type="number" formControlName="quantity" min="1" />
-    <span *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Requerido</span>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+  <label>Quantity:
+    <input type="number" formControlName="quantity" min="1" autocomplete="off" />
+    <span *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Required</span>
   </label>
 
-  <label>Costo:
-    <input type="number" formControlName="cost" min="0" />
-    <span *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Requerido</span>
+  <label>Cost:
+    <input type="number" formControlName="cost" min="0" autocomplete="off" />
+    <span *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Required</span>
   </label>
 
-  <label>Precio:
-    <input type="number" formControlName="price" min="0" />
-    <span *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Requerido</span>
+  <label>Price:
+    <input type="number" formControlName="price" min="0" autocomplete="off" />
+    <span *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Required</span>
   </label>
 
-  <label>Descuento:
-    <input type="number" formControlName="discount" min="0" />
+  <label>Discount:
+    <input type="number" formControlName="discount" min="0" autocomplete="off" />
   </label>
 
-  <label>Imagen (URL):
-    <input formControlName="image" />
+  <label>Image (URL):
+    <input formControlName="image" autocomplete="off" />
   </label>
 
-  <label>Enlace:
-    <input formControlName="link" />
+  <label>Link:
+    <input formControlName="link" autocomplete="off" />
   </label>
 
-  <label>Condición:
-    <input formControlName="condition" />
-    <span *ngIf="form.get('condition')?.invalid && form.get('condition')?.touched">Requerido</span>
+  <label>Condition:
+    <input formControlName="condition" autocomplete="off" />
+    <span *ngIf="form.get('condition')?.invalid && form.get('condition')?.touched">Required</span>
   </label>
 
   <label>
-    <input type="checkbox" formControlName="received" /> Recibido
+    <input type="checkbox" formControlName="received" autocomplete="off" /> Received
   </label>
 
-  <label>Nota:
+  <label>Note:
     <textarea formControlName="note"></textarea>
   </label>
 
-  <button type="submit" [disabled]="form.invalid">Guardar</button>
+  <button type="submit" [disabled]="form.invalid">Save</button>
 </form>

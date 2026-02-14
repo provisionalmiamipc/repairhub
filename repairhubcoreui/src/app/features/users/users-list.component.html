@@ -3,11 +3,11 @@
     <table class="table table-striped table-hover mb-0">
       <thead class="table-light">
         <tr>
-          <th>Nombre</th>
+          <th>Name</th>
           <th>Email</th>
-          <th>Estado</th>
-          <th>Creado</th>
-          <th>Acciones</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -37,7 +37,7 @@
                 type="button"
                 class="btn btn-outline-primary"
                 (click)="onSelect(user)"
-                title="Ver detalles"
+                title="View details"
               >
                 <i class="icon-eye"></i>
               </button>
@@ -45,7 +45,7 @@
                 type="button"
                 class="btn btn-outline-warning"
                 (click)="onEdit(user)"
-                title="Editar"
+                title="Edit"
               >
                 <i class="icon-pencil"></i>
               </button>
@@ -53,7 +53,7 @@
                 type="button"
                 class="btn btn-outline-danger"
                 (click)="onDelete(user)"
-                title="Eliminar"
+                title="Delete"
               >
                 <i class="icon-trash"></i>
               </button>
@@ -64,16 +64,16 @@
     </table>
   </div>
 
-  <!-- Estado vacío -->
+  <!-- Empty state -->
   <div *ngIf="usersList.length === 0 && !loading" class="card-body text-center py-5">
     <i class="icon-inbox" style="font-size: 48px; opacity: 0.3;"></i>
-    <p class="text-muted mt-3 mb-0">No hay usuarios para mostrar</p>
+    <p class="text-muted mt-3 mb-0">No users to display</p>
   </div>
 
   <!-- Loading -->
   <div *ngIf="loading" class="card-body text-center py-5">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Cargando...</span>
+      <span class="visually-hidden">Loading...</span>
     </div>
   </div>
 </div>

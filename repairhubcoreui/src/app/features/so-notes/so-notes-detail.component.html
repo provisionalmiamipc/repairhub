@@ -1,8 +1,8 @@
 <div *ngIf="soNotes">
-  <h2>Detalle de Nota</h2>
-  <p><strong>Nota:</strong> {{ soNotes.note }}</p>
-  <p><strong>Fecha de creación:</strong> {{ soNotes.createdAt | date }}</p>
+  <h2>Note Details</h2>
+  <p><strong>Note:</strong> {{ soNotes.note }}</p>
+  <p><strong>Created At:</strong> {{ soNotes.createdAt | date }}</p>
 </div>
 <div *ngIf="!soNotes">
-  <p>No hay información de nota.</p>
+  <p>No note information available.</p>
 </div>

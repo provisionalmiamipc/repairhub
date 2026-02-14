@@ -2,22 +2,22 @@
   <thead>
     <tr>
       <th>ID</th>
-      <th>Nombre</th>
-      <th>Activo</th>
-      <th>Creación</th>
-      <th>Acciones</th>
+      <th>Name</th>
+      <th>Active</th>
+      <th>Created</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let t of itemTypes">
       <td>{{ t.id }}</td>
       <td>{{ t.name }}</td>
-      <td>{{ t.isActive ? 'Sí' : 'No' }}</td>
+      <td>{{ t.isActive ? 'Yes' : 'No' }}</td>
       <td>{{ t.createdAt | date:'shortDate' }}</td>
       <td>
-        <button (click)="select.emit(t)">Ver</button>
-        <button (click)="edit.emit(t)">Editar</button>
-        <button (click)="delete.emit(t)">Eliminar</button>
+        <button (click)="select.emit(t)">View</button>
+        <button (click)="edit.emit(t)">Edit</button>
+        <button (click)="delete.emit(t)">Delete</button>
       </td>
     </tr>
   </tbody>

@@ -1,25 +1,25 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <label>Total Costo:
-    <input formControlName="totalCost" />
-    <span *ngIf="form.get('totalCost')?.invalid && form.get('totalCost')?.touched">Requerido</span>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+  <label>Total Cost:
+    <input formControlName="totalCost" autocomplete="off" />
+    <span *ngIf="form.get('totalCost')?.invalid && form.get('totalCost')?.touched">Required</span>
   </label>
 
-  <label>Total Precio:
-    <input type="number" formControlName="totalPrice" min="0" />
-    <span *ngIf="form.get('totalPrice')?.invalid && form.get('totalPrice')?.touched">Requerido</span>
+  <label>Total Price:
+    <input type="number" formControlName="totalPrice" min="0" autocomplete="off" />
+    <span *ngIf="form.get('totalPrice')?.invalid && form.get('totalPrice')?.touched">Required</span>
   </label>
 
-  <label>Total Descuento:
-    <input type="number" formControlName="totalDiscount" min="0" />
-  </label>
-
-  <label>
-    <input type="checkbox" formControlName="cloused" /> Cerrada
+  <label>Total Discount:
+    <input type="number" formControlName="totalDiscount" min="0" autocomplete="off" />
   </label>
 
   <label>
-    <input type="checkbox" formControlName="canceled" /> Cancelada
+    <input type="checkbox" formControlName="cloused" autocomplete="off" /> Closed
   </label>
 
-  <button type="submit" [disabled]="form.invalid">Guardar</button>
+  <label>
+    <input type="checkbox" formControlName="canceled" autocomplete="off" /> Canceled
+  </label>
+
+  <button type="submit" [disabled]="form.invalid">Save</button>
 </form>

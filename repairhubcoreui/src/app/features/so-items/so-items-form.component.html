@@ -7,8 +7,8 @@
           <button type="button" class="btn-close" aria-label="Close" (click)="cancel.emit()"></button>
         </div>
         <div class="modal-body">
-          <form [formGroup]="form" (ngSubmit)="onSubmit()">
-            <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" />
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+            <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" autocomplete="off" />
             <!-- Center -->
             <div class="mb-3" *ngIf="showCenterField">
               <label class="form-label" for="devicecenterId">Center *</label>
@@ -56,38 +56,38 @@
                 *ngIf="form.get('itemId')?.invalid && form.get('itemId')?.touched">Item is required</div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Cantidad *</label>
+              <label class="form-label">Quantity *</label>
               <input type="number" formControlName="quantity" class="form-control"
                 [class.is-invalid]="form.get('quantity')?.invalid && form.get('quantity')?.touched" />
               <div class="invalid-feedback"
                 *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">
-                Cantidad es requerida</div>
+                Quantity is required</div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Costo *</label>
+              <label class="form-label">Cost *</label>
               <input type="number" formControlName="cost" class="form-control"
                 [class.is-invalid]="form.get('cost')?.invalid && form.get('cost')?.touched" />
               <div class="invalid-feedback"
-                *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Costo es requerido</div>
+                *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Cost is required</div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Precio *</label>
+              <label class="form-label">Price *</label>
               <input type="number" formControlName="price" class="form-control"
                 [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched" />
               <div class="invalid-feedback"
-                *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Precio es requerido</div>
+                *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Price is required</div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Descuento</label>
-              <input type="number" formControlName="discount" class="form-control" />
+              <label class="form-label">Discount</label>
+              <input type="number" formControlName="discount" class="form-control" autocomplete="off" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Nota</label>
-              <input type="text" formControlName="note" class="form-control" />
+              <label class="form-label">Note</label>
+              <input type="text" formControlName="note" class="form-control" autocomplete="off" />
             </div>
             <div class="d-flex justify-content-end">
               <button type="button" class="btn btn-secondary me-2" (click)="cancel.emit()">Cancel</button>
-              <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
             </div>
           </form>
         </div>
@@ -103,14 +103,14 @@
       <h5 class="mb-0">Service Order Item</h5>
     </div>
     <div class="card-body">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
         <div class="mb-3">
-          <label class="form-label">Orden de Servicio ID *</label>
+          <label class="form-label">Service Order ID *</label>
           <input type="number" formControlName="serviceOrderId" class="form-control"
             [class.is-invalid]="form.get('serviceOrderId')?.invalid && form.get('serviceOrderId')?.touched" />
           <div class="invalid-feedback"
             *ngIf="form.get('serviceOrderId')?.invalid && form.get('serviceOrderId')?.touched">
-            Service Order ID es requerido</div>
+            Service Order ID is required</div>
         </div>
         <div class="mb-3">
           <label class="form-label" for="itemIdPage">Item *</label>
@@ -133,38 +133,38 @@
             *ngIf="form.get('itemId')?.invalid && form.get('itemId')?.touched">Item is required</div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Cantidad *</label>
+          <label class="form-label">Quantity *</label>
           <input type="number" formControlName="quantity" class="form-control"
             [class.is-invalid]="form.get('quantity')?.invalid && form.get('quantity')?.touched" />
           <div class="invalid-feedback"
             *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">
-            Cantidad es requerida</div>
+            Quantity is required</div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Costo *</label>
+          <label class="form-label">Cost *</label>
           <input type="number" formControlName="cost" class="form-control"
             [class.is-invalid]="form.get('cost')?.invalid && form.get('cost')?.touched" />
           <div class="invalid-feedback"
-            *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Costo es requerido</div>
+            *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Cost is required</div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Precio *</label>
+          <label class="form-label">Price *</label>
           <input type="number" formControlName="price" class="form-control"
             [class.is-invalid]="form.get('price')?.invalid && form.get('price')?.touched" />
           <div class="invalid-feedback"
-            *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Precio es requerido</div>
+            *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Price is required</div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Descuento</label>
-          <input type="number" formControlName="discount" class="form-control" />
+          <label class="form-label">Discount</label>
+          <input type="number" formControlName="discount" class="form-control" autocomplete="off" />
         </div>
         <div class="mb-3">
-          <label class="form-label">Nota</label>
-          <input type="text" formControlName="note" class="form-control" />
+          <label class="form-label">Note</label>
+          <input type="text" formControlName="note" class="form-control" autocomplete="off" />
         </div>
         <div class="d-flex justify-content-end">
           <button type="button" class="btn btn-secondary me-2" (click)="cancel.emit()">Cancel</button>
-          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Guardar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
         </div>
       </form>
     </div>

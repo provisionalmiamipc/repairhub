@@ -9,9 +9,9 @@
       </button>
       <h1>
         @if (formState().isEditMode) {
-          <i class="bi bi-pencil-square"></i> Editar Marca
+          <i class="bi bi-pencil-square"></i> Edit Brand
         } @else {
-          <i class="bi bi-phone"></i> Nueva Marca de Dispositivo
+          <i class="bi bi-phone"></i> New Device Brand
         }
       </h1>
     </div>
@@ -27,7 +27,7 @@
         <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
       </svg>
-      <span>Marca {{ formState().isEditMode ? 'actualizada' : 'creada' }} exitosamente</span>
+      <span>Brand {{ formState().isEditMode ? 'updated' : 'created' }} successfully</span>
     </div>
   }
 
@@ -45,25 +45,25 @@
   <div class="stepper">
     <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
       <div class="step-circle">1</div>
-      <span class="step-label">Centro y Tienda</span>
+      <span class="step-label">Center & Store</span>
     </div>
     <div class="step-line" [class.completed]="currentStep() > 0"></div>
     <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
       <div class="step-circle">2</div>
-      <span class="step-label">Datos de la Marca</span>
+      <span class="step-label">Brand Details</span>
     </div>
   </div>
 
-  <form [formGroup]="deviceBrandForm" (ngSubmit)="onSubmit()">
+  <form [formGroup]="deviceBrandForm" (ngSubmit)="onSubmit()" autocomplete="off">
     @if (currentStep() === 0) {
       <div class="step-content">
-        <h3>Centro y Tienda</h3>
+        <h3>Center & Store</h3>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Centro *</label>
+            <label>Center *</label>
             <select formControlName="centerId" [class.invalid]="isFieldInvalid('centerId')">
-              <option [ngValue]="null">Seleccione un centro</option>
+              <option [ngValue]="null">Select a center</option>
               @for (center of centers(); track center.id) {
                 <option [value]="center.id">{{ center.centerName }}</option>
               }
@@ -74,9 +74,9 @@
           </div>
 
           <div class="form-group">
-            <label>Tienda *</label>
+            <label>Store *</label>
             <select formControlName="storeId" [class.invalid]="isFieldInvalid('storeId')">
-              <option [ngValue]="null">Seleccione una tienda</option>
+              <option [ngValue]="null">Select a store</option>
               @for (store of filteredStores(); track store.id) {
                 <option [value]="store.id">{{ store.storeName }}</option>
               }
@@ -91,10 +91,10 @@
 
     @if (currentStep() === 1) {
       <div class="step-content">
-        <h3>Datos de la Marca</h3>
+        <h3>Brand Details</h3>
         
         <div class="form-group">
-          <label>Nombre *</label>
+          <label>Name *</label>
           <input 
             type="text" 
             formControlName="name" 
@@ -107,10 +107,10 @@
         </div>
 
         <div class="form-group">
-          <label>Descripción</label>
+          <label>Description</label>
           <textarea 
             formControlName="description" 
-            placeholder="Descripción de la marca (opcional)"
+            placeholder="Brand description (optional)"
             rows="4"
             [class.invalid]="isFieldInvalid('description')"
           ></textarea>
@@ -120,7 +120,7 @@
         </div>
 
         <div class="form-group">
-          <label>URL de Imagen</label>
+          <label>Image URL</label>
           <input 
             type="text" 
             formControlName="img" 
@@ -142,7 +142,7 @@
     <div class="form-actions">
       @if (currentStep() > 0) {
         <button type="button" class="btn-secondary" (click)="previousStep()">
-          Anterior
+         Previous
         </button>
       }
 
@@ -153,7 +153,7 @@
           (click)="nextStep()"
           [disabled]="!canProceedToNextStep()"
         >
-          Siguiente
+           Next
         </button>
       }
 
@@ -165,9 +165,9 @@
         >
           @if (formState().isLoading) {
             <span class="spinner"></span>
-            Guardando...
+            Saving...
           } @else {
-            {{ formState().isEditMode ? 'Actualizar' : 'Crear' }} Marca
+            {{ formState().isEditMode ? 'Update' : 'Create' }} Brand
           }
         </button>
       }

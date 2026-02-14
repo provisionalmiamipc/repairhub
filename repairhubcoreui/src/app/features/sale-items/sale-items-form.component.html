@@ -1,22 +1,22 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <label>Cantidad:
-    <input type="number" formControlName="quantity" min="1" />
-    <span *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Requerido</span>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+  <label>Quantity:
+    <input type="number" formControlName="quantity" min="1" autocomplete="off" />
+    <span *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Required</span>
   </label>
 
-  <label>Costo:
-    <input type="number" formControlName="cost" min="0" />
-    <span *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Requerido</span>
+  <label>Cost:
+    <input type="number" formControlName="cost" min="0" autocomplete="off" />
+    <span *ngIf="form.get('cost')?.invalid && form.get('cost')?.touched">Required</span>
   </label>
 
-  <label>Precio:
-    <input type="number" formControlName="price" min="0" />
-    <span *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Requerido</span>
+  <label>Price:
+    <input type="number" formControlName="price" min="0" autocomplete="off" />
+    <span *ngIf="form.get('price')?.invalid && form.get('price')?.touched">Required</span>
   </label>
 
-  <label>Descuento:
-    <input type="number" formControlName="discount" min="0" />
+  <label>Discount:
+    <input type="number" formControlName="discount" min="0" autocomplete="off" />
   </label>
 
-  <button type="submit" [disabled]="form.invalid">Guardar</button>
+  <button type="submit" [disabled]="form.invalid">Save</button>
 </form>

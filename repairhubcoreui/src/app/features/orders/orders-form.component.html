@@ -1,33 +1,33 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <label>Total Precio:
-    <input type="number" formControlName="totalPrice" min="0" />
-    <span *ngIf="form.get('totalPrice')?.invalid && form.get('totalPrice')?.touched">Requerido</span>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+  <label>Total Price:
+    <input type="number" formControlName="totalPrice" min="0" autocomplete="off" />
+    <span *ngIf="form.get('totalPrice')?.invalid && form.get('totalPrice')?.touched">Required</span>
   </label>
 
-  <label>Total Costo:
-    <input type="number" formControlName="totalCost" min="0" />
-    <span *ngIf="form.get('totalCost')?.invalid && form.get('totalCost')?.touched">Requerido</span>
+  <label>Total Cost:
+    <input type="number" formControlName="totalCost" min="0" autocomplete="off" />
+    <span *ngIf="form.get('totalCost')?.invalid && form.get('totalCost')?.touched">Required</span>
   </label>
 
-  <label>Impuesto:
-    <input type="number" formControlName="tax" min="0" />
+  <label>Tax:
+    <input type="number" formControlName="tax" min="0" autocomplete="off" />
   </label>
 
-  <label>Anticipo:
-    <input type="number" formControlName="advancePayment" min="0" />
+  <label>Advance Payment:
+    <input type="number" formControlName="advancePayment" min="0" autocomplete="off" />
   </label>
 
-  <label>Nota:
+  <label>Note:
     <textarea formControlName="note"></textarea>
   </label>
 
   <label>
-    <input type="checkbox" formControlName="cloused" /> Cerrada
+    <input type="checkbox" formControlName="cloused" autocomplete="off" /> Closed
   </label>
 
   <label>
-    <input type="checkbox" formControlName="canceled" /> Cancelada
+    <input type="checkbox" formControlName="canceled" autocomplete="off" /> Canceled
   </label>
 
-  <button type="submit" [disabled]="form.invalid">Guardar</button>
+  <button type="submit" [disabled]="form.invalid">Save</button>
 </form>

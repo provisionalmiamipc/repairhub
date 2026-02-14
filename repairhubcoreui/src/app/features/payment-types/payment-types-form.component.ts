@@ -133,7 +133,7 @@ export class PaymentTypesFormComponent {
   onSubmit() {
     if (this.form.valid) {
       const payload = this.form.getRawValue() as Partial<PaymentTypes>;
-      console.log('PaymentTypesForm submit payload:', payload);
+      
       this.save.emit(payload);
     }
   }

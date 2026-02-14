@@ -1,25 +1,25 @@
 <table>
   <thead>
-    <tr>
+      <tr>
       <th>ID</th>
-      <th>Estado</th>
-      <th>Cerrado</th>
-      <th>Cancelado</th>
-      <th>Creación</th>
-      <th>Acciones</th>
+      <th>Status</th>
+      <th>Closed</th>
+      <th>Canceled</th>
+      <th>Created</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let r of requests">
       <td>{{ r.id }}</td>
       <td>{{ r.status }}</td>
-      <td>{{ r.cloused ? 'Sí' : 'No' }}</td>
-      <td>{{ r.canceled ? 'Sí' : 'No' }}</td>
+      <td>{{ r.cloused ? 'Yes' : 'No' }}</td>
+      <td>{{ r.canceled ? 'Yes' : 'No' }}</td>
       <td>{{ r.createdAt | date:'shortDate' }}</td>
-      <td>
-        <button (click)="select.emit(r)">Ver</button>
-        <button (click)="edit.emit(r)">Editar</button>
-        <button (click)="delete.emit(r)">Eliminar</button>
+        <td>
+        <button (click)="select.emit(r)">View</button>
+        <button (click)="edit.emit(r)">Edit</button>
+        <button (click)="delete.emit(r)">Delete</button>
       </td>
     </tr>
   </tbody>

@@ -1,7 +1,7 @@
-<h2 *ngIf="isEdit">Editar Notificación</h2>
-<h2 *ngIf="!isEdit">Crear Notificación</h2>
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <label>Título: <input formControlName="title" /></label><br />
+<h2 *ngIf="isEdit">Edit Notification</h2>
+<h2 *ngIf="!isEdit">Create Notification</h2>
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+  <label>Título: <input formControlName="title" autocomplete="off" /></label><br />
   <label>Mensaje: <textarea formControlName="message"></textarea></label><br />
   <label>Tipo:
     <select formControlName="type">
@@ -12,29 +12,29 @@
       <option value="task">Task</option>
     </select>
   </label><br />
-  <label>Prioridad:
+  <label>Priority:
     <select formControlName="priority">
-      <option value="low">Baja</option>
-      <option value="medium">Media</option>
-      <option value="high">Alta</option>
-      <option value="urgent">Urgente</option>
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+      <option value="urgent">Urgent</option>
     </select>
   </label><br />
-  <label>Estado:
+  <label>Status:
     <select formControlName="status">
-      <option value="unread">No leída</option>
-      <option value="read">Leída</option>
-      <option value="archived">Archivada</option>
-      <option value="deleted">Eliminada</option>
+      <option value="unread">Unread</option>
+      <option value="read">Read</option>
+      <option value="archived">Archived</option>
+      <option value="deleted">Deleted</option>
     </select>
   </label><br />
-  <label>Broadcast: <input type="checkbox" formControlName="isBroadcast" /></label><br />
-  <label>URL de acción: <input formControlName="actionUrl" /></label><br />
-  <label>Icono: <input formControlName="icon" /></label><br />
-  <label>Expira en: <input type="date" formControlName="expiresAt" /></label><br />
+  <label>Broadcast: <input type="checkbox" formControlName="isBroadcast" autocomplete="off" /></label><br />
+  <label>URL de acción: <input formControlName="actionUrl" autocomplete="off" /></label><br />
+  <label>Icono: <input formControlName="icon" autocomplete="off" /></label><br />
+  <label>Expira en: <input type="date" formControlName="expiresAt" autocomplete="off" /></label><br />
   <label>Metadata (JSON): <textarea formControlName="metadata" rows="2"></textarea></label><br />
   <div *ngIf="form.get('metadata')?.invalid && form.get('metadata')?.touched" style="color:red">Debe ser un JSON válido.</div>
-  <button type="submit" [disabled]="loading">{{ isEdit ? 'Actualizar' : 'Crear' }}</button>
-  <a routerLink="/notifications">Cancelar</a>
+  <button type="submit" [disabled]="loading">{{ isEdit ? 'Update' : 'Create' }}</button>
+  <a routerLink="/notifications">Cancel</a>
 </form>
-<div *ngIf="loading">Guardando...</div>
+<div *ngIf="loading">Saving...</div>

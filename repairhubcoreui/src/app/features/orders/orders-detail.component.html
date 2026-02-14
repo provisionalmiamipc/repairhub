@@ -1,12 +1,12 @@
 <div *ngIf="order">
-  <h2>Orden #{{ order.id }}</h2>
-  <p><strong>Total Precio:</strong> {{ order.totalPrice }}</p>
-  <p><strong>Total Costo:</strong> {{ order.totalCost }}</p>
-  <p><strong>Impuesto:</strong> {{ order.tax }}</p>
-  <p><strong>Anticipo:</strong> {{ order.advancePayment }}</p>
-  <p><strong>Nota:</strong> {{ order.note }}</p>
-  <p><strong>Cerrada:</strong> {{ order.cloused ? 'Sí' : 'No' }}</p>
-  <p><strong>Cancelada:</strong> {{ order.canceled ? 'Sí' : 'No' }}</p>
-  <p><strong>Creada:</strong> {{ order.createdAt | date:'short' }}</p>
-  <p><strong>Actualizada:</strong> {{ order.updatedAt | date:'short' }}</p>
+  <h2>Order #{{ order.id }}</h2>
+  <p><strong>Total Price:</strong> {{ order.totalPrice }}</p>
+  <p><strong>Total Cost:</strong> {{ order.totalCost }}</p>
+  <p><strong>Tax:</strong> {{ order.tax }}</p>
+  <p><strong>Advance:</strong> {{ order.advancePayment }}</p>
+  <p><strong>Note:</strong> {{ order.note }}</p>
+  <p><strong>Closed:</strong> {{ order.cloused ? 'Yes' : 'No' }}</p>
+  <p><strong>Canceled:</strong> {{ order.canceled ? 'Yes' : 'No' }}</p>
+  <p><strong>Created:</strong> {{ order.createdAt | date:'short' }}</p>
+  <p><strong>Updated:</strong> {{ order.updatedAt | date:'short' }}</p>
 </div>

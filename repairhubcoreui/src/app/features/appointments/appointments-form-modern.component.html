@@ -47,7 +47,7 @@
       <p class="mt-3 text-muted mb-0">Loading information...</p>
     </div>
   } @else {
-    <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+    <form autocomplete="off" [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
       <!-- Step 0: Basic Info -->
       @if (currentStep() === 0) {
         <div class="form-step" @slideInFrom>
@@ -59,7 +59,7 @@
               <!-- Center -->
               <div class="col-12 col-md-6">
                 <label for="centerId" class="form-label">Center *</label>
-                  <select class="form-select" formControlName="centerId">
+                  <select autocomplete="off" class="form-select" formControlName="centerId">
                     <option value="">Select center</option>
                     <option *ngFor="let center of centers()" [ngValue]="center.id">
                       {{ center.centerName || ('Center #' + center.id) }}
@@ -74,7 +74,7 @@
               <!-- Store -->
               <div class="col-12 col-md-6">
                 <label for="storeId" class="form-label">Store *</label>
-                  <select class="form-select" formControlName="storeId">
+                  <select autocomplete="off" class="form-select" formControlName="storeId">
                     <option value="">Select store</option>
                     <option *ngFor="let store of stores()"
                       [ngValue]="store.id"
@@ -93,7 +93,7 @@
               <!-- Store (Admin Center) -->
               <div class="col-12 col-md-6">
                 <label for="storeId" class="form-label">Store *</label>
-                <select class="form-select" formControlName="storeId">
+                <select autocomplete="off" class="form-select" formControlName="storeId">
                   <option value="">Select store</option>
                   <option *ngFor="let store of stores()"
                     [ngValue]="store.id"
@@ -178,7 +178,7 @@
             <div class="col-12 col-md-4">
               <label for="deviceId" class="form-label">Device *</label>
               <div class="input-group">
-                <select class="form-select" formControlName="deviceId">
+                <select autocomplete="off" class="form-select" formControlName="deviceId">
                   <option value="">Select device</option>
                   <option *ngFor="let device of devices()" [ngValue]="device.id">
                     {{ device.name }}
@@ -198,7 +198,7 @@
             <div class="col-12 col-md-4">
               <label for="serviceTypeId" class="form-label">Service Type *</label>
               <div class="input-group">
-                <select class="form-select" formControlName="serviceTypeId">
+                <select autocomplete="off" class="form-select" formControlName="serviceTypeId">
                   <option value="">Select service</option>
                   <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
                     {{ service.name }}
@@ -217,7 +217,7 @@
             <!-- Assigned Technician -->
             <div class="col-12 col-md-4">
               <label for="assignedTechId" class="form-label">Assigned Technician *</label>
-              <select class="form-select" formControlName="assignedTechId">
+              <select autocomplete="off" class="form-select" formControlName="assignedTechId">
                 <option [ngValue]="null">Select technician</option>
                 <option *ngFor="let emp of employees()" [ngValue]="emp.id">
                   {{ emp.firstName }} {{ emp.lastName }}
@@ -232,7 +232,7 @@
             <!-- Duration -->
             <div class="col-12 col-md-4">
               <label for="duration" class="form-label">Duration (minutes) *</label>
-              <input
+              <input autocomplete="off"
                 type="number"
                 id="duration"
                 class="form-control"

@@ -1,12 +1,12 @@
 <div *ngIf="movement">
-  <h2>Detalle de Movimiento de Inventario</h2>
+  <h2>Inventory Movement Details</h2>
   <div><strong>ID:</strong> {{ movement.id }}</div>
-  <div><strong>Cantidad:</strong> {{ movement.quantity }}</div>
-  <div><strong>Tipo:</strong> {{ movement.movementType }}</div>
-  <div><strong>Descripción:</strong> {{ movement.description }}</div>
-  <div><strong>Fecha:</strong> {{ movement.createdAt | date:'shortDate' }}</div>
-  <div *ngIf="movement.center"><strong>Centro:</strong> {{ movement.center.centerName }}</div>
-  <div *ngIf="movement.store"><strong>Tienda:</strong> {{ movement.store.storeName }}</div>
+  <div><strong>Quantity:</strong> {{ movement.quantity }}</div>
+  <div><strong>Type:</strong> {{ movement.movementType }}</div>
+  <div><strong>Description:</strong> {{ movement.description }}</div>
+  <div><strong>Date:</strong> {{ movement.createdAt | date:'shortDate' }}</div>
+  <div *ngIf="movement.center"><strong>Center:</strong> {{ movement.center.centerName }}</div>
+  <div *ngIf="movement.store"><strong>Store:</strong> {{ movement.store.storeName }}</div>
   <div *ngIf="movement.item"><strong>Item:</strong> {{ movement.item.id }}</div>
-  <div *ngIf="movement.createdBy"><strong>Creado por:</strong> {{ movement.createdBy.firstName }}</div>
+  <div *ngIf="movement.createdBy"><strong>Created By:</strong> {{ movement.createdBy.firstName }}</div>
 </div>

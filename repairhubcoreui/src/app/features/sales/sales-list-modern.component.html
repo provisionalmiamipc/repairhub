@@ -2,11 +2,11 @@
   <div class="header-section">
     <div class="header-content">
       <div>
-        <h1>💰 Gestión de Ventas</h1>
-        <p class="subtitle">{{ filteredSales().length }} ventas encontradas</p>
+        <h1>💰 Sales Management</h1>
+        <p class="subtitle">{{ filteredSales().length }} sales found</p>
       </div>
       <button class="btn-primary" (click)="createNew()">
-        <span>+</span> Nueva Venta
+        <span>+</span> New Sale
       </button>
     </div>
   </div>
@@ -18,23 +18,23 @@
       </svg>
       <input
         type="text"
-        placeholder="Buscar por ID o cliente..."
+        placeholder="Search by ID or customer..."
         (input)="onSearchChange($any($event).target.value)"
       />
     </div>
 
     <div class="filter-group">
       <select (change)="onFilterChange($any($event).target.value)">
-        <option value="all">Todos los estados</option>
-        <option value="active">Activas</option>
-        <option value="closed">Cerradas</option>
-        <option value="canceled">Canceladas</option>
+        <option value="all">All statuses</option>
+        <option value="active">Active</option>
+        <option value="closed">Closed</option>
+        <option value="canceled">Canceled</option>
       </select>
 
       <select (change)="onSortChange($any($event).target.value)">
-        <option value="date">Más recientes</option>
-        <option value="id">ID (Mayor)</option>
-        <option value="totalPrice">Precio (Mayor)</option>
+        <option value="date">Most recent</option>
+        <option value="id">ID (Highest)</option>
+        <option value="totalPrice">Price (Highest)</option>
       </select>
     </div>
   </div>
@@ -42,7 +42,7 @@
   @if (listState().isLoading) {
     <div class="loading-state">
       <div class="loader"></div>
-      <p>Cargando ventas...</p>
+      <p>Loading sales...</p>
     </div>
   }
 
@@ -53,9 +53,9 @@
         <line x1="12" y1="8" x2="12" y2="12"></line>
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
-      <h3>Error al cargar</h3>
+      <h3>Error loading</h3>
       <p>{{ listState().error }}</p>
-      <button class="btn-secondary" (click)="retryLoad()">Reintentar</button>
+      <button class="btn-secondary" (click)="retryLoad()">Retry</button>
     </div>
   }
 
@@ -64,9 +64,9 @@
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path>
       </svg>
-      <h3>Sin ventas</h3>
-      <p>No hay ventas que coincidan con los filtros seleccionados</p>
-      <button class="btn-primary" (click)="createNew()">Crear primera venta</button>
+      <h3>No sales</h3>
+      <p>No sales match the selected filters</p>
+      <button class="btn-primary" (click)="createNew()">Create first sale</button>
     </div>
   }
 
@@ -75,72 +75,72 @@
       @for (sale of filteredSales(); track sale.id) {
         <div class="sale-card">
           <div class="card-header">
-            <div class="sale-id">Venta #{{ sale.id }}</div>
+            <div class="sale-id">Sale #{{ sale.id }}</div>
             <div class="status-badge" [class]="getSaleStatus(sale)">
-              @if (getSaleStatus(sale) === 'active') { ⏳ Activa }
-              @if (getSaleStatus(sale) === 'closed') { ✓ Cerrada }
-              @if (getSaleStatus(sale) === 'canceled') { ✗ Cancelada }
+              @if (getSaleStatus(sale) === 'active') { ⏳ Active }
+              @if (getSaleStatus(sale) === 'closed') { ✓ Closed }
+              @if (getSaleStatus(sale) === 'canceled') { ✗ Canceled }
             </div>
           </div>
 
           <div class="card-content">
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Cliente</span>
+                <span class="label">Customer</span>
                 <span class="value">{{ getCustomerName(sale) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Centro</span>
+                <span class="label">Center</span>
                 <span class="value">{{ getCenterName(sale) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Tienda</span>
+                <span class="label">Store</span>
                 <span class="value">{{ getStoreName(sale) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Pago</span>
+                <span class="label">Payment</span>
                 <span class="value">{{ getPaymentTypeName(sale) }}</span>
               </div>
             </div>
 
             <div class="price-section">
               <div class="price-row">
-                <span class="label">Precio Total</span>
+                <span class="label">Total Price</span>
                 <span class="value">{{ formatCurrency(sale.totalPrice) }}</span>
               </div>
               <div class="price-row">
-                <span class="label">Costo Total</span>
+                <span class="label">Total Cost</span>
                 <span class="value">{{ formatCurrency(getTotalCost(sale)) }}</span>
               </div>
               <div class="price-row">
-                <span class="label">Descuento</span>
+                <span class="label">Discount</span>
                 <span class="value discount">-{{ formatCurrency(sale.totalDiscount) }}</span>
               </div>
               <div class="price-row total">
-                <span class="label">Ganancia</span>
+                <span class="label">Profit</span>
                 <span class="value">{{ formatCurrency(getProfit(sale)) }}</span>
               </div>
             </div>
 
             <div class="dates-info">
-              <small>Creado: {{ sale.createdAt | date: 'short' }}</small>
-              <small>Actualizado: {{ sale.updatedAt | date: 'short' }}</small>
+              <small>Created: {{ sale.createdAt | date: 'short' }}</small>
+              <small>Updated: {{ sale.updatedAt | date: 'short' }}</small>
             </div>
           </div>
 
           <div class="card-actions">
-            <button class="action-btn view" (click)="viewSale(sale)" title="Ver detalles">
+            <button class="action-btn view" (click)="viewSale(sale)" title="View details">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
-            <button class="action-btn edit" (click)="editSale(sale)" title="Editar">
+            <button class="action-btn edit" (click)="editSale(sale)" title="Edit">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L21 7z"></path>
               </svg>
             </button>
-            <button class="action-btn delete" (click)="deleteSale(sale)" title="Eliminar">
+            <button class="action-btn delete" (click)="deleteSale(sale)" title="Delete">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>

@@ -5,9 +5,9 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 12H5M12 19l-7-7 7-7"/>
         </svg>
-        Volver
+        Back
       </button>
-      <h1>{{ formState().isEditMode ? '✏️ Editar Venta' : '💰 Nueva Venta' }}</h1>
+      <h1>{{ formState().isEditMode ? '✏️ Edit Sale' : '💰 New Sale' }}</h1>
     </div>
 
     <div class="progress-bar">
@@ -21,7 +21,7 @@
         <path d="M22 11.08V12a10 10 0 11-5.93-9.14"></path>
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
       </svg>
-      <span>Venta {{ formState().isEditMode ? 'actualizada' : 'creada' }} exitosamente</span>
+      <span>Sale {{ formState().isEditMode ? 'updated' : 'created' }} successfully</span>
     </div>
   }
 
@@ -37,32 +37,32 @@
   }
 
   <div class="stepper">
-    <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
+      <div class="step" [class.active]="currentStep() === 0" [class.completed]="currentStep() > 0">
       <div class="step-circle">1</div>
-      <span class="step-label">Centro y Cliente</span>
+      <span class="step-label">Center and Customer</span>
     </div>
     <div class="step-line" [class.completed]="currentStep() > 0"></div>
-    <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
+      <div class="step" [class.active]="currentStep() === 1" [class.completed]="currentStep() > 1">
       <div class="step-circle">2</div>
-      <span class="step-label">Pago y Usuario</span>
+      <span class="step-label">Payment and User</span>
     </div>
     <div class="step-line" [class.completed]="currentStep() > 1"></div>
-    <div class="step" [class.active]="currentStep() === 2" [class.completed]="currentStep() > 2">
+      <div class="step" [class.active]="currentStep() === 2" [class.completed]="currentStep() > 2">
       <div class="step-circle">3</div>
-      <span class="step-label">Costos y Estado</span>
+      <span class="step-label">Costs and Status</span>
     </div>
   </div>
 
-  <form [formGroup]="saleForm" (ngSubmit)="onSubmit()">
+  <form [formGroup]="saleForm" (ngSubmit)="onSubmit()" autocomplete="off">
     @if (currentStep() === 0) {
       <div class="step-content">
-        <h3>Centro, Tienda y Cliente</h3>
+        <h3>Center, Store and Customer</h3>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Centro *</label>
+            <label>Center *</label>
             <select formControlName="centerId" [class.invalid]="isFieldInvalid('centerId')">
-              <option [value]="null">Seleccione un centro</option>
+              <option [value]="null">Select a center</option>
               @for (center of centers(); track center.id) {
                 <option [value]="center.id">{{ center.centerName }}</option>
               }
@@ -73,9 +73,9 @@
           </div>
 
           <div class="form-group">
-            <label>Tienda *</label>
+            <label>Store *</label>
             <select formControlName="storeId" [class.invalid]="isFieldInvalid('storeId')" [disabled]="!saleForm.get('centerId')?.value">
-              <option [value]="null">Seleccione una tienda</option>
+              <option [value]="null">Select a store</option>
               @for (store of filteredStores(); track store.id) {
                 <option [value]="store.id">{{ store.storeName }}</option>
               }
@@ -87,9 +87,9 @@
         </div>
 
         <div class="form-group">
-          <label>Cliente *</label>
+          <label>Customer *</label>
           <select formControlName="customerId" [class.invalid]="isFieldInvalid('customerId')">
-            <option [value]="null">Seleccione un cliente</option>
+            <option [value]="null">Select a customer</option>
             @for (customer of customers(); track customer.id) {
               <option [value]="customer.id">{{ getCustomerFullName(customer) }}</option>
             }
@@ -103,12 +103,12 @@
 
     @if (currentStep() === 1) {
       <div class="step-content">
-        <h3>Pago y Usuario</h3>
+      <h3>Payment and User</h3>
         
         <div class="form-group">
-          <label>Tipo de Pago *</label>
+          <label>Payment Type *</label>
           <select formControlName="paymentTypeId" [class.invalid]="isFieldInvalid('paymentTypeId')">
-            <option [value]="null">Seleccione un tipo de pago</option>
+            <option [value]="null">Select a payment type</option>
             @for (paymentType of paymentTypes(); track paymentType.id) {
               <option [value]="paymentType.id">{{ paymentType.type }}</option>
             }
@@ -119,9 +119,9 @@
         </div>
 
         <div class="form-group">
-          <label>Creado Por *</label>
+          <label>Created By *</label>
           <select formControlName="createdById" [class.invalid]="isFieldInvalid('createdById')">
-            <option [value]="null">Seleccione un empleado</option>
+            <option [value]="null">Select an employee</option>
             @for (employee of employees(); track employee.id) {
               <option [value]="employee.id">{{ getEmployeeFullName(employee) }}</option>
             }
@@ -135,11 +135,11 @@
 
     @if (currentStep() === 2) {
       <div class="step-content">
-        <h3>Costos, Descuento y Estado</h3>
+        <h3>Costs, Discount and Status</h3>
         
         <div class="form-row">
           <div class="form-group">
-            <label>Costo Total *</label>
+            <label>Total Cost *</label>
             <input 
               type="text" 
               formControlName="totalCost" 
@@ -152,7 +152,7 @@
           </div>
 
           <div class="form-group">
-            <label>Precio Total *</label>
+            <label>Total Price *</label>
             <input 
               type="number" 
               formControlName="totalPrice" 
@@ -168,7 +168,7 @@
         </div>
 
         <div class="form-group">
-          <label>Descuento Total *</label>
+          <label>Total Discount *</label>
           <input 
             type="number" 
             formControlName="totalDiscount" 
@@ -183,16 +183,16 @@
         </div>
 
         <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="cloused" />
-            <span>Venta Cerrada</span>
+            <label class="checkbox-label">
+            <input type="checkbox" formControlName="cloused" autocomplete="off" />
+            <span>Sale Closed</span>
           </label>
         </div>
 
         <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" formControlName="canceled" />
-            <span>Venta Cancelada</span>
+            <label class="checkbox-label">
+            <input type="checkbox" formControlName="canceled" autocomplete="off" />
+            <span>Sale Canceled</span>
           </label>
         </div>
       </div>
@@ -201,7 +201,7 @@
     <div class="form-actions">
       @if (currentStep() > 0) {
         <button type="button" class="btn-secondary" (click)="previousStep()">
-          Anterior
+          Previous
         </button>
       }
 
@@ -212,7 +212,7 @@
           (click)="nextStep()"
           [disabled]="!canProceedToNextStep()"
         >
-          Siguiente
+          Next
         </button>
       }
 
@@ -222,11 +222,11 @@
           class="btn-primary"
           [disabled]="formState().isLoading || !saleForm.valid"
         >
-          @if (formState().isLoading) {
+            @if (formState().isLoading) {
             <span class="spinner"></span>
-            Guardando...
+            Saving...
           } @else {
-            {{ formState().isEditMode ? 'Actualizar' : 'Crear' }} Venta
+            {{ formState().isEditMode ? 'Update' : 'Create' }} Sale
           }
         </button>
       }

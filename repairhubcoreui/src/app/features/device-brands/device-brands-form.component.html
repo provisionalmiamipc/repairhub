@@ -77,20 +77,20 @@
         </div>
       </ng-container>
       <ng-template #hideLocation>
-        <input type="hidden" formControlName="centerId" />
-        <input type="hidden" formControlName="storeId" />
+        <input type="hidden" formControlName="centerId" autocomplete="off" />
+        <input type="hidden" formControlName="storeId" autocomplete="off" />
       </ng-template>
     </ng-template>
 
     <div class="mb-3">
       <label class="form-label" for="name">Name *</label>
-      <input type="text" class="form-control" id="name" formControlName="name" placeholder="Brand name" />
+      <input type="text" class="form-control" id="name" formControlName="name" placeholder="Brand name" autocomplete="off" />
       <div class="invalid-feedback d-block" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">Name is required</div>
     </div>
 
     <div class="mb-3">
       <label class="form-label" for="img">Image (URL)</label>
-      <input type="text" class="form-control" id="img" formControlName="img" placeholder="Image URL" />
+      <input type="text" class="form-control" id="img" formControlName="img" placeholder="Image URL" autocomplete="off" />
     </div>
 
     <div class="mb-3">

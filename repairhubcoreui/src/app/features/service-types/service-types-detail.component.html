@@ -3,14 +3,14 @@
   <div class="detail-header">
     <div>
       <h1>{{ serviceType.name }}</h1>
-      <p>Detalles del tipo de servicio</p>
+      <p>Service type details</p>
     </div>
     <div class="header-actions">
-      <button class="btn-edit" (click)="editServiceType()" [attr.aria-label]="'Editar'">
-        <i class="bi bi-pencil-square"></i> Editar
+      <button class="btn-edit" (click)="editServiceType()" [attr.aria-label]="'Edit'">
+        <i class="bi bi-pencil-square"></i> Edit
       </button>
-      <button class="btn-back" (click)="goBack()" [attr.aria-label]="'Volver'">
-        <i class="bi bi-arrow-left"></i> Volver
+      <button class="btn-back" (click)="goBack()" [attr.aria-label]="'Back'">
+        <i class="bi bi-arrow-left"></i> Back
       </button>
     </div>
   </div>
@@ -19,7 +19,7 @@
   <div class="detail-grid">
     <!-- Basic Info -->
     <section class="detail-section">
-      <h2>Información General</h2>
+      <h2>General Information</h2>
       
       <div class="detail-row">
         <label>ID:</label>
@@ -27,37 +27,37 @@
       </div>
       
       <div class="detail-row">
-        <label>Nombre:</label>
+        <label>Name:</label>
         <span>{{ serviceType.name }}</span>
       </div>
       
-      <div class="detail-row" *ngIf="serviceType.description">
-        <label>Descripción:</label>
+        <div class="detail-row" *ngIf="serviceType.description">
+        <label>Description:</label>
         <span>{{ serviceType.description || 'N/A' }}</span>
       </div>
     </section>
 
     <!-- Related Data -->
     <section class="detail-section">
-      <h2>Información Relacionada</h2>
+      <h2>Related Information</h2>
       
       <div class="detail-row" *ngIf="serviceType.center">
-        <label>Centro:</label>
+        <label>Center:</label>
         <span>{{ serviceType.center.centerName }}</span>
       </div>
       
       <div class="detail-row" *ngIf="serviceType.store">
-        <label>Tienda:</label>
+        <label>Store:</label>
         <span>{{ serviceType.store.storeName }}</span>
       </div>
     </section>
 
     <!-- Metadata -->
     <section class="detail-section">
-      <h2>Información del Sistema</h2>
+      <h2>System Information</h2>
       
       <div class="detail-row">
-        <label>Fecha de Creación:</label>
+        <label>Created at:</label>
         <span>{{ serviceType.createdAt | date: 'short' }}</span>
       </div>
     </section>

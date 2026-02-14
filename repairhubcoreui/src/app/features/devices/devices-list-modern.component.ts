@@ -158,13 +158,13 @@ export class DevicesListModernComponent implements OnInit {
   }
 
   deleteDevice(device: Devices) {
-    if (confirm(`¿Eliminar dispositivo "${device.name}"?`)) {
+    if (confirm(`Delete device "${device.name}"?`)) {
       this.devicesService.delete(device.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.devices.update(devices => devices.filter(d => d.id !== device.id));
         },
         error: (err) => {
-          alert(`Error al eliminar: ${err.message}`);
+          alert(`Error deleting: ${err.message}`);
         }
       });
     }

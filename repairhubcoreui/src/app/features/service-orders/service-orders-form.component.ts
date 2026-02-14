@@ -307,7 +307,7 @@ export class ServiceOrdersFormComponent {
       this.paymentTypesService.update(editingId, payload).subscribe({ next: () => { this.paymentTypesService.getAll().subscribe(p => this.paymentTypes = p); this.closePaymentTypeModal(); this.toastService.success('Payment type updated'); }, error: () => this.toastService.error('Error updating payment type') });
     } else {
       // debug: log payload sent to API to help diagnose 400 errors
-      console.log('Creating payment type with payload:', payload);
+      
       this.paymentTypesService.create(payload).subscribe({ next: (created) => { this.paymentTypesService.getAll().subscribe(p => this.paymentTypes = p); this.form.get('paymentTypeId')?.setValue((created as any).id); this.closePaymentTypeModal(); this.toastService.success('Payment type created'); }, error: (err) => { console.error('Error creating payment type', err); this.toastService.error('Error creating payment type'); } });
     }
   }
@@ -385,7 +385,7 @@ export class ServiceOrdersFormComponent {
       });
     } else {
       // Log payload to help debug 400 responses from backend
-      console.log('Creating repair status with payload:', sanitized);
+      
       this.repairStatusService.create(sanitized).subscribe({
         next: () => { this.loadRelatedCollections(); this.closeStatusModal(); this.toastService.success('Status created'); },
         error: (err) => {

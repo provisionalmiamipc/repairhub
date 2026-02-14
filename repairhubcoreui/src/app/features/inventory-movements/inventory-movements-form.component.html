@@ -1,25 +1,25 @@
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <label>Cantidad:
-    <input type="number" formControlName="quantity" />
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
+  <label>Quantity:
+    <input type="number" formControlName="quantity" autocomplete="off" />
   </label>
-  <div *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Cantidad requerida</div>
+  <div *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched">Quantity required</div>
 
-  <label>Tipo de movimiento:
+  <label>Movement Type:
     <select formControlName="movementType">
-      <option value="Incoming">Entrada</option>
-      <option value="Outgoing">Salida</option>
+      <option value="Incoming">Incoming</option>
+      <option value="Outgoing">Outgoing</option>
     </select>
   </label>
-  <div *ngIf="form.get('movementType')?.invalid && form.get('movementType')?.touched">Tipo requerido</div>
+  <div *ngIf="form.get('movementType')?.invalid && form.get('movementType')?.touched">Type required</div>
 
-  <label>Descripción:
-    <input type="text" formControlName="description" />
+  <label>Description:
+    <input type="text" formControlName="description" autocomplete="off" />
   </label>
 
-  <label>Fecha:
-    <input type="date" formControlName="createdAt" />
+  <label>Date:
+    <input type="date" formControlName="createdAt" autocomplete="off" />
   </label>
-  <div *ngIf="form.get('createdAt')?.invalid && form.get('createdAt')?.touched">Fecha requerida</div>
+  <div *ngIf="form.get('createdAt')?.invalid && form.get('createdAt')?.touched">Date required</div>
 
-  <button type="submit" [disabled]="form.invalid">Guardar</button>
+  <button type="submit" [disabled]="form.invalid">Save</button>
 </form>

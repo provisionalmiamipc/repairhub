@@ -61,9 +61,7 @@ export class SOItemsFormComponent {
   }
 
   ngOnChanges() {
-    console.log('SO-Items ngOnChanges - serviceOrderId recibido:', this.serviceOrderId);
-    console.log('SO-Items ngOnChanges - centerId:', this.centerId, 'storeId:', this.storeId);
-    
+    // ngOnChanges ejecutado (logs removidos)
     if (this.soItem) {
       this.form.patchValue(this.soItem as any);
     }
@@ -71,9 +69,6 @@ export class SOItemsFormComponent {
     // Always update these fields from inputs, even if form already has a value
     if (this.serviceOrderId) {
       this.form.patchValue({ serviceOrderId: Number(this.serviceOrderId) });
-      console.log('serviceOrderId asignado al formulario:', Number(this.serviceOrderId));
-    } else {
-      console.warn('serviceOrderId no disponible');
     }
     if (this.centerId) {
       this.form.patchValue({ centerId: Number(this.centerId) });
@@ -232,14 +227,11 @@ export class SOItemsFormComponent {
 
   private applyItemDefaults(itemId: number | null) {
     if (!itemId) return;
-    console.log('applyItemDefaults llamado con itemId:', itemId, 'tipo:', typeof itemId);
     const selected = this.items.find(i => Number(i.id) === Number(itemId));
     if (!selected) {
-      console.warn('No se encontró item con id:', itemId);
       return;
     }
 
-    console.log('Item encontrado:', selected);
     this.form.patchValue({
       cost: selected.cost ?? 0,
       price: selected.price ?? 0,

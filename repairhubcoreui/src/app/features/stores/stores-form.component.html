@@ -1,7 +1,7 @@
-<form class="row g-3" [formGroup]="form" (ngSubmit)="onSubmit()">
+<form class="row g-3" [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
   <c-col [xs]="12">
     <label cLabel for="storeName">Name</label>
-    <input cFormControl id="storeName" placeholder="Store Name" formControlName="storeName"/>
+    <input cFormControl id="storeName" placeholder="Store Name" formControlName="storeName" autocomplete="off"/>
     <span *ngIf="form.get('storeName')?.invalid && form.get('storeName')?.touched">Required</span>
   </c-col>
   <c-col [md]="6">
@@ -14,38 +14,38 @@
   </c-col>
   <c-col [md]="3">
     <label cLabel for="inputEmail">Email</label>
-    <input cFormControl id="inputEmail" type="email" formControlName="email"/>
+    <input cFormControl id="inputEmail" type="email" formControlName="email" autocomplete="off"/>
   </c-col>
   <c-col [md]="3">
     <label cLabel for="inputPhoneNumber">Phone Number</label>
-    <input cFormControl id="inputPhoneNumber" type="tel" formControlName="phoneNumber" />
+    <input cFormControl id="inputPhoneNumber" type="tel" formControlName="phoneNumber" autocomplete="off" />
   </c-col>
   <c-col [xs]="12">
     <label cLabel for="inputAddress" >Address</label>
-    <input cFormControl id="inputAddress" placeholder="1234 Main St, Apartment, studio, or floor" type="text" formControlName="address" />
+    <input cFormControl id="inputAddress" placeholder="1234 Main St, Apartment, studio, or floor" type="text" formControlName="address" autocomplete="off" />
     <div *ngIf="form.get('address')?.invalid && form.get('address')?.touched">Required</div>
   </c-col>
   <c-col [xs]="8">
     <label cLabel for="inputWeb">Web</label>
-    <input cFormControl id="inputWeb" placeholder="www.example.com" type="url" formControlName="webSite"/>
+    <input cFormControl id="inputWeb" placeholder="www.example.com" type="url" formControlName="webSite" autocomplete="off"/>
   </c-col>
   <c-col [xs]="4">
     <label cLabel for="inputLogo">Logo</label>
-    <input cFormControl id="inputLogo" placeholder="Select..." type="url" formControlName="logo"/>
+    <input cFormControl id="inputLogo" placeholder="Select..." type="url" formControlName="logo" autocomplete="off"/>
   </c-col>
   <c-col [md]="3">
     <label cLabel for="inputCountry">Country</label>
-    <input cFormControl id="inputCountry" formControlName="country" />
+    <input cFormControl id="inputCountry" formControlName="country" autocomplete="off" />
     <div *ngIf="form.get('country')?.invalid && form.get('country')?.touched">Required</div>
   </c-col>
   <c-col [md]="3">
     <label cLabel for="inputCity">City</label>
-    <input cFormControl id="inputCity" type="text" formControlName="city"/>
+    <input cFormControl id="inputCity" type="text" formControlName="city" autocomplete="off"/>
     <div *ngIf="form.get('city')?.invalid && form.get('city')?.touched">Required</div>
   </c-col>
   <c-col [md]="3">
     <label cLabel for="inputState">State</label>
-    <input cFormControl id="inputState" type="text" formControlName="state"/>
+    <input cFormControl id="inputState" type="text" formControlName="state" autocomplete="off"/>
     <div *ngIf="form.get('state')?.invalid && form.get('state')?.touched">Required</div>
   </c-col>
  <!--<ng-container ></ng-container> <c-col [md]="4">
@@ -57,7 +57,7 @@
   </c-col>-->
   <c-col [md]="3">
     <label cLabel for="inputZip">Zip Code</label>
-    <input cFormControl id="inputZip" formControlName="zipCode" type="text" />
+    <input cFormControl id="inputZip" formControlName="zipCode" type="text" autocomplete="off" />
     <div *ngIf="form.get('zipCode')?.invalid && form.get('zipCode')?.touched">Required</div>
   </c-col>  
    

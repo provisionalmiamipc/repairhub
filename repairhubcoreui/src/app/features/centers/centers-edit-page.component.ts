@@ -53,46 +53,36 @@ export class CentersEditPageComponent {
     } else {
       this.service.getById(+id).subscribe(c => (this.center = c));
     }
-    console.log('🔍 center:', this.center);
+    // center cargado (logs removidos)
   }
 
   onSave(data: Partial<Centers>) {
-    console.log('🔍 onSave ejecutado con:', data);
-    console.log('🔍 isNew:', this.isNew);
-    console.log('🔍 center:', this.center);
-    console.log('🔍 service:', this.service);
-    console.log('🔍 router:', this.router);
-    console.log('🔍 route:', this.route);
+    // onSave ejecutado (logs removidos)
 
     if (!this.service) {
-      console.error('❌ Service no disponible');
       return;
     }
 
     if (this.isNew) {
-      console.log('🔄 Creando nuevo center...', data.completion?.toDateString);
       this.service.create(data).subscribe({
         next: () => {
-          console.log('✅ Center creado exitosamente, fecha enviada:', data.completion);
           this.router.navigate(['../'], { relativeTo: this.route });
         },
-        error: (error) => {
-          console.error('❌ Error creando center:', error);
+        error: () => {
+          // manejar error (logs removidos)
         }
       });
     } else if (this.center) {
-      console.log('🔄 Actualizando center...');
       this.service.update(this.center.id, data).subscribe({
         next: () => {
-          console.log('✅ Center actualizado exitosamente');
           this.router.navigate(['../../'], { relativeTo: this.route });
         },
-        error: (error) => {
-          console.error('❌ Error actualizando center:', error);
+        error: () => {
+          // manejar error (logs removidos)
         }
       });
     } else {
-      console.error('❌ Ni es nuevo ni hay center existente');
+      // Ni es nuevo ni hay center existente
     }
     /*if (this.isNew) {
       this.service.create(data).subscribe(() => this.router.navigate(['../'], { relativeTo: this.route }));

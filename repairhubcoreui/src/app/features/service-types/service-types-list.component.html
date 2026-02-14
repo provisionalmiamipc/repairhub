@@ -3,12 +3,12 @@
   <div class="list-header">
     <div class="header-content">
       <div>
-        <h1 class="page-title">Tipos de Servicio</h1>
-        <p class="page-subtitle">Administra los tipos de servicio disponibles</p>
+        <h1 class="page-title">Service Types</h1>
+        <p class="page-subtitle">Manage available service types</p>
       </div>
-      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'Nuevo tipo de servicio'">
+      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'New service type'">
         <span class="btn-icon"><i class="bi bi-plus"></i></span>
-        Nuevo Tipo
+        New Type
       </button>
     </div>
   </div>
@@ -20,9 +20,9 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Buscar por nombre..."
+        placeholder="Search by name..."
         (input)="onSearchChange($any($event).target.value)"
-        [attr.aria-label]="'Buscar tipos de servicio'"
+        [attr.aria-label]="'Search service types'"
       />
     </div>
   </div>
@@ -32,9 +32,9 @@
     @if (filteredServiceTypes().length === 0) {
     <div class="empty-state">
       <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-      <h3>No hay tipos de servicio</h3>
-      <p>Crea tu primer tipo de servicio para comenzar</p>
-      <button class="btn-empty" (click)="onNew()">Crear Tipo</button>
+        <h3>No service types</h3>
+        <p>Create your first service type to get started</p>
+        <button class="btn-empty" (click)="onNew()">Create Type</button>
     </div>
     } @else {
     @for (serviceType of filteredServiceTypes(); track serviceType.id) {
@@ -43,10 +43,10 @@
       <div class="card-header">
         <h2 class="card-title">{{ serviceType.name }}</h2>
         <div class="card-actions">
-          <button class="btn-icon-action" (click)="edit.emit(serviceType)" [attr.aria-label]="'Editar ' + serviceType.name">
+          <button class="btn-icon-action" (click)="edit.emit(serviceType)" [attr.aria-label]="'Edit ' + serviceType.name">
             <i class="bi bi-pencil"></i>
           </button>
-          <!--button class="btn-icon-action delete" (click)="delete.emit(serviceType)" [attr.aria-label]="'Eliminar ' + serviceType.name">
+          <!--button class="btn-icon-action delete" (click)="delete.emit(serviceType)" [attr.aria-label]="'Delete ' + serviceType.name">
             <i class="bi bi-trash"></i>
           </button -->
         </div>
@@ -55,11 +55,11 @@
       <!-- Card Body -->
       <div class="card-body">
         <div class="info-row">
-          <span class="label">Nombre:</span>
+          <span class="label">Name:</span>
           <span class="value">{{ serviceType.name }}</span>
         </div>
         <div class="info-row">
-          <span class="label">Creado:</span>
+          <span class="label">Created:</span>
           <span class="value">{{ serviceType.createdAt | date:'short' }}</span>
         </div>
       </div>
@@ -67,7 +67,7 @@
       <!-- Card Footer -->
       <div class="card-footer">
         <button class="btn-view" (click)="select.emit(serviceType)">
-          <i class="bi bi-eye"></i> Ver Detalles
+          <i class="bi bi-eye"></i> View Details
         </button>
       </div>
     </div>

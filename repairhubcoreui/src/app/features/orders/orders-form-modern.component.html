@@ -1,10 +1,10 @@
 <div class="form-container">
   <div class="form-header">
     <div>
-      <h1>{{ isEditMode() ? '✏️ Editar' : '➕ Crear' }} Orden</h1>
-      <p class="subtitle">Paso {{ currentStep() + 1 }} de 3</p>
+      <h1>{{ isEditMode() ? '✏️ Edit' : '➕ Create' }} Order</h1>
+      <p class="subtitle">Step {{ currentStep() + 1 }} of 3</p>
     </div>
-    <button class="btn-secondary" (click)="onCancel()">Cancelar</button>
+    <button class="btn-secondary" (click)="onCancel()">Cancel</button>
   </div>
 
   <div class="progress-container">
@@ -12,15 +12,15 @@
     <div class="progress-labels">
       <span [class.active]="currentStep() >= 0" [class.completed]="currentStep() > 0">
         <span class="number">{{ currentStep() > 0 ? '✓' : '1' }}</span>
-        Centro/Tienda/Cliente
+        Center/Store/Customer
       </span>
       <span [class.active]="currentStep() >= 1" [class.completed]="currentStep() > 1">
         <span class="number">{{ currentStep() > 1 ? '✓' : '2' }}</span>
-        Pago/Usuario
+        Payment/User
       </span>
       <span [class.active]="currentStep() >= 2">
         <span class="number">3</span>
-        Costos
+        Costs
       </span>
     </div>
   </div>
@@ -33,15 +33,15 @@
   }
 
   @if (!isLoading()) {
-    <form [formGroup]="orderForm" class="form-content">
+    <form [formGroup]="orderForm" class="form-content" autocomplete="off">
       @if (currentStep() === 0) {
         <div class="step-content">
-          <h2>Selecciona Centro, Tienda y Cliente</h2>
+          <h2>Select Center, Store and Customer</h2>
 
           <div class="form-group">
-            <label for="centerId" class="form-label">Centro *</label>
+            <label for="centerId" class="form-label">Center *</label>
             <select id="centerId" formControlName="centerId" class="form-control">
-              <option value="">Selecciona un centro</option>
+              <option value="">Select a center</option>
               <option *ngFor="let center of centers()" [value]="center.id">
                 {{ center.centerName }}
               </option>
@@ -52,15 +52,15 @@
           </div>
 
           <div class="form-group">
-            <label for="storeId" class="form-label">Tienda *</label>
+            <label for="storeId" class="form-label">Store *</label>
             <select id="storeId" formControlName="storeId" class="form-control" [disabled]="!orderForm.get('centerId')?.value">
-              <option value="">Selecciona una tienda</option>
+              <option value="">Select a store</option>
               <option *ngFor="let store of filteredStores" [value]="store.id">
                 {{ store.storeName }}
               </option>
             </select>
             @if (!orderForm.get('centerId')?.value) {
-              <span class="helper-text">Primero selecciona un centro</span>
+              <span class="helper-text">First select a center</span>
             }
             @if (getFieldError('storeId')) {
               <span class="error-message">{{ getFieldError('storeId') }}</span>
@@ -68,9 +68,9 @@
           </div>
 
           <div class="form-group">
-            <label for="customerId" class="form-label">Cliente *</label>
+            <label for="customerId" class="form-label">Customer *</label>
             <select id="customerId" formControlName="customerId" class="form-control">
-              <option value="">Selecciona un cliente</option>
+              <option value="">Select a customer</option>
               <option *ngFor="let customer of customers()" [value]="customer.id">
                 {{ getCustomerDisplayName(customer) }}
               </option>
@@ -84,12 +84,12 @@
 
       @if (currentStep() === 1) {
         <div class="step-content">
-          <h2>Tipo de Pago y Usuario</h2>
+          <h2>Payment Type and User</h2>
 
           <div class="form-group">
-            <label for="paymentTypeId" class="form-label">Tipo de Pago *</label>
+            <label for="paymentTypeId" class="form-label">Payment Type *</label>
             <select id="paymentTypeId" formControlName="paymentTypeId" class="form-control">
-              <option value="">Selecciona un tipo de pago</option>
+              <option value="">Select a payment type</option>
               <option *ngFor="let paymentType of paymentTypes()" [value]="paymentType.id">
                 {{ paymentType.type }}
               </option>
@@ -100,9 +100,9 @@
           </div>
 
           <div class="form-group">
-            <label for="createdById" class="form-label">Creado por (Usuario) *</label>
+            <label for="createdById" class="form-label">Created by (User) *</label>
             <select id="createdById" formControlName="createdById" class="form-control">
-              <option value="">Selecciona un usuario</option>
+              <option value="">Select a user</option>
               <option *ngFor="let employee of employees()" [value]="employee.id">
                 {{ employee.firstName }} {{ employee.lastName }}
               </option>
@@ -116,20 +116,20 @@
 
       @if (currentStep() === 2) {
         <div class="step-content">
-          <h2>Costos e Impuestos</h2>
+          <h2>Costs and Taxes</h2>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="totalPrice" class="form-label">Precio Total *</label>
-              <input type="number" id="totalPrice" formControlName="totalPrice" class="form-control" placeholder="0" min="0">
+              <label for="totalPrice" class="form-label">Total Price *</label>
+              <input type="number" id="totalPrice" formControlName="totalPrice" class="form-control" placeholder="0" min="0" autocomplete="off">
               @if (getFieldError('totalPrice')) {
                 <span class="error-message">{{ getFieldError('totalPrice') }}</span>
               }
             </div>
 
             <div class="form-group">
-              <label for="totalCost" class="form-label">Costo Total *</label>
-              <input type="number" id="totalCost" formControlName="totalCost" class="form-control" placeholder="0" min="0">
+              <label for="totalCost" class="form-label">Total Cost *</label>
+              <input type="number" id="totalCost" formControlName="totalCost" class="form-control" placeholder="0" min="0" autocomplete="off">
               @if (getFieldError('totalCost')) {
                 <span class="error-message">{{ getFieldError('totalCost') }}</span>
               }
@@ -138,30 +138,30 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="tax" class="form-label">Impuesto</label>
-              <input type="number" id="tax" formControlName="tax" class="form-control" placeholder="0" min="0">
+              <label for="tax" class="form-label">Tax</label>
+              <input type="number" id="tax" formControlName="tax" class="form-control" placeholder="0" min="0" autocomplete="off">
             </div>
 
             <div class="form-group">
-              <label for="advancePayment" class="form-label">Anticipo</label>
-              <input type="number" id="advancePayment" formControlName="advancePayment" class="form-control" placeholder="0" min="0">
+              <label for="advancePayment" class="form-label">Advance Payment</label>
+              <input type="number" id="advancePayment" formControlName="advancePayment" class="form-control" placeholder="0" min="0" autocomplete="off">
             </div>
           </div>
 
           <div class="form-group full">
-            <label for="note" class="form-label">Notas (JSON)</label>
-            <textarea id="note" formControlName="note" class="form-control" rows="3" placeholder='{"observaciones": "Texto"}' style="font-family: monospace; font-size: 12px;"></textarea>
+            <label for="note" class="form-label">Notes (JSON)</label>
+            <textarea id="note" formControlName="note" class="form-control" rows="3" placeholder='{"notes": "Text"}' style="font-family: monospace; font-size: 12px;"></textarea>
           </div>
 
           <div class="form-row">
             <div class="form-group checkbox">
-              <input type="checkbox" id="cloused" formControlName="cloused">
-              <label for="cloused">Cerrada</label>
+              <input type="checkbox" id="cloused" formControlName="cloused" autocomplete="off">
+              <label for="cloused">Closed</label>
             </div>
 
             <div class="form-group checkbox">
-              <input type="checkbox" id="canceled" formControlName="canceled">
-              <label for="canceled">Cancelada</label>
+              <input type="checkbox" id="canceled" formControlName="canceled" autocomplete="off">
+              <label for="canceled">Canceled</label>
             </div>
           </div>
         </div>
@@ -183,24 +183,24 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span>¡Guardado exitosamente! Redirigiendo...</span>
+          <span>Saved successfully! Redirecting...</span>
         </div>
       }
 
       <div class="form-actions">
         <button type="button" class="btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
-          Cancelar
+          Cancel
         </button>
 
         @if (currentStep() > 0) {
           <button type="button" class="btn-secondary" (click)="prevStep()" [disabled]="isSaving()">
-            ← Anterior
+            ← Previous
           </button>
         }
 
         @if (currentStep() < 2) {
           <button type="button" class="btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep() || isSaving()">
-            Siguiente →
+            Next →
           </button>
         }
 
@@ -208,10 +208,10 @@
           <button type="submit" class="btn-success" [disabled]="!orderForm.valid || isSaving()" (click)="onSubmit()">
             @if (isSaving()) {
               <span class="spinner"></span>
-              Guardando...
+              Saving...
             }
             @if (!isSaving()) {
-              {{ isEditMode() ? '✏️ Actualizar' : '💾 Crear' }} Orden
+              {{ isEditMode() ? '✏️ Update' : '💾 Create' }} Order
             }
           </button>
         }

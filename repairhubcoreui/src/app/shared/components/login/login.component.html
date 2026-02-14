@@ -13,8 +13,8 @@
             <div class="mb-3">
               <i class="bi bi-shield-lock-fill" style="font-size: 3rem;"></i>
             </div>
-            <h4 class="mb-1 fw-bold">Iniciar Sesión</h4>
-            <p class="mb-0 small opacity-75">Sistema de Gestión de Empleados</p>
+            <h4 class="mb-1 fw-bold">Sign In</h4>
+            <p class="mb-0 small opacity-75">Employee Management System</p>
           </div>
 
           <!-- Body -->
@@ -26,7 +26,7 @@
               <div class="mb-3">
                 <label for="username" class="form-label fw-semibold small">
                   <i class="bi bi-person-fill me-1"></i>
-                  Usuario
+                  Username
                 </label>
                 <div class="input-group">
                   <span class="input-group-text bg-transparent">
@@ -40,15 +40,15 @@
                     name="username"
                     required
                     [disabled]="isLoading"
-                    placeholder="Ingresa tu usuario"
+                    placeholder="Enter your username"
                     autocomplete="off"
                     [class.is-invalid]="loginAttempted && !loginForm.controls['username'].valid && !isLoading"
-                    aria-label="Usuario">
+                    aria-label="Username">
                 </div>
                 <div *ngIf="loginAttempted && !loginForm.controls['username'].valid && !isLoading" 
                      class="invalid-feedback d-block">
                   <i class="bi bi-exclamation-circle-fill me-1"></i>
-                  El usuario es requerido
+                  Username is required
                 </div>
               </div>
 
@@ -56,7 +56,7 @@
               <div class="mb-3">
                 <label for="password" class="form-label fw-semibold small">
                   <i class="bi bi-lock-fill me-1"></i>
-                  Contraseña
+                  Password
                 </label>
                 <div class="input-group">
                   <span class="input-group-text bg-transparent">
@@ -70,15 +70,15 @@
                     name="password"
                     required
                     [disabled]="isLoading"
-                    placeholder="Ingresa tu contraseña"
+                    placeholder="Enter your password"
                     autocomplete="off"
                     [class.is-invalid]="loginAttempted && !loginForm.controls['password'].valid && !isLoading"
-                    aria-label="Contraseña">
+                    aria-label="Password">
                 </div>
                 <div *ngIf="loginAttempted && !loginForm.controls['password'].valid && !isLoading" 
                      class="invalid-feedback d-block">
                   <i class="bi bi-exclamation-circle-fill me-1"></i>
-                  La contraseña es requerida
+                  Password is required
                 </div>
               </div>
 
@@ -86,7 +86,7 @@
               <div class="mb-4 text-end">
                 <a class="small text-decoration-none" href="#" (click)="$event.preventDefault()">
                   <i class="bi bi-question-circle me-1"></i>
-                  ¿Olvidaste tu contraseña?
+                  Forgot your password?
                 </a>
               </div>
 
@@ -118,11 +118,11 @@
                   [disabled]="!loginForm.form.valid || isLoading">
                   <span *ngIf="!isLoading">
                     <i class="bi bi-box-arrow-in-right me-2"></i>
-                    Iniciar Sesión
+                    Sign In
                   </span>
                   <span *ngIf="isLoading">
                     <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Verificando...
+                    Verifying...
                   </span>
                 </button>
               </div>
@@ -137,9 +137,9 @@
 
           <!-- Footer -->
           <div class="card-footer text-center py-3 border-0" style="background: var(--cui-card-cap-bg);">
-            <small class="text-body-secondary">
+              <small class="text-body-secondary">
               <i class="bi bi-info-circle me-1"></i>
-              Usa tus credenciales de empleado
+              Use your employee credentials
             </small>
           </div>
         </div>

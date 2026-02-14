@@ -38,7 +38,7 @@ export const pinVerificationGuard: CanActivateFn = (route, state) => {
   if (authService.isEmployeeLocked()) {
     // Capturar la URL objetivo desde el estado del router (más fiable en SPA / reloads)
     const currentUrl = state?.url ?? (window.location.pathname + window.location.search);
-    console.log('Employee locked, saving returnUrl:', currentUrl);
+    
     authService.setReturnUrl(currentUrl);
     router.navigate(['/verify-pin']);
     return false;
@@ -48,7 +48,7 @@ export const pinVerificationGuard: CanActivateFn = (route, state) => {
   if (!authService.isPinVerified()) {
     // Capturar la URL objetivo desde el estado del router (más fiable en SPA / reloads)
     const currentUrl = state?.url ?? (window.location.pathname + window.location.search);
-    console.log('PIN not verified, saving returnUrl:', currentUrl);
+    
     authService.setReturnUrl(currentUrl);
     router.navigate(['/verify-pin']);
     return false;

@@ -2,7 +2,7 @@
 <div class="container-fluid" style="margin-bottom: 60px">
   <div class="border rounded-4 shadow-sm p-4 p-lg-5 mx-auto" >
     
-    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" autocomplete="off">
       @if (backendError) {
         <div class="alert alert-danger mt-2">{{ backendError }}</div>
       }
@@ -98,14 +98,14 @@
                   </div>
                 </div>
                 <!-- Campo oculto para centerId (valor fijo) -->
-                <input type="hidden" formControlName="centerId" [value]="centerIdDefault">
+                <input type="hidden" formControlName="centerId" [value]="centerIdDefault" autocomplete="off">
               </div>
             </div>
           </div>
         } @else if (role === 'EMPLOYEE' && !isAdminCenter) {
           <!-- Para EMPLOYEE sin isAdminCenter: ambos campos ocultos, valores por defecto -->
-          <input type="hidden" formControlName="centerId" [value]="centerIdDefault">
-          <input type="hidden" formControlName="storeId" [value]="storeIdDefault">
+          <input type="hidden" formControlName="centerId" [value]="centerIdDefault" autocomplete="off">
+          <input type="hidden" formControlName="storeId" [value]="storeIdDefault" autocomplete="off">
         }
 
         <!-- Personal Information -->
@@ -123,11 +123,12 @@
                   <input
                     class="form-control"
                     type="text"
-                    id="firstName"                    
+                    id="firstName"
                     formControlName="firstName"
                     [class.is-valid]="firstName?.valid && firstName?.touched"
                     [class.is-invalid]="firstName?.invalid && firstName?.touched"
-                    placeholder="Enter first name">
+                    placeholder="Enter first name"
+                    autocomplete="off">
                   @if (firstName?.invalid && firstName?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (firstName?.errors?.['required']) {
@@ -155,7 +156,8 @@
                     formControlName="lastName"
                     [class.is-valid]="lastName?.valid && lastName?.touched"
                     [class.is-invalid]="lastName?.invalid && lastName?.touched"
-                    placeholder="Enter last name">
+                    placeholder="Enter last name"
+                    autocomplete="off">
                   @if (lastName?.invalid && lastName?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (lastName?.errors?.['required']) {
@@ -180,7 +182,8 @@
                     formControlName="phone"
                     [class.is-valid]="phone?.valid && phone?.touched"
                     [class.is-invalid]="phone?.invalid && phone?.touched"
-                    placeholder="Enter phone number">
+                    placeholder="Enter phone number"
+                    autocomplete="off">
                   @if (phone?.invalid && phone?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (phone?.errors?.['required']) {
@@ -205,7 +208,8 @@
                     formControlName="email"
                     [class.is-valid]="email?.valid && email?.touched"
                     [class.is-invalid]="email?.invalid && email?.touched"
-                    placeholder="Enter email address">
+                    placeholder="Enter email address"
+                    autocomplete="off">
                   @if (email?.invalid && email?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (email?.errors?.['required']) {
@@ -230,7 +234,8 @@
                     formControlName="city"
                     [class.is-valid]="city?.valid && city?.touched"
                     [class.is-invalid]="city?.invalid && city?.touched"
-                    placeholder="Enter city">
+                    placeholder="Enter city"
+                    autocomplete="off">
                   @if (city?.invalid && city?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (city?.errors?.['required']) {
@@ -314,7 +319,8 @@
                       class="form-check-input"
                       type="checkbox"
                       id="b2b"
-                      formControlName="b2b">
+                      formControlName="b2b"
+                      autocomplete="off">
                     <label class="form-check-label" for="b2b">
                       Business Customer (B2B)
                     </label>
@@ -335,7 +341,8 @@
                     placeholder="0"
                     min="0"
                     max="100"
-                    step="0.1">
+                    step="0.1"
+                    autocomplete="off">
                 </div>
                 @if (discount?.invalid && discount?.touched) {
                   <div class="invalid-feedback d-block">

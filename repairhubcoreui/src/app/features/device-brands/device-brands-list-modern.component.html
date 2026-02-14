@@ -2,11 +2,11 @@
   <div class="header-section">
     <div class="header-content">
       <div>
-        <h1><i class="bi bi-phone"></i> Marcas de Dispositivos</h1>
-        <p class="subtitle">{{ filteredDeviceBrands().length }} marcas encontradas</p>
+        <h1><i class="bi bi-phone"></i> Device Brands</h1>
+        <p class="subtitle">{{ filteredDeviceBrands().length }} brands found</p>
       </div>
       <button class="btn-primary" (click)="createNew()">
-        <span>+</span> Nueva Marca
+        <span>+</span> New Brand
       </button>
     </div>
   </div>
@@ -18,30 +18,30 @@
       </svg>
       <input
         type="text"
-        placeholder="Buscar por nombre o descripción..."
+        placeholder="Search by name or description..."
         (input)="onSearchChange($any($event).target.value)"
       />
     </div>
 
     <div class="filter-group">
       <select (change)="onFilterCenterChange($any($event).target.value)">
-        <option value="0">Todos los centros</option>
+        <option value="0">All centers</option>
         @for (center of centers(); track center.id) {
           <option [value]="center.id">{{ center.centerName }}</option>
         }
       </select>
 
       <select (change)="onFilterStoreChange($any($event).target.value)">
-        <option value="0">Todas las tiendas</option>
+        <option value="0">All stores</option>
         @for (store of stores(); track store.id) {
           <option [value]="store.id">{{ store.storeName }}</option>
         }
       </select>
 
       <select (change)="onSortChange($any($event).target.value)">
-        <option value="name">A-Z (Alfabético)</option>
-        <option value="date">Más recientes</option>
-        <option value="id">ID (Mayor)</option>
+        <option value="name">A-Z (Alphabetical)</option>
+        <option value="date">Most recent</option>
+        <option value="id">ID (High to Low)</option>
       </select>
     </div>
   </div>
@@ -60,9 +60,9 @@
         <line x1="12" y1="8" x2="12" y2="12"></line>
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
-      <h3>Error al cargar</h3>
+      <h3>Error loading</h3>
       <p>{{ listState().error }}</p>
-      <button class="btn-secondary" (click)="retryLoad()">Reintentar</button>
+      <button class="btn-secondary" (click)="retryLoad()">Retry</button>
     </div>
   }
 
@@ -72,9 +72,9 @@
         <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
         <line x1="12" y1="18" x2="12.01" y2="18"></line>
       </svg>
-      <h3>Sin marcas</h3>
-      <p>No hay marcas que coincidan con los filtros seleccionados</p>
-      <button class="btn-primary" (click)="createNew()">Crear primera marca</button>
+      <h3>No brands</h3>
+      <p>No brands match the selected filters</p>
+      <button class="btn-primary" (click)="createNew()">Create first brand</button>
     </div>
   }
 
@@ -102,38 +102,38 @@
             @if (brand.description) {
               <p class="description">{{ brand.description }}</p>
             } @else {
-              <p class="description placeholder-text">Sin descripción</p>
+              <p class="description placeholder-text">No description</p>
             }
 
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Centro</span>
+                <span class="label">Center</span>
                 <span class="value">{{ getCenterName(brand) }}</span>
               </div>
               <div class="info-item">
-                <span class="label">Tienda</span>
+                <span class="label">Store</span>
                 <span class="value">{{ getStoreName(brand) }}</span>
               </div>
             </div>
 
             <div class="dates-info">
-              <small>Creado: {{ brand.createdAt | date: 'short' }}</small>
+              <small>Created: {{ brand.createdAt | date: 'short' }}</small>
             </div>
           </div>
 
           <div class="card-actions">
-            <button class="action-btn view" (click)="viewDeviceBrand(brand)" title="Ver detalles">
+            <button class="action-btn view" (click)="viewDeviceBrand(brand)" title="View details">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </button>
-            <button class="action-btn edit" (click)="editDeviceBrand(brand)" title="Editar">
+            <button class="action-btn edit" (click)="editDeviceBrand(brand)" title="Edit">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L21 7z"></path>
               </svg>
             </button>
-            <!--button class="action-btn delete" (click)="deleteDeviceBrand(brand)" title="Eliminar">
+            <!--button class="action-btn delete" (click)="deleteDeviceBrand(brand)" title="Delete">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>

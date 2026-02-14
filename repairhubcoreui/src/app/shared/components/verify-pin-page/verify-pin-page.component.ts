@@ -63,7 +63,7 @@ export class VerifyPinPageComponent implements OnInit {
           
           // Obtener URL de retorno ANTES de limpiar
           const returnUrl = this.authService.getReturnUrl();
-          console.log('PIN verified, returnUrl:', returnUrl);
+          
           
           // Navegar a la URL guardada
           // Usar setTimeout para asegurar que se procesa después del PIN verify

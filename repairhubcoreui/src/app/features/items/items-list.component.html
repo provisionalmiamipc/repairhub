@@ -3,12 +3,12 @@
     <thead>
       <tr>
         <th>ID</th>
-        <th>Producto</th>
+        <th>Product</th>
         <th>SKU</th>
-        <th>Precio</th>
+        <th>Price</th>
         <th>Stock</th>
-        <th>Activo</th>
-        <th>Acciones</th>
+        <th>Active</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -18,7 +18,7 @@
         <td>{{ item.sku }}</td>
         <td>{{ item.price }}</td>
         <td>{{ item.stock }}</td>
-        <td>{{ item.isActive ? 'Sí' : 'No' }}</td>
+        <td>{{ item.isActive ? 'Yes' : 'No' }}</td>
         <td>
           <button (click)="onSelect(item)"><i class="cil-zoom-in"></i></button>
           <button (click)="onEdit(item)"><i class="cil-pencil"></i></button>

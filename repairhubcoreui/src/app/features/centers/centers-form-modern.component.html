@@ -10,11 +10,11 @@
       </button>
       <div class="title-section">
         @if (isEditMode()) {
-          <h1>Editar Centro {{ centerForm.get('centerCode')?.value }}</h1>
-          <p>Actualiza la información del centro de servicio</p>
+          <h1>Edit Center {{ centerForm.get('centerCode')?.value }}</h1>
+          <p>Update the service center information</p>
         } @else {
-          <h1>Nuevo Centro</h1>
-          <p>Registra un nuevo centro de servicio</p>
+          <h1>New Center</h1>
+          <p>Register a new service center</p>
         }
       </div>
     </div>
@@ -59,8 +59,8 @@
         </svg>
       </div>
       <div class="alert-content">
-        <strong>¡Éxito!</strong>
-        <p>Centro guardado correctamente</p>
+        <strong>Success!</strong>
+        <p>Center saved successfully</p>
       </div>
     </div>
   }
@@ -91,7 +91,7 @@
               {{ step.id + 1 }}
             }
           </div>
-          <div class="step-text">
+            <div class="step-text">
             <div class="step-title">{{ step.title }}</div>
             <div class="step-description">{{ step.description }}</div>
           </div>
@@ -101,25 +101,25 @@
   </div>
 
   <!-- FORM CONTENT -->
-  <form [formGroup]="centerForm" (ngSubmit)="onSubmit()" class="form-content" @fadeInUp>
+  <form autocomplete="off" [formGroup]="centerForm" (ngSubmit)="onSubmit()" class="form-content" @fadeInUp>
     <div class="form-body">
       <!-- STEP 0: INFORMACIÓN BÁSICA -->
       @if (currentStep() === 0) {
         <div class="form-step" @fadeInUp>
-          <h2 class="step-heading">Información Básica</h2>
+          <h2 class="step-heading">Basic Information</h2>
           
           <div class="form-row">
             <div class="form-group">
               <label for="centerName" class="form-label">
-                Nombre del Centro *
+                Center Name *
               </label>
-              <input
+              <input autocomplete="off"
                 id="centerName"
                 type="text"
                 formControlName="centerName"
                 class="form-input"
                 [class.error]="hasError('centerName')"
-                placeholder="Ej: Centro Bogotá"
+                placeholder="e.g. Bogotá Center"
               />
               @if (hasError('centerName')) {
                 <span class="error-message">{{ getFieldError('centerName') }}</span>
@@ -132,20 +132,20 @@
       <!-- STEP 1: UBICACIÓN -->
       @if (currentStep() === 1) {
         <div class="form-step" @fadeInUp>
-          <h2 class="step-heading">Ubicación</h2>
+          <h2 class="step-heading">Location</h2>
           
           <div class="form-row">
             <div class="form-group">
               <label for="address" class="form-label">
-                Dirección *
+                Address *
               </label>
-              <input
+              <input autocomplete="off"
                 id="address"
                 type="text"
                 formControlName="address"
                 class="form-input"
                 [class.error]="hasError('address')"
-                placeholder="Calle, número, apartamento"
+                placeholder="Street, number, apt"
               />
               @if (hasError('address')) {
                 <span class="error-message">{{ getFieldError('address') }}</span>
@@ -156,15 +156,15 @@
           <div class="form-row">
             <div class="form-group">
               <label for="city" class="form-label">
-                Ciudad *
+                City *
               </label>
-              <input
+              <input autocomplete="off"
                 id="city"
                 type="text"
                 formControlName="city"
                 class="form-input"
                 [class.error]="hasError('city')"
-                placeholder="Ej: Bogotá"
+                placeholder="e.g. Bogotá"
               />
               @if (hasError('city')) {
                 <span class="error-message">{{ getFieldError('city') }}</span>
@@ -173,15 +173,15 @@
 
             <div class="form-group">
               <label for="state" class="form-label">
-                Departamento/Estado *
+                State/Province *
               </label>
-              <input
+              <input autocomplete="off"
                 id="state"
                 type="text"
                 formControlName="state"
                 class="form-input"
                 [class.error]="hasError('state')"
-                placeholder="Ej: Cundinamarca"
+                placeholder="e.g. Cundinamarca"
               />
               @if (hasError('state')) {
                 <span class="error-message">{{ getFieldError('state') }}</span>
@@ -191,16 +191,16 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="zipCode" class="form-label">
-                Código Postal *
+                <label for="zipCode" class="form-label">
+                Postal Code *
               </label>
-              <input
+              <input autocomplete="off"
                 id="zipCode"
                 type="text"
                 formControlName="zipCode"
                 class="form-input"
                 [class.error]="hasError('zipCode')"
-                placeholder="Ej: 110111"
+                placeholder="e.g. 110111"
               />
               @if (hasError('zipCode')) {
                 <span class="error-message">{{ getFieldError('zipCode') }}</span>
@@ -209,15 +209,15 @@
 
             <div class="form-group">
               <label for="country" class="form-label">
-                País *
+                Country *
               </label>
-              <input
+              <input autocomplete="off"
                 id="country"
                 type="text"
                 formControlName="country"
                 class="form-input"
                 [class.error]="hasError('country')"
-                placeholder="Ej: Colombia"
+                placeholder="e.g. Colombia"
               />
               @if (hasError('country')) {
                 <span class="error-message">{{ getFieldError('country') }}</span>
@@ -227,10 +227,10 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="time_zone" class="form-label">
-                Zona Horaria 
+                <label for="time_zone" class="form-label">
+                Time Zone
               </label>
-              <select
+              <select autocomplete="off"
                 id="time_zone"
                 formControlName="time_zone"
                 class="form-input"
@@ -238,10 +238,10 @@
                 <option value="UTC">UTC</option>
                 <option value="America/Bogota">UTC-5 (Colombia)</option>
                 <option value="America/Mexico_City">UTC-6 (México)</option>
-                <option value="America/New_York">UTC-5 (USA Este)</option>
-                <option value="America/Los_Angeles">UTC-8 (USA Oeste)</option>
+                <option value="America/New_York">UTC-5 (USA East)</option>
+                <option value="America/Los_Angeles">UTC-8 (USA West)</option>
                 <option value="Europe/London">UTC+0 (UK)</option>
-                <option value="Europe/Madrid">UTC+1 (España)</option>
+                <option value="Europe/Madrid">UTC+1 (Spain)</option>
               </select>
             </div>
           </div>
@@ -251,20 +251,20 @@
       <!-- STEP 2: CONTACTO -->
       @if (currentStep() === 2) {
         <div class="form-step" @fadeInUp>
-          <h2 class="step-heading">Información de Contacto</h2>
+          <h2 class="step-heading">Contact Information</h2>
           
           <div class="form-row">
             <div class="form-group">
               <label for="email" class="form-label">
                 Email *
               </label>
-              <input
+              <input autocomplete="off"
                 id="email"
                 type="email"
                 formControlName="email"
                 class="form-input"
                 [class.error]="hasError('email')"
-                placeholder="contacto@centro.com"
+                placeholder="contact@center.com"
               />
               @if (hasError('email')) {
                 <span class="error-message">{{ getFieldError('email') }}</span>
@@ -273,9 +273,9 @@
 
             <div class="form-group">
               <label for="phoneNumber" class="form-label">
-                Teléfono *
+                Phone *
               </label>
-              <input
+              <input autocomplete="off"
                 id="phoneNumber"
                 type="tel"
                 formControlName="phoneNumber"
@@ -292,15 +292,15 @@
           <div class="form-row">
             <div class="form-group">
               <label for="webSite" class="form-label">
-                Sitio Web
+                Website
               </label>
-              <input
+              <input autocomplete="off"
                 id="webSite"
                 type="url"
                 formControlName="webSite"
                 class="form-input"
                 [class.error]="hasError('webSite')"
-                placeholder="https://www.ejemplo.com"
+                placeholder="https://www.example.com"
               />
               @if (hasError('webSite')) {
                 <span class="error-message">{{ getFieldError('webSite') }}</span>
@@ -323,7 +323,7 @@
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        Anterior
+        Previous
       </button>
 
       @if (currentStep() < steps.length - 1) {
@@ -333,7 +333,7 @@
           (click)="nextStep()"
           [disabled]="isLoading() || isSaving()"
         >
-          Siguiente
+          Next
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
@@ -345,16 +345,16 @@
           class="btn-primary"
           [disabled]="!centerForm.valid || isSaving()"
         >
-          @if (isSaving()) {
+            @if (isSaving()) {
             <span class="spinner-mini"></span>
-            Guardando...
+            Saving...
           } @else {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
               <polyline points="17 21 17 13 7 13 7 21"></polyline>
               <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            Guardar Centro
+            Save Center
           }
         </button>
       }

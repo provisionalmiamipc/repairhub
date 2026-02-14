@@ -7,7 +7,7 @@
           <button type="button" class="btn-close" aria-label="Close" (click)="cancel.emit()"></button>
         </div>
         <div class="modal-body">
-          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
 
             <!-- Center -->
             <div class="mb-3" *ngIf="showCenterField">
@@ -45,7 +45,7 @@
               <div class="form-text">Enter any relevant notes or comments.</div>
             </div>
             <!-- keep serviceOrderId as hidden field when modal mode -->
-            <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" />
+            <input *ngIf="isModal" type="hidden" formControlName="serviceOrderId" autocomplete="off" />
             
             <div class="d-flex justify-content-end gap-2">
               <button type="button" class="btn btn-secondary" (click)="cancel.emit()">Cancel</button>
@@ -66,7 +66,7 @@
       <h5 class="mb-0">Service Order Note</h5>
     </div>
     <div class="card-body">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off">
         <div class="mb-3">
           <label for="note" class="form-label fw-bold">Note</label>
           <textarea id="note" formControlName="note" class="form-control" rows="5" placeholder="Enter your note here..."

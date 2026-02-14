@@ -65,12 +65,12 @@
       </div>
     </div>
 
-    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="form-content">
-      <!-- Step 0: Centro y Tienda -->
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="form-content" autocomplete="off">
+      <!-- Step 0: Center and Store -->
       @if (currentStep() === 0) {
       <div class="form-step" @fadeInUp>
         
-        <!-- Para USERs: Mostrar centerId y storeId -->
+        <!-- For USERs: show centerId and storeId -->
         @if (showCenterAndStoreFields()) {
           <div class="form-group">
             <label for="centerId" class="form-label">Center *</label>
@@ -110,7 +110,7 @@
           </div>
         }
 
-        <!-- Para EMPLOYEEs adminCenter: Mostrar solo storeId -->
+        <!-- For EMPLOYEEs center admin: show only storeId -->
         @if (showOnlyStoreField()) {
           <div class="form-group">
             <label for="storeId" class="form-label">Store</label>
@@ -131,7 +131,7 @@
           </div>
         }
 
-        <!-- Para EMPLOYEEs normales: No mostrar campos -->
+        <!-- For regular EMPLOYEEs: do not show fields -->
         @if (hideLocationFields()) {
           <div class="alert alert-success">
             <i class="bi bi-check-circle me-2"></i>
@@ -142,7 +142,7 @@
       </div>
       }
 
-      <!-- Step 1: Información Personal -->
+      <!-- Step 1: Personal Information -->
       @if (currentStep() === 1) {
       <div class="form-step" @fadeInUp>
         <div class="form-row">
@@ -155,6 +155,7 @@
               class="form-control"
               placeholder="e.g., John"
               [class.is-invalid]="isFieldInvalid('firstName')"
+              autocomplete="off"
             />
             @if (isFieldInvalid('firstName')) {
             <span class="error-text">{{ getFieldError('firstName') }}</span>
@@ -170,6 +171,7 @@
               class="form-control"
               placeholder="e.g., Doe"
               [class.is-invalid]="isFieldInvalid('lastName')"
+              autocomplete="off"
             />
             @if (isFieldInvalid('lastName')) {
             <span class="error-text">{{ getFieldError('lastName') }}</span>
@@ -203,6 +205,7 @@
                 type="checkbox"
                 formControlName="b2b"
                 class="form-checkbox"
+                autocomplete="off"
               />
               <span>B2B Customer</span>
             </label>
@@ -211,7 +214,7 @@
       </div>
       }
 
-      <!-- Step 2: Contacto -->
+      <!-- Step 2: Contact -->
       @if (currentStep() === 2) {
       <div class="form-step" @fadeInUp>
         <div class="form-group">
@@ -221,8 +224,9 @@
             type="email"
             formControlName="email"
             class="form-control"
-            placeholder="Ej: juan@email.com"
+            placeholder="e.g., john@example.com"
             [class.is-invalid]="isFieldInvalid('email')"
+            autocomplete="off"
           />
           @if (isFieldInvalid('email')) {
           <span class="error-text">{{ getFieldError('email') }}</span>
@@ -239,6 +243,7 @@
               class="form-control"
               placeholder="e.g., +1 234 567 8900"
               [class.is-invalid]="isFieldInvalid('phone')"
+              autocomplete="off"
             />
             @if (isFieldInvalid('phone')) {
             <span class="error-text">{{ getFieldError('phone') }}</span>
@@ -254,6 +259,7 @@
               class="form-control"
               placeholder="e.g., Bogotá"
               [class.is-invalid]="isFieldInvalid('city')"
+              autocomplete="off"
             />
             @if (isFieldInvalid('city')) {
             <span class="error-text">{{ getFieldError('city') }}</span>
@@ -263,7 +269,7 @@
       </div>
       }
 
-      <!-- Step 3: Datos Comerciales -->
+      <!-- Step 3: Business Data -->
       @if (currentStep() === 3) {
       <div class="form-step" @fadeInUp>
         <div class="form-row">
@@ -277,6 +283,7 @@
               min="0"
               max="100"
               [class.is-invalid]="isFieldInvalid('discount')"
+              autocomplete="off"
             />
             @if (isFieldInvalid('discount')) {
             <span class="error-text">{{ getFieldError('discount') }}</span>

@@ -69,12 +69,7 @@ export class DefaultLayoutComponent implements OnInit {
     const currentRole = this.permissionsService.getRole();
     const employee = this.authService.getCurrentEmployee();
     
-    console.log('🔍 Filtrando menú:', {
-      currentRole,
-      employee,
-      isCenterAdmin: employee?.isCenterAdmin,
-      employeeType: employee?.employee_type
-    });
+    // Filtrado de menú ejecutado (logs eliminados en producción)
     
     return items
       .filter(item => this.canViewItem(item, currentRole))
@@ -91,8 +86,7 @@ export class DefaultLayoutComponent implements OnInit {
     const employee = this.authService.getCurrentEmployee();
 
     // Hide items explicitly marked for Expert non-center-admin
-    if (item.hideForExpertNonCenterAdmin && employee?.employee_type === EmployeeType.EXPERT && !employee?.isCenterAdmin) {
-      console.log(`🔒 Hiding ${item.name || item.url} for Expert non-center-admin`);
+      if (item.hideForExpertNonCenterAdmin && employee?.employee_type === EmployeeType.EXPERT && !employee?.isCenterAdmin) {
       return false;
     }
     // Si no tiene roles definidos, visible para todos
@@ -106,21 +100,18 @@ export class DefaultLayoutComponent implements OnInit {
       
       // Si ya tiene el rol, retornar true
       if (hasRole) {
-        console.log(`✅ ${item.url} - Usuario tiene rol ${currentRole}`);
         return true;
       }
       
       // Si no tiene el rol pero es Center Admin, permitir items de administración especiales
       // EXCEPTO /centers que es solo para USER
       const employee = this.authService.getCurrentEmployee();
-      if (employee?.isCenterAdmin && item.url !== '/centers') {
+        if (employee?.isCenterAdmin && item.url !== '/centers') {
         if (item.url === '/stores' || item.url === '/employees' || item.url === '/devices' || item.url === '/device-brands' || item.url === '/service-types' || item.url === '/login') {
-          console.log(`✅ ${item.url} - CenterAdmin permitido`);
           return true;
         }
       }
-      
-      console.log(`❌ ${item.url} - No permitido. currentRole=${currentRole}, isCenterAdmin=${employee?.isCenterAdmin}, roles=${item.roles}`);
+
       return false;
     }
 

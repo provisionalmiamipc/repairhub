@@ -8,7 +8,7 @@
           <h5 class="mb-0">Service Order</h5>
         </div>
         <div class="card-body">
-          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="needs-validation" novalidate>
+          <form autocomplete="off" [formGroup]="form" (ngSubmit)="onSubmit()" class="needs-validation" novalidate>
             <div class="row g-4">
 
               <!-- Columna izquierda: Formulario -->
@@ -20,7 +20,7 @@
                   <div class="row g-3">
                     <div class="col-md-6">
                       <label for="model" class="form-label">Model *</label>
-                      <input id="model" class="form-control" formControlName="model" />
+                      <input id="model" autocomplete="off" class="form-control" formControlName="model" />
                       <div class="invalid-feedback d-block"
                         *ngIf="form.get('model')?.invalid && form.get('model')?.touched">
                         Model is required
@@ -28,12 +28,12 @@
                     </div>
                     <div class="col-md-6">
                       <label for="serial" class="form-label">Serial</label>
-                      <input id="serial" class="form-control" formControlName="serial" />
+                      <input id="serial" autocomplete="off" class="form-control" formControlName="serial" />
                     </div>
                     <div class="col-md-6">
                       <label for="deviceBrandId" class="form-label">Device Brand *</label>
                       <div class="input-group">
-                        <select id="deviceBrandId" class="form-select" formControlName="deviceBrandId">
+                        <select id="deviceBrandId" autocomplete="off" class="form-select" formControlName="deviceBrandId">
                           <option [ngValue]="null">Select brand</option>
                           <option *ngFor="let b of deviceBrands" [ngValue]="b.id">{{ b.brandName || b.name }}</option>
                         </select>
@@ -48,7 +48,7 @@
                     <div class="col-md-6">
                       <label for="deviceId" class="form-label">Device *</label>
                       <div class="input-group">
-                        <select id="deviceId" class="form-select" formControlName="deviceId">
+                        <select id="deviceId" autocomplete="off" class="form-select" formControlName="deviceId">
                           <option [ngValue]="null">Select device</option>
                           <option *ngFor="let d of devices" [ngValue]="d.id">{{ d.model || d.name }}</option>
                         </select>
@@ -61,7 +61,7 @@
                     </div>
                     <div class="col-12">
                       <label for="defectivePart" class="form-label">Defective Part</label>
-                      <input id="defectivePart" class="form-control" formControlName="defectivePart" />
+                      <input id="defectivePart" autocomplete="off" class="form-control" formControlName="defectivePart" />
                     </div>
                   </div>
                 </fieldset>
@@ -73,7 +73,7 @@
                     <div class="col-md-6">
                       <label for="customerId" class="form-label">Customer *</label>
                       <div class="input-group">
-                        <select id="customerId" class="form-select" formControlName="customerId">
+                        <select id="customerId" autocomplete="off" class="form-select" formControlName="customerId">
                           <option [ngValue]="null">Select customer</option>
                           <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.firstName + ' ' + c.lastName }}
                           </option>
@@ -89,7 +89,7 @@
                     </div>
                     <div class="col-md-6">
                       <label for="centerId" class="form-label">Center *</label>
-                      <select id="centerId" class="form-select" formControlName="centerId">
+                      <select id="centerId" autocomplete="off" class="form-select" formControlName="centerId">
                         <option [ngValue]="null">Select center</option>
                         <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
                       </select>
@@ -100,7 +100,7 @@
                     </div>
                     <div class="col-md-6">
                       <label for="storeId" class="form-label">Store *</label>
-                      <select id="storeId" class="form-select" formControlName="storeId">
+                      <select id="storeId" autocomplete="off" class="form-select" formControlName="storeId">
                         <option [ngValue]="null">Select store</option>
                         <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
                       </select>
@@ -118,7 +118,7 @@
                   <div class="row g-3">
                     <div class="col-md-6">
                       <label for="assignedTechId" class="form-label">Assigned Technician</label>
-                      <select id="assignedTechId" class="form-select" formControlName="assignedTechId">
+                      <select id="assignedTechId" autocomplete="off" class="form-select" formControlName="assignedTechId">
                         <option [ngValue]="null">Select technician</option>
                         <option *ngFor="let e of employees" [ngValue]="e.id">{{ e.firstName + ' ' + e.lastName }}
                         </option>
@@ -126,7 +126,7 @@
                     </div>
                     <div class="col-md-6">
                       <label for="createdById" class="form-label">Created By</label>
-                      <select id="createdById" class="form-select" formControlName="createdById">
+                      <select id="createdById" autocomplete="off" class="form-select" formControlName="createdById">
                         <option [ngValue]="null">Select user</option>
                         <option *ngFor="let e of employees" [ngValue]="e.id">{{ e.firstName + ' ' + e.lastName }}
                         </option>
@@ -141,7 +141,7 @@
                   <div class="row g-3">
                     <div class="col-12">
                       <label for="noteReception" class="form-label">Reception Note</label>
-                      <textarea id="noteReception" class="form-control" rows="3"
+                      <textarea id="noteReception" autocomplete="off" class="form-control" rows="3"
                         formControlName="noteReception"></textarea>
                     </div>
                   </div>
@@ -161,7 +161,7 @@
                     <div class="row g-2">
                       <div class="col-12">
                         <label for="price" class="form-label">Price *</label>
-                        <input id="price" type="number" min="0" class="form-control" formControlName="price" />
+                        <input id="price" autocomplete="off" type="number" min="0" class="form-control" formControlName="price" />
                         <div class="invalid-feedback d-block"
                           *ngIf="form.get('price')?.invalid && form.get('price')?.touched">
                           Required
@@ -169,7 +169,7 @@
                       </div>
                       <div class="col-12">
                         <label for="repairCost" class="form-label">Repair Cost *</label>
-                        <input id="repairCost" type="number" min="0" class="form-control"
+                        <input id="repairCost" autocomplete="off" type="number" min="0" class="form-control"
                           formControlName="repairCost" />
                         <div class="invalid-feedback d-block"
                           *ngIf="form.get('repairCost')?.invalid && form.get('repairCost')?.touched">
@@ -178,21 +178,21 @@
                       </div>
                       <div class="col-12">
                         <label for="costdiscount" class="form-label">Discount</label>
-                        <input id="costdiscount" type="number" min="0" class="form-control"
+                        <input id="costdiscount" autocomplete="off" type="number" min="0" class="form-control"
                           formControlName="costdiscount" />
                       </div>
                       <div class="col-12">
                         <label for="tax" class="form-label">Tax</label>
-                        <input id="tax" type="number" min="0" class="form-control" formControlName="tax" />
+                        <input id="tax" autocomplete="off" type="number" min="0" class="form-control" formControlName="tax" />
                       </div>
                       <div class="col-12">
                         <label for="advancePayment" class="form-label">Advance Payment</label>
-                        <input id="advancePayment" type="number" min="0" class="form-control"
+                        <input id="advancePayment" autocomplete="off" type="number" min="0" class="form-control"
                           formControlName="advancePayment" />
                       </div>
                       <div class="col-12">
                         <label for="totalCost" class="form-label">Total Cost *</label>
-                        <input id="totalCost" type="number" min="0" class="form-control" formControlName="totalCost"
+                        <input id="totalCost" autocomplete="off" type="number" min="0" class="form-control" formControlName="totalCost"
                           readonly />
                         <small class="text-muted">Calculated automatically</small>
                       </div>
@@ -207,15 +207,15 @@
                   </div>
                   <div class="card-body">
                     <div class="form-check mb-2">
-                      <input id="lock" class="form-check-input" type="checkbox" formControlName="lock" />
+                      <input id="lock" autocomplete="off" class="form-check-input" type="checkbox" formControlName="lock" />
                       <label class="form-check-label" for="lock">Locked</label>
                     </div>
                     <div class="form-check mb-2">
-                      <input id="cloused" type="checkbox" class="form-check-input" formControlName="cloused" />
+                      <input id="cloused" autocomplete="off" type="checkbox" class="form-check-input" formControlName="cloused" />
                       <label class="form-check-label" for="cloused">Closed</label>
                     </div>
                     <div class="form-check">
-                      <input id="canceled" type="checkbox" class="form-check-input" formControlName="canceled" />
+                      <input id="canceled" autocomplete="off" type="checkbox" class="form-check-input" formControlName="canceled" />
                       <label class="form-check-label" for="canceled">Canceled</label>
                     </div>
                   </div>

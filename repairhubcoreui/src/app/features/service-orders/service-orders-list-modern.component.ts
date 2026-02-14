@@ -49,6 +49,10 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   readonly filterLock = signal<'all' | 'locked' | 'unlocked'>('all');
   readonly sortBy = signal<'orderCode' | 'customer' | 'date' | 'totalCost'>('date');
 
+  // View mode: 'professional' is the default (2026 professional list view)
+  readonly viewMode = signal<'professional' | 'modern'>('professional');
+  readonly isProfessional = computed(() => this.viewMode() === 'professional');
+
   isLoading = computed(() => this.listState().isLoading);
   error = computed(() => this.listState().error);
 
@@ -170,6 +174,10 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     this.router.navigate(['/service-orders/new']);
   }
 
+  toggleViewMode(): void {
+    this.viewMode.set(this.viewMode() === 'professional' ? 'modern' : 'professional');
+  }
+
   goToEdit(order: ServiceOrders): void {
     this.router.navigate(['/service-orders', order.id, 'edit']);
   }
@@ -254,6 +262,13 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     if (order.canceled) return 'status-canceled';
     if (order.cloused) return 'status-completed';
     return 'status-active';
+  }
+
+  // Bootstrap badge classes for visual status (kept separate to preserve existing custom classes)
+  getStatusBadgeClass(order: ServiceOrders): string {
+    if (order.canceled) return 'bg-danger text-white';
+    if (order.cloused) return 'bg-success text-white';
+    return 'bg-primary text-white';
   }
 
   formatCurrency(value: number): string {

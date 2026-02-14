@@ -4,13 +4,13 @@
     <div class="header-content">
       <div>
         <h1 class="page-title">
-          {{ isEditMode() ? 'Editar Tienda' : 'Nueva Tienda' }}
+          {{ isEditMode() ? 'Edit Store' : 'New Store' }}
           @if (isEditMode() && storeForm.get('storeCode')?.value) {
             <span>{{ storeForm.get('storeCode')?.value }}</span>
           }
         </h1>
         <p class="page-subtitle">
-          {{ isEditMode() ? 'Actualiza los datos de la tienda' : 'Crea una nueva tienda' }}
+          {{ isEditMode() ? 'Update the store details' : 'Create a new store' }}
         </p>
       </div>
     </div>
@@ -40,8 +40,8 @@
   <div class="success-alert" @fadeInUp>
     <span class="success-icon"><i class="bi bi-check-circle-fill" aria-hidden="true"></i></span>
     <div>
-      <h3>¡Éxito!</h3>
-      <p>{{ isEditMode() ? 'Tienda actualizada' : 'Tienda creada' }} correctamente</p>
+      <h3>Success!</h3>
+      <p>{{ isEditMode() ? 'Store updated' : 'Store created' }} successfully</p>
     </div>
   </div>
   }
@@ -84,19 +84,19 @@
     </div>
 
     <!-- Form -->
-    <form [formGroup]="storeForm" (ngSubmit)="onSubmit()" class="form-content">
-      <!-- Step 0: Centro y Código -->
+    <form [formGroup]="storeForm" (ngSubmit)="onSubmit()" class="form-content" autocomplete="off">
+      <!-- Step 0: Center and Code -->
       @if (currentStep() === 0) {
       <div class="form-step" @fadeInUp>
         <div class="form-group">
-          <label for="centerId" class="form-label">Centro *</label>
+          <label for="centerId" class="form-label">Center *</label>
           <select
             id="centerId"
             formControlName="centerId"
             class="form-control"
             [class.error]="hasError('centerId')"
           >
-            <option value="">Selecciona un centro</option>
+            <option value="">Select a center</option>
             @for (center of centers(); track center.id) {
             <option [value]="center.id">{{ center.centerName }}</option>
             }
@@ -108,17 +108,17 @@
       </div>
       }
 
-      <!-- Step 1: Información Básica -->
+      <!-- Step 1: Basic Information -->
       @if (currentStep() === 1) {
       <div class="form-step" @fadeInUp>
         <div class="form-group">
-          <label for="storeName" class="form-label">Nombre de Tienda *</label>
+          <label for="storeName" class="form-label">Store Name *</label>
           <input
             id="storeName"
             type="text"
             formControlName="storeName"
             class="form-control"
-            placeholder="Ej: Tienda Centro Ciudad"
+            placeholder="e.g. City Center Store"
             [class.error]="hasError('storeName')"
           />
           @if (hasError('storeName')) {
@@ -127,13 +127,13 @@
         </div>
 
         <div class="form-group">
-          <label for="country" class="form-label">País *</label>
+          <label for="country" class="form-label">Country *</label>
           <input
             id="country"
             type="text"
             formControlName="country"
             class="form-control"
-            placeholder="Ej: Colombia"
+            placeholder="e.g. Colombia"
             [class.error]="hasError('country')"
           />
           @if (hasError('country')) {
@@ -143,17 +143,17 @@
       </div>
       }
 
-      <!-- Step 2: Ubicación Detallada -->
+      <!-- Step 2: Detailed Location -->
       @if (currentStep() === 2) {
       <div class="form-step" @fadeInUp>
         <div class="form-group">
-          <label for="address" class="form-label">Dirección *</label>
+          <label for="address" class="form-label">Address *</label>
           <input
             id="address"
             type="text"
             formControlName="address"
             class="form-control"
-            placeholder="Ej: Calle 123 # 45-67"
+            placeholder="e.g. 123 Main St"
             [class.error]="hasError('address')"
           />
           @if (hasError('address')) {
@@ -163,13 +163,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="city" class="form-label">Ciudad *</label>
+            <label for="city" class="form-label">City *</label>
             <input
               id="city"
               type="text"
               formControlName="city"
               class="form-control"
-              placeholder="Ej: Bogotá"
+              placeholder="e.g. Bogotá"
               [class.error]="hasError('city')"
             />
             @if (hasError('city')) {
@@ -178,13 +178,13 @@
           </div>
 
           <div class="form-group">
-            <label for="state" class="form-label">Estado/Departamento *</label>
+            <label for="state" class="form-label">State/Province *</label>
             <input
               id="state"
               type="text"
               formControlName="state"
               class="form-control"
-              placeholder="Ej: Cundinamarca"
+              placeholder="e.g. Cundinamarca"
               [class.error]="hasError('state')"
             />
             @if (hasError('state')) {
@@ -195,13 +195,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="zipCode" class="form-label">Código Postal *</label>
+            <label for="zipCode" class="form-label">Postal Code *</label>
             <input
               id="zipCode"
               type="text"
               formControlName="zipCode"
               class="form-control"
-              placeholder="Ej: 110111"
+              placeholder="e.g. 110111"
               [class.error]="hasError('zipCode')"
             />
             @if (hasError('zipCode')) {
@@ -210,7 +210,7 @@
           </div>
 
           <div class="form-group">
-            <label for="time_zone" class="form-label">Zona Horaria *</label>
+            <label for="time_zone" class="form-label">Time Zone *</label>
             <select
               id="time_zone"
               formControlName="time_zone"
@@ -232,7 +232,7 @@
       </div>
       }
 
-      <!-- Step 3: Contacto -->
+      <!-- Step 3: Contact -->
       @if (currentStep() === 3) {
       <div class="form-step" @fadeInUp>
         <div class="form-group">
@@ -242,7 +242,7 @@
             type="email"
             formControlName="email"
             class="form-control"
-            placeholder="Ej: info@tienda.com"
+            placeholder="e.g. info@store.com"
             [class.error]="hasError('email')"
           />
           @if (hasError('email')) {
@@ -252,13 +252,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="phoneNumber" class="form-label">Teléfono</label>
+            <label for="phoneNumber" class="form-label">Phone</label>
             <input
               id="phoneNumber"
               type="tel"
               formControlName="phoneNumber"
               class="form-control"
-              placeholder="Ej: +57 1 234 5678"
+              placeholder="e.g. +57 1 234 5678"
               [class.error]="hasError('phoneNumber')"
             />
             @if (hasError('phoneNumber')) {
@@ -267,13 +267,13 @@
           </div>
 
           <div class="form-group">
-            <label for="webSite" class="form-label">Sitio Web</label>
+            <label for="webSite" class="form-label">Website</label>
             <input
               id="webSite"
               type="text"
               formControlName="webSite"
               class="form-control"
-              placeholder="Ej: https://tienda.com"
+              placeholder="e.g. https://store.com"
               [class.error]="hasError('webSite')"
             />
             @if (hasError('webSite')) {
@@ -289,7 +289,7 @@
             type="text"
             formControlName="logo"
             class="form-control"
-            placeholder="URL del logo"
+            placeholder="Logo URL"
             [class.error]="hasError('logo')"
           />
           @if (hasError('logo')) {
@@ -307,27 +307,27 @@
           (click)="prevStep()"
           [disabled]="currentStep() === 0 || isSaving()"
         >
-          ← Anterior
+          ← Previous
         </button>
 
         <div class="action-buttons">
-          <button
+            <button
             type="button"
             class="btn-cancel"
             (click)="onCancel()"
             [disabled]="isSaving()"
           >
-            Cancelar
+            Cancel
           </button>
 
           @if (currentStep() < steps.length - 1) {
-          <button
+            <button
             type="button"
             class="btn-primary"
             (click)="nextStep()"
             [disabled]="!canProceedToNextStep() || isSaving()"
           >
-            Siguiente →
+            Next →
           </button>
           } @else {
           <button
@@ -335,7 +335,7 @@
             class="btn-primary"
             [disabled]="storeForm.invalid || isSaving()"
           >
-            {{ isSaving() ? 'Guardando...' : (isEditMode() ? 'Actualizar' : 'Crear Tienda') }}
+            {{ isSaving() ? 'Saving...' : (isEditMode() ? 'Update' : 'Create Store') }}
           </button>
           }
         </div>

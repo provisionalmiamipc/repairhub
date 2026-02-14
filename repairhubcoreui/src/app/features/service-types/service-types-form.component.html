@@ -2,10 +2,10 @@
   <!-- Header -->
   <div class="form-header">
     <div>
-      <h1>{{ serviceType?.id ? 'Editar Tipo de Servicio' : 'Nuevo Tipo de Servicio' }}</h1>
-      <p>Completa los campos para {{ serviceType?.id ? 'actualizar el' : 'crear un nuevo' }} tipo de servicio</p>
+      <h1>{{ serviceType?.id ? 'Edit Service Type' : 'New Service Type' }}</h1>
+      <p>Fill the fields to {{ serviceType?.id ? 'update the' : 'create a new' }} service type</p>
     </div>
-    <button type="button" class="btn-close" (click)="onCancel()" [attr.aria-label]="'Cerrar formulario'">
+    <button type="button" class="btn-close" (click)="onCancel()" [attr.aria-label]="'Close form'">
       <i class="bi bi-x"></i>
     </button>
   </div>
@@ -21,63 +21,63 @@
   </div>
 
   <!-- Form -->
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modern-form">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modern-form" autocomplete="off">
     @if (showCenterAndStoreFields()) {
-    <!-- Centro (solo para USER) -->
+    <!-- Center (only for USER) -->
     <div class="form-group">
       <label for="centerId" class="form-label">
-        Centro <span class="required">*</span>
+        Center <span class="required">*</span>
       </label>
       <select id="centerId" formControlName="centerId" class="form-select" [class.is-invalid]="isFieldInvalid('centerId')">
-        <option [ngValue]="null">Selecciona un centro</option>
+        <option [ngValue]="null">Select a center</option>
         <option *ngFor="let center of centers" [ngValue]="center.id">{{ center.centerName }}</option>
       </select>
       <div *ngIf="isFieldInvalid('centerId')" class="error-message">
-        <i class="bi bi-exclamation-circle"></i> El centro es requerido
+        <i class="bi bi-exclamation-circle"></i> Center is required
       </div>
     </div>
 
-    <!-- Tienda (solo para USER) -->
+    <!-- Store (only for USER) -->
     <div class="form-group">
       <label for="storeId" class="form-label">
-        Tienda <span class="required">*</span>
+        Store <span class="required">*</span>
       </label>
       <select id="storeId" formControlName="storeId" class="form-select" [class.is-invalid]="isFieldInvalid('storeId')">
-        <option [ngValue]="null">Selecciona una tienda</option>
+        <option [ngValue]="null">Select a store</option>
         <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
       </select>
       <div *ngIf="isFieldInvalid('storeId')" class="error-message">
-        <i class="bi bi-exclamation-circle"></i> La tienda es requerida
+        <i class="bi bi-exclamation-circle"></i> Store is required
       </div>
     </div>
     }
 
     @if (showOnlyStoreField()) {
-    <!-- Tienda (solo para EMPLOYEE admin centro) -->
+    <!-- Store (for EMPLOYEE center admin only) -->
     <div class="form-group">
       <label for="storeId" class="form-label">
-        Tienda <span class="required">*</span>
+        Store <span class="required">*</span>
       </label>
       <select id="storeId" formControlName="storeId" class="form-select" [class.is-invalid]="isFieldInvalid('storeId')">
-        <option [ngValue]="null">Selecciona una tienda</option>
+        <option [ngValue]="null">Select a store</option>
         <option *ngFor="let store of filteredStores" [ngValue]="store.id">{{ store.storeName }}</option>
       </select>
       <div *ngIf="isFieldInvalid('storeId')" class="error-message">
-        <i class="bi bi-exclamation-circle"></i> La tienda es requerida
+        <i class="bi bi-exclamation-circle"></i> Store is required
       </div>
     </div>
     }
 
     @if (hideLocationFields()) {
     <div class="form-group">
-      <div class="alert alert-info">Centro y tienda se asignan automáticamente.</div>
+      <div class="alert alert-info">Center and store are assigned automatically.</div>
     </div>
     }
 
-    <!-- Nombre -->
+    <!-- Name -->
     <div class="form-group">
       <label for="name" class="form-label">
-        Nombre <span class="required">*</span>
+        Name <span class="required">*</span>
       </label>
       <input 
         type="text" 
@@ -85,23 +85,23 @@
         formControlName="name" 
         class="form-input"
         [class.is-invalid]="isFieldInvalid('name')"
-        placeholder="Nombre del tipo de servicio"
+        placeholder="Service type name"
       />
       <div *ngIf="isFieldInvalid('name')" class="error-message">
-        <i class="bi bi-exclamation-circle"></i> El nombre es requerido
+        <i class="bi bi-exclamation-circle"></i> Name is required
       </div>
     </div>
 
-    <!-- Descripción -->
+    <!-- Description -->
     <div class="form-group">
       <label for="description" class="form-label">
-        Descripción
+        Description
       </label>
       <textarea 
         id="description" 
         formControlName="description" 
         class="form-input"
-        placeholder="Descripción opcional del tipo de servicio"
+        placeholder="Optional description for the service type"
         rows="4"
       ></textarea>
     </div>
@@ -109,7 +109,7 @@
     <!-- Buttons -->
     <div class="form-actions">
       <button type="button" class="btn btn-secondary" (click)="onCancel()">
-        Cancelar
+        Cancel
       </button>
       <button 
         type="submit" 
@@ -120,7 +120,7 @@
         <span *ngIf="isLoading" class="spinner">
           <i class="bi bi-hourglass-split"></i>
         </span>
-        {{ serviceType?.id ? 'Actualizar' : 'Crear' }}
+        {{ serviceType?.id ? 'Update' : 'Create' }}
       </button>
     </div>
   </form>

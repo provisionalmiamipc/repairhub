@@ -99,7 +99,7 @@
             </div>
             <div class="col-md-4 mb-2">
               <strong>Tax:</strong>
-              <div class="mb-0">${{ serviceOrder.tax | number:'1.2-2' }}</div>
+              <div class="mb-0">${{ serviceOrder.price * serviceOrder.tax / 100 | number:'1.2-2' }}</div>
             </div>
             <div class="col-md-4 mb-2">
               <strong>Advance Payment:</strong>

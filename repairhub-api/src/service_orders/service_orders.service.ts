@@ -32,6 +32,14 @@ export class ServiceOrdersService {
   return `${day}/${month}/${year}`;
 }
 
+formatDateToMMDDYYYY(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses van de 0-11
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${month}/${day}/${year}`;
+}
+
   async create(createDto: CreateServiceOrderDto) {
     // Obtener el último orderCode
     const lastOrder = await this.serviceOrderRepository.createQueryBuilder('so')
@@ -96,7 +104,7 @@ export class ServiceOrdersService {
         customerEmail: fullOrder.customer?.email || '',
         customerPhone: fullOrder.customer?.phone || fullOrder.customer?.phone || '---',
         customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '---',
-        date: this.formatDateToDDMMYYYY(fullOrder.createdAt || new Date()),
+        date: this.formatDateToMMDDYYYY(fullOrder.createdAt || new Date()),
         device: fullOrder.device?.name || '',
         model: fullOrder.model || '-',
         serial: fullOrder.serial || '-',
@@ -116,13 +124,13 @@ export class ServiceOrdersService {
         lastrepairStatus: lastRepairStatus ? ({
           id: lastRepairStatus.id,
           status: lastRepairStatus.status || '',          
-          date: this.formatDateToDDMMYYYY(lastRepairStatus.createdAt) || '',
+          date: this.formatDateToMMDDYYYY(lastRepairStatus.createdAt) || '',
         }) : null,
         repairStatus: (fullOrder.repairStatus || [])
           .map(rs => ({
             id: rs.id,
             status: rs.status || '',
-            date: this.formatDateToDDMMYYYY(rs.createdAt) || '',
+            date: this.formatDateToMMDDYYYY(rs.createdAt) || '',
           })),
         diagnostics: (fullOrder.sodiagnostic || [])
           .filter(d => d.sendEmail === true)
@@ -130,7 +138,7 @@ export class ServiceOrdersService {
             id: d.id,
             title: d.diagnostic || '',
             sendEmail: d.sendEmail || '',
-            date: this.formatDateToDDMMYYYY(d.createdAt ) || '',
+            date: this.formatDateToMMDDYYYY(d.createdAt ) || '',
           })),
         items: (fullOrder.soitems || []).map(it => ({
           description: it.item?.product || it.note || '',
@@ -259,7 +267,7 @@ export class ServiceOrdersService {
       customerEmail: fullOrder.customer?.email || '',
       customerPhone: fullOrder.customer?.phone || fullOrder.customer?.phone || '',
       customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '',
-      date: this.formatDateToDDMMYYYY(fullOrder.createdAt) || '',
+      date: this.formatDateToMMDDYYYY(fullOrder.createdAt) || '',
       device: fullOrder.device?.name || '-',
       model: fullOrder.model || '-',
       serial: fullOrder.serial || '',
@@ -279,13 +287,13 @@ export class ServiceOrdersService {
       lastrepairStatus: lastRepairStatus ? ({
         id: lastRepairStatus.id,
         status: lastRepairStatus.status || '',        
-        date: this.formatDateToDDMMYYYY(lastRepairStatus.createdAt) || '',
+        date: this.formatDateToMMDDYYYY(lastRepairStatus.createdAt) || '',
       }) : null,
       repairStatus: (fullOrder.repairStatus || [])
           .map(rs => ({
             id: rs.id,
             status: rs.status || '',
-            date: this.formatDateToDDMMYYYY(rs.createdAt) || '',
+            date: this.formatDateToMMDDYYYY(rs.createdAt) || '',
           })),
       diagnostics: (fullOrder.sodiagnostic || [])
         .filter(d => d.sendEmail === true)
@@ -293,7 +301,7 @@ export class ServiceOrdersService {
           id: d.id,
           title: d.diagnostic || '',
           sendEmail: d.sendEmail || '',
-          date: this.formatDateToDDMMYYYY(d.createdAt) || '',
+          date: this.formatDateToMMDDYYYY(d.createdAt) || '',
         })),
       items: (fullOrder.soitems || []).map(it => ({
         description: it.item?.product || it.note || '',
