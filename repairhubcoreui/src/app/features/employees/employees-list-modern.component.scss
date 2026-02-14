@@ -1,4 +1,6 @@
 @use '../../../scss/_modern-design-system.scss' as *;
+@use "sass:map";
+@use "sass:color";
 
 // ============================================
 // 🎨 EMPLOYEES LIST MODERN STYLES
@@ -6,15 +8,15 @@
 
 .employees-container {
   min-height: 100vh;
-  padding: map-get($spacing, 'xl') map-get($spacing, '2xl');
-  background: linear-gradient(135deg, $dark-bg-primary 0%, lighten($dark-bg-primary, 2%) 100%);
+  padding: map.get($spacing, 'xl') map.get($spacing, '2xl');
+  background: linear-gradient(135deg, $dark-bg-primary 0%, color.adjust($dark-bg-primary, $lightness: 2%) 100%);
 
   @media (max-width: 1024px) {
-    padding: map-get($spacing, 'lg') map-get($spacing, 'lg');
+    padding: map.get($spacing, 'lg') map.get($spacing, 'lg');
   }
 
   @media (max-width: 640px) {
-    padding: map-get($spacing, 'md') map-get($spacing, 'md');
+    padding: map.get($spacing, 'md') map.get($spacing, 'md');
   }
 }
 
@@ -24,13 +26,13 @@
 
 .list-header {
   @include flex-between;
-  margin-bottom: map-get($spacing, '3xl');
+  margin-bottom: map.get($spacing, '3xl');
   flex-wrap: wrap;
-  gap: map-get($spacing, 'xl');
+  gap: map.get($spacing, 'xl');
 
   @media (max-width: 768px) {
     @include flex-col;
-    gap: map-get($spacing, 'lg');
+    gap: map.get($spacing, 'lg');
   }
 }
 
@@ -40,7 +42,7 @@
 }
 
 .header-title {
-  margin-bottom: map-get($spacing, 'xl');
+  margin-bottom: map.get($spacing, 'xl');
 
   h1 {
     margin: 0;
@@ -51,7 +53,7 @@
   }
 
   .subtitle {
-    margin: map-get($spacing, 'sm') 0 0 0;
+    margin: map.get($spacing, 'sm') 0 0 0;
     font-size: $font-size-lg;
     color: $dark-text-secondary;
     font-weight: $font-weight-normal;
@@ -62,21 +64,21 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: map-get($spacing, 'md');
+  gap: map.get($spacing, 'md');
 
   @media (max-width: 640px) {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: map-get($spacing, 'sm');
+    gap: map.get($spacing, 'sm');
   }
 }
 
 .stat-card {
   @include glass-card;
-  padding: map-get($spacing, 'md') map-get($spacing, 'lg');
+  padding: map.get($spacing, 'md') map.get($spacing, 'lg');
   @include flex-col;
   align-items: center;
   text-align: center;
-  gap: map-get($spacing, 'sm');
+  gap: map.get($spacing, 'sm');
   position: relative;
   overflow: hidden;
 
@@ -131,7 +133,7 @@
 
 .header-actions {
   @include flex-center;
-  gap: map-get($spacing, 'md');
+  gap: map.get($spacing, 'md');
 }
 
 // ============================================
@@ -140,8 +142,8 @@
 
 .search-filter-bar {
   @include flex-between;
-  gap: map-get($spacing, 'lg');
-  margin-bottom: map-get($spacing, '2xl');
+  gap: map.get($spacing, 'lg');
+  margin-bottom: map.get($spacing, '2xl');
   flex-wrap: wrap;
 
   @media (max-width: 768px) {
@@ -162,7 +164,7 @@
 
 .search-input {
   width: 100%;
-  padding: map-get($spacing, 'sm') map-get($spacing, 'md') map-get($spacing, 'sm') 2.5rem;
+  padding: map.get($spacing, 'sm') map.get($spacing, 'md') map.get($spacing, 'sm') 2.5rem;
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(71, 85, 105, 0.4);
   border-radius: $radius-xl;
@@ -189,7 +191,7 @@
 
 .search-icon {
   position: absolute;
-  left: map-get($spacing, 'md');
+  left: map.get($spacing, 'md');
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -199,7 +201,7 @@
 
 .btn-clear {
   position: absolute;
-  right: map-get($spacing, 'md');
+  right: map.get($spacing, 'md');
   top: 50%;
   transform: translateY(-50%);
   @include button-reset;
@@ -224,7 +226,7 @@
 
 .filters-group {
   @include flex-center;
-  gap: map-get($spacing, 'md');
+  gap: map.get($spacing, 'md');
   flex-wrap: wrap;
 
   @media (max-width: 768px) {
@@ -235,8 +237,8 @@
 
 .filter-chip {
   @include flex-center;
-  gap: map-get($spacing, 'sm');
-  padding: 0 map-get($spacing, 'md');
+  gap: map.get($spacing, 'sm');
+  padding: 0 map.get($spacing, 'md');
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(71, 85, 105, 0.3);
   border-radius: $radius-lg;
@@ -254,7 +256,7 @@
     border: none;
     color: $dark-text-primary;
     font-size: $font-size-base;
-    padding: map-get($spacing, 'sm') 0;
+    padding: map.get($spacing, 'sm') 0;
     cursor: pointer;
     @include focus-ring;
 
@@ -272,7 +274,7 @@
 
 .btn-reset-filters {
   @include button-reset;
-  padding: map-get($spacing, 'sm') map-get($spacing, 'md');
+  padding: map.get($spacing, 'sm') map.get($spacing, 'md');
   background: rgba($warning, 0.1);
   border: 1px solid rgba($warning, 0.3);
   border-radius: $radius-lg;
@@ -335,11 +337,11 @@
 
 .error-state {
   @include glass-card;
-  padding: map-get($spacing, '2xl') map-get($spacing, 'lg');
+  padding: map.get($spacing, '2xl') map.get($spacing, 'lg');
   text-align: center;
   @include flex-col;
   align-items: center;
-  gap: map-get($spacing, 'md');
+  gap: map.get($spacing, 'md');
 }
 
 .error-icon {
@@ -363,14 +365,14 @@
 
 .skeleton-grid {
   @include bento-grid;
-  margin-top: map-get($spacing, 'xl');
+  & { margin-top: map.get($spacing, 'xl'); }
 }
 
 .skeleton-card {
   @include glass-card;
-  padding: map-get($spacing, 'lg');
+  padding: map.get($spacing, 'lg');
   @include flex-col;
-  gap: map-get($spacing, 'md');
+  gap: map.get($spacing, 'md');
 }
 
 .skeleton-header {
@@ -381,7 +383,7 @@
 
 .skeleton-content {
   @include flex-col;
-  gap: map-get($spacing, 'sm');
+  gap: map.get($spacing, 'sm');
 }
 
 .skeleton-line {
@@ -406,11 +408,11 @@
 
 .empty-state {
   @include glass-card;
-  padding: map-get($spacing, '3xl') map-get($spacing, '2xl');
+  padding: map.get($spacing, '3xl') map.get($spacing, '2xl');
   text-align: center;
   @include flex-col;
   align-items: center;
-  gap: map-get($spacing, 'lg');
+  gap: map.get($spacing, 'lg');
 }
 
 .empty-icon {
@@ -435,7 +437,7 @@
 
 .employees-grid {
   @include bento-grid;
-  margin-top: map-get($spacing, 'xl');
+  & { margin-top: map.get($spacing, 'xl'); }
 }
 
 .employee-card {
@@ -467,8 +469,8 @@
 // Card Header with Avatar
 .card-header {
   @include flex-between;
-  gap: map-get($spacing, 'md');
-  padding: map-get($spacing, 'lg');
+  gap: map.get($spacing, 'md');
+  padding: map.get($spacing, 'lg');
   border-bottom: 1px solid rgba(71, 85, 105, 0.2);
   @include smooth-transition;
 }
@@ -492,15 +494,15 @@
   }
 
   &.avatar-info {
-    background: linear-gradient(135deg, $info, darken($info, 10%));
+    background: linear-gradient(135deg, $info, color.adjust($info, $lightness: -10%));
   }
 
   &.avatar-warning {
-    background: linear-gradient(135deg, $warning, darken($warning, 10%));
+    background: linear-gradient(135deg, $warning, color.adjust($warning, $lightness: -10%));
   }
 
   &.avatar-secondary {
-    background: linear-gradient(135deg, $secondary, darken($secondary, 10%));
+    background: linear-gradient(135deg, $secondary, color.adjust($secondary, $lightness: -10%));
   }
 }
 
@@ -546,14 +548,14 @@
 // Card Body - Main Info
 .card-body {
   @include flex-col;
-  gap: map-get($spacing, 'md');
-  padding: map-get($spacing, 'lg');
+  gap: map.get($spacing, 'md');
+  padding: map.get($spacing, 'lg');
   flex: 1;
 }
 
 .info-group {
   @include flex-col;
-  gap: map-get($spacing, 'xs');
+  gap: map.get($spacing, 'xs');
 
   &.half {
     flex: 1;
@@ -563,7 +565,7 @@
 .info-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: map-get($spacing, 'md');
+  gap: map.get($spacing, 'md');
 
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
@@ -632,8 +634,8 @@
 // Card Footer - Actions
 .card-footer {
   @include flex-center;
-  gap: map-get($spacing, 'sm');
-  padding: map-get($spacing, 'md') map-get($spacing, 'lg');
+  gap: map.get($spacing, 'sm');
+  padding: map.get($spacing, 'md') map.get($spacing, 'lg');
   border-top: 1px solid rgba(71, 85, 105, 0.2);
   background: rgba(30, 41, 59, 0.3);
 }
@@ -641,13 +643,13 @@
 .btn-action {
   @include button-reset;
   flex: 1;
-  padding: 0.5rem map-get($spacing, 'md');
+  padding: 0.5rem map.get($spacing, 'md');
   border: 1px solid transparent;
   border-radius: $radius-lg;
   font-size: $font-size-sm;
   font-weight: $font-weight-semibold;
   @include flex-center;
-  gap: map-get($spacing, 'xs');
+  gap: map.get($spacing, 'xs');
   @include smooth-transition;
   @include focus-ring;
   cursor: pointer;
@@ -698,8 +700,8 @@
 // Card Metadata
 .card-metadata {
   @include flex-col;
-  gap: map-get($spacing, 'xs');
-  padding: map-get($spacing, 'md') map-get($spacing, 'lg');
+  gap: map.get($spacing, 'xs');
+  padding: map.get($spacing, 'md') map.get($spacing, 'lg');
   background: rgba(15, 23, 42, 0.4);
   border-top: 1px solid rgba(71, 85, 105, 0.15);
   font-size: $font-size-sm;
@@ -713,7 +715,7 @@
 // Results Info
 .results-info {
   text-align: center;
-  padding: map-get($spacing, 'lg') 0;
+  padding: map.get($spacing, 'lg') 0;
   color: $dark-text-secondary;
   font-size: $font-size-sm;
 }
@@ -726,12 +728,12 @@
 .btn-secondary,
 .btn-outline {
   @include button-reset;
-  padding: map-get($spacing, 'sm') map-get($spacing, 'lg');
+  padding: map.get($spacing, 'sm') map.get($spacing, 'lg');
   border-radius: $radius-lg;
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
   @include flex-center;
-  gap: map-get($spacing, 'sm');
+  gap: map.get($spacing, 'sm');
   @include smooth-transition;
   @include focus-ring;
   cursor: pointer;
@@ -739,7 +741,7 @@
   white-space: nowrap;
 
   &.btn-lg {
-    padding: map-get($spacing, 'md') map-get($spacing, 'xl');
+    padding: map.get($spacing, 'md') map.get($spacing, 'xl');
     font-size: $font-size-lg;
   }
 
