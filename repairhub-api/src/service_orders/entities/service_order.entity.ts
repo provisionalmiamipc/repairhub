@@ -126,8 +126,9 @@ export class ServiceOrder {
     noteReception?: string;
 
     @Column({nullable: true})
+    @IsString()
     @IsOptional()
-    estimated?: string;
+    estimated: string;
 
     @Column({ default: false })
     @IsBoolean()

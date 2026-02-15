@@ -104,16 +104,7 @@ async function bootstrap() {
   // This runs inside Nest lifecycle after body parsing so `req.body` is reliable.
   // Using `as any` to avoid extra imports inside this file.
   app.useGlobalInterceptors(({
-    intercept: (context: any, next: any) => {
-      try {
-        const req = context.switchToHttp().getRequest();
-        if (req) {
-          // Safe stringify
-          try { console.log('Incoming body:', JSON.stringify(req.body)); } catch (e) { console.log('Incoming body (raw):', req.body); }
-        }
-      } catch (e) {
-        // ignore
-      }
+    intercept: (_context: any, next: any) => {
       return next.handle();
     }
   } as any));
@@ -132,8 +123,6 @@ async function bootstrap() {
       }
     };
     if (req && req.body) transformEmptyStrings(req.body);
-    // DEBUG: log body for validation troubleshooting
-    try { console.log('Incoming body:', JSON.stringify(req.body)); } catch (e) {}
     next();
   });
 

@@ -22,6 +22,7 @@ export class SODiagnosticFormComponent {
   @Input() storeId?: number;
   @Input() createdById?: number;
   @Input() isModal: boolean = false;
+  @Input() saving: boolean = false;
   @Output() save = new EventEmitter<Partial<SODiagnostic>>();
   @Output() cancel = new EventEmitter<void>();
 

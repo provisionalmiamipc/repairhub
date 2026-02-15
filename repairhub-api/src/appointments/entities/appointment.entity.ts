@@ -36,6 +36,13 @@ export class Appointment {
 	@IsString()
 	customer: string; 
 
+	@ManyToOne(() => Customer, customer => customer.serviceOrders)
+    @JoinColumn({ name: 'ecustomerId' })
+    ecustomer: Customer;
+
+    @Column('int', { nullable: true })
+    ecustomerId: number;
+
 	@Column()
 	@IsString()
 	date: string

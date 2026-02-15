@@ -8,7 +8,11 @@ export class CreateAppointmentDto {
 	storeId: number;
 
 	@IsString()
+	@IsOptional()
 	customer: string;
+
+	@IsOptional()
+	ecustomerId: number;
 
 	@IsDateString()
 	date: string;

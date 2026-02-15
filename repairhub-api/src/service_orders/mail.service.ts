@@ -19,16 +19,16 @@ export class ServiceOrderMailService {
       let logoPath: string | null = null;
       let logoAttachment: any = null;
       try {
-        const p = resolveUpload(['logo.png', 'logo.jpg', 'logo.jpeg']);
+        const p = resolveUpload(['sopdf1.jpg']);
         if (p) {
           logoPath = p;
           const logo = fs.readFileSync(p);
           logoAttachment = {
             filename: path.basename(p),
               // include both content_type and cid so both Resend and SMTP handle inline
-              type: p.endsWith('.png') ? 'image/png' : 'image/jpeg',
+              type: p.endsWith('.png') ? 'image/png' : 'image/jpg',
               content: logo.toString('base64'),
-              content_type: p.endsWith('.png') ? 'image/png' : 'image/jpeg',
+              content_type: p.endsWith('.png') ? 'image/png' : 'image/jpg',
               cid: 'logo@repairhub',
               content_id: 'logo@repairhub',
               disposition: 'inline',

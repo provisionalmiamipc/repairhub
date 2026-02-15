@@ -417,10 +417,18 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ d.diagnostic }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-link" type="button"
-                        (click)="openEditDiagnostic(d)">Edit</button>
-                      <button class="btn btn-link text-danger" type="button" (click)="deleteDiagnostic(d.id)"
-                        [disabled]="isFormReadOnly()">Delete</button>
+                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail" class="btn btn-link" type="button"
+                        (click)="openEditDiagnostic(d)" aria-label="Edit diagnostic">
+                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                      </button>
+                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail" class="btn btn-link text-danger" type="button" (click)="deleteDiagnostic(d.id)"
+                        [disabled]="isFormReadOnly()" aria-label="Delete diagnostic">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                      </button>
+                      <div *ngIf="d.sendEmail" class="d-flex align-items-center">
+                        <i class="bi bi-envelope-fill text-success me-2" title="Sent to customer" aria-hidden="true"></i>
+                        <small class="text-muted">{{ d.createdAt | date:'dd/MM/yyyy' }}</small>
+                      </div>
                     </div>
                   </li>
                   }
@@ -924,7 +932,7 @@
     [centerId]="serviceOrder()?.centerId ?? serviceOrderForm.get('centerId')?.value"
     [storeId]="serviceOrder()?.storeId ?? serviceOrderForm.get('storeId')?.value"
     [createdById]="serviceOrder()?.createdById ?? serviceOrderForm.get('createdById')?.value" [isModal]="true"
-    (save)="onDiagnosticSaved($event)" (cancel)="closeDiagnosticModal()"></app-so-diagnostic-form>
+    [saving]="showDiagnosticSaving" (save)="onDiagnosticSaved($event)" (cancel)="closeDiagnosticModal()"></app-so-diagnostic-form>
   }
 
   @if (showItemModal) {
@@ -940,6 +948,6 @@
     [centerIdInput]="serviceOrder()?.centerId ?? serviceOrderForm.get('centerId')?.value"
     [storeIdInput]="serviceOrder()?.storeId ?? serviceOrderForm.get('storeId')?.value"
     [createdByIdInput]="serviceOrder()?.createdById ?? serviceOrderForm.get('createdById')?.value" [isModal]="true"
-    (save)="onStatusSaved($event)" (cancel)="closeStatusModal()"></app-repair-status-form>
+    [saving]="showStatusSaving" (save)="onStatusSaved($event)" (cancel)="closeStatusModal()"></app-repair-status-form>
   }
 </div>

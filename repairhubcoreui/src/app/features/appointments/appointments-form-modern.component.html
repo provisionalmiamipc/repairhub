@@ -4,7 +4,8 @@
       <div class="card shadow-sm border-0">
         <div class="card-body p-4 p-lg-5 form-container">
           <!-- Header Section -->
-          <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2 mb-4">
+          <div
+            class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2 mb-4">
             <div>
               <h1 class="h3 mb-1">
                 {{ isEditMode() ? 'Edit Appointment' : 'New Appointment' }}
@@ -15,50 +16,51 @@
 
           <!-- Progress Bar -->
           <div class="mb-4">
-            <div class="progress" role="progressbar" aria-label="Form progress" [attr.aria-valuenow]="getStepProgress()" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress" role="progressbar" aria-label="Form progress" [attr.aria-valuenow]="getStepProgress()"
+              aria-valuemin="0" aria-valuemax="100">
               <div class="progress-bar" [style.width.%]="getStepProgress()"></div>
             </div>
             <p class="small text-muted mt-2 mb-0">Step {{ currentStep() + 1 }} of {{ steps.length }}</p>
           </div>
 
-  <!-- Error Message -->
-  @if (error()) {
-    <div class="alert alert-danger d-flex align-items-center justify-content-between gap-2" @slideInFrom>
-      <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
-        <span>{{ error() }}</span>
-      </div>
-      <button type="button" class="btn-close" aria-label="Close" (click)="clearError()"></button>
-    </div>
-  }
+          <!-- Error Message -->
+          @if (error()) {
+          <div class="alert alert-danger d-flex align-items-center justify-content-between gap-2" @slideInFrom>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+              <span>{{ error() }}</span>
+            </div>
+            <button type="button" class="btn-close" aria-label="Close" (click)="clearError()"></button>
+          </div>
+          }
 
-  <!-- Success Message -->
-  @if (success()) {
-    <div class="alert alert-success d-flex align-items-center gap-2" @slideInFrom>
-      <i class="bi bi-check-circle" aria-hidden="true"></i>
-      <span>Appointment saved successfully</span>
-    </div>
-  }
+          <!-- Success Message -->
+          @if (success()) {
+          <div class="alert alert-success d-flex align-items-center gap-2" @slideInFrom>
+            <i class="bi bi-check-circle" aria-hidden="true"></i>
+            <span>Appointment saved successfully</span>
+          </div>
+          }
 
-  <!-- Loading State -->
-  @if (isLoading()) {
-    <div class="d-flex flex-column align-items-center justify-content-center py-5">
-      <div class="spinner-border text-primary" role="status" aria-label="Loading"></div>
-      <p class="mt-3 text-muted mb-0">Loading information...</p>
-    </div>
-  } @else {
-    <form autocomplete="off" [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
-      <!-- Step 0: Basic Info -->
-      @if (currentStep() === 0) {
-        <div class="form-step" @slideInFrom>
-          <h2 class="step-title">{{ steps[0].title }}</h2>
-          <p class="step-description">{{ steps[0].description }}</p>
+          <!-- Loading State -->
+          @if (isLoading()) {
+          <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status" aria-label="Loading"></div>
+            <p class="mt-3 text-muted mb-0">Loading information...</p>
+          </div>
+          } @else {
+          <form autocomplete="off" [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+            <!-- Step 0: Basic Info -->
+            @if (currentStep() === 0) {
+            <div class="form-step" @slideInFrom>
+              <h2 class="step-title">{{ steps[0].title }}</h2>
+              <p class="step-description">{{ steps[0].description }}</p>
 
-          <div class="row g-3">
-            @if (showCenterAndStoreFields()) {
-              <!-- Center -->
-              <div class="col-12 col-md-6">
-                <label for="centerId" class="form-label">Center *</label>
+              <div class="row g-3">
+                @if (showCenterAndStoreFields()) {
+                <!-- Center -->
+                <div class="col-12 col-md-6">
+                  <label for="centerId" class="form-label">Center *</label>
                   <select autocomplete="off" class="form-select" formControlName="centerId">
                     <option value="">Select center</option>
                     <option *ngFor="let center of centers()" [ngValue]="center.id">
@@ -69,15 +71,14 @@
                     class="text-danger small">
                     Center required
                   </div>
-              </div>
+                </div>
 
-              <!-- Store -->
-              <div class="col-12 col-md-6">
-                <label for="storeId" class="form-label">Store *</label>
+                <!-- Store -->
+                <div class="col-12 col-md-6">
+                  <label for="storeId" class="form-label">Store *</label>
                   <select autocomplete="off" class="form-select" formControlName="storeId">
                     <option value="">Select store</option>
-                    <option *ngFor="let store of stores()"
-                      [ngValue]="store.id"
+                    <option *ngFor="let store of stores()" [ngValue]="store.id"
                       [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
                       {{ store.storeName || ('Store #' + store.id) }}
                     </option>
@@ -86,282 +87,267 @@
                     class="text-danger small">
                     Store required
                   </div>
-              </div>
-            }
+                </div>
+                }
 
-            @if (showOnlyStoreField()) {
-              <!-- Store (Admin Center) -->
-              <div class="col-12 col-md-6">
-                <label for="storeId" class="form-label">Store *</label>
-                <select autocomplete="off" class="form-select" formControlName="storeId">
-                  <option value="">Select store</option>
-                  <option *ngFor="let store of stores()"
-                    [ngValue]="store.id"
-                    [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
-                    {{ store.storeName || ('Store #' + store.id) }}
-                  </option>
-                </select>
-                <div *ngIf="appointmentForm.get('storeId')?.touched && appointmentForm.get('storeId')?.invalid"
-                  class="text-danger small">
-                  Store required
+                @if (showOnlyStoreField()) {
+                <!-- Store (Admin Center) -->
+                <div class="col-12 col-md-6">
+                  <label for="storeId" class="form-label">Store *</label>
+                  <select autocomplete="off" class="form-select" formControlName="storeId">
+                    <option value="">Select store</option>
+                    <option *ngFor="let store of stores()" [ngValue]="store.id"
+                      [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
+                      {{ store.storeName || ('Store #' + store.id) }}
+                    </option>
+                  </select>
+                  <div *ngIf="appointmentForm.get('storeId')?.touched && appointmentForm.get('storeId')?.invalid"
+                    class="text-danger small">
+                    Store required
+                  </div>
+                </div>
+                }
+
+                @if (hideLocationFields()) {
+                <div class="col-12">
+                  <div class="alert alert-info">
+                    Center and store are assigned automatically.
+                  </div>
+                </div>
+                }
+
+                <!-- Customer Name / Existing Customer toggle -->
+                <div class="col-12 col-md-6">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <label for="customer" class="form-label mb-0">Customer *</label>
+                    <div class="form-check form-switch mb-0">
+                      <input class="form-check-input" type="checkbox" id="checkNativeSwitch" [checked]="useExistingCustomer" (change)="onUseExistingCustomerChange($event.target.checked)">
+                      <label class="form-check-label" for="checkNativeSwitch">Existing customer</label>
+                    </div>
+                  </div>
+
+                  @if (!useExistingCustomer) {
+                  <input type="text" id="customer" class="form-control" [class.is-invalid]="isFieldInvalid('customer')"
+                    formControlName="customer" placeholder="Customer name" autocomplete="off" />
+                  @if (isFieldInvalid('customer')) {
+                  <span class="error-message">{{ getFieldError('customer') }}</span>
+                  }
+                  }
+
+                  @if (useExistingCustomer) {
+                  
+                  <div class="input-group">
+                    <select id="ecustomerId" class="form-select" [class.is-invalid]="isFieldInvalid('ecustomerId')"
+                      formControlName="ecustomerId">
+                      <option [ngValue]="null" disabled>Select customer</option>
+                      @for (customer of ecustomers(); track customer.id) {
+                      <option [value]="customer.id">{{ customer.firstName }} {{ customer.lastName }}</option>
+                      }
+                    </select>
+                    <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()"
+                      [disabled]="isOrderFinalized() || isFormReadOnly()">
+                      <i class="bi bi-search"></i>
+                    </button>
+                    <button class="btn btn-outline-primary" type="button" (click)="openCustomerForm()"
+                      [disabled]="isOrderFinalized() || isFormReadOnly()">
+                      <i class="bi bi-person-plus"></i>
+                    </button>
+                  </div>
+                  @if (isFieldInvalid('ecustomerId')) {
+                  <span class="error-message">{{ getFieldError('ecustomerId') }}</span>
+                  }
+                  }
+                </div>
+
+                <!-- Date -->
+                <div class="col-12 col-md-6">
+                  <label for="date" class="form-label">Date *</label>
+                  <input type="date" id="date" class="form-control" [class.is-invalid]="isFieldInvalid('date')"
+                    formControlName="date" [attr.min]="minDate()" />
+                  @if (isFieldInvalid('date')) {
+                  <span class="error-message">{{ getFieldError('date') }}</span>
+                  }
+                </div>
+
+                <!-- Time -->
+                <div class="col-12 col-md-6">
+                  <label for="time" class="form-label">Time *</label>
+                  <input type="time" id="time" class="form-control" [class.is-invalid]="isFieldInvalid('time')"
+                    formControlName="time" />
+                  @if (isFieldInvalid('time')) {
+                  <span class="error-message">{{ getFieldError('time') }}</span>
+                  }
                 </div>
               </div>
+            </div>
             }
 
-            @if (hideLocationFields()) {
-              <div class="col-12">
-                <div class="alert alert-info">
-                  Center and store are assigned automatically.
+            <!-- Step 1: Device & Service -->
+            @if (currentStep() === 1) {
+            <div class="form-step" @slideInFrom>
+              <h2 class="step-title">{{ steps[1].title }}</h2>
+              <p class="step-description">{{ steps[1].description }}</p>
+
+              <div class="row g-3">
+                <!-- Device -->
+                <div class="col-12 col-md-4">
+                  <label for="deviceId" class="form-label">Device *</label>
+                  <div class="input-group">
+                    <select autocomplete="off" class="form-select" formControlName="deviceId">
+                      <option value="">Select device</option>
+                      <option *ngFor="let device of devices()" [ngValue]="device.id">
+                        {{ device.name }}
+                      </option>
+                    </select>
+                    <button type="button" class="btn btn-outline-primary" (click)="createDevice()"
+                      aria-label="Add device">
+                      <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <div *ngIf="appointmentForm.get('deviceId')?.touched && appointmentForm.get('deviceId')?.invalid"
+                    class="text-danger small">
+                    Device required
+                  </div>
+                </div>
+
+                <!-- Service Type -->
+                <div class="col-12 col-md-4">
+                  <label for="serviceTypeId" class="form-label">Service Type *</label>
+                  <div class="input-group">
+                    <select autocomplete="off" class="form-select" formControlName="serviceTypeId">
+                      <option value="">Select service</option>
+                      <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
+                        {{ service.name }}
+                      </option>
+                    </select>
+                    <button type="button" class="btn btn-outline-primary" (click)="createServiceType()"
+                      aria-label="Add service type">
+                      <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <div
+                    *ngIf="appointmentForm.get('serviceTypeId')?.touched && appointmentForm.get('serviceTypeId')?.invalid"
+                    class="text-danger small">
+                    Service type required
+                  </div>
+                </div>
+
+                <!-- Assigned Technician -->
+                <div class="col-12 col-md-4">
+                  <label for="assignedTechId" class="form-label">Assigned Technician *</label>
+                  <select autocomplete="off" class="form-select" formControlName="assignedTechId">
+                    <option [ngValue]="null">Select technician</option>
+                    <option *ngFor="let emp of employees()" [ngValue]="emp.id">
+                      {{ emp.firstName }} {{ emp.lastName }}
+                    </option>
+                  </select>
+                  <div
+                    *ngIf="appointmentForm.get('assignedTechId')?.touched && appointmentForm.get('assignedTechId')?.invalid"
+                    class="text-danger small">
+                    Technician required
+                  </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="col-12 col-md-4">
+                  <label for="duration" class="form-label">Duration (minutes) *</label>
+                  <input autocomplete="off" type="number" id="duration" class="form-control"
+                    [class.is-invalid]="isFieldInvalid('duration')" formControlName="duration" min="15" max="480"
+                    placeholder="30" />
+                  @if (isFieldInvalid('duration')) {
+                  <span class="error-message">{{ getFieldError('duration') }}</span>
+                  }
                 </div>
               </div>
+            </div>
             }
 
-            <!-- Customer Name -->
-            <div class="col-12 col-md-6">
-              <label for="customer" class="form-label">Customer *</label>
-              <input
-                type="text"
-                id="customer"
-                class="form-control"
-                [class.is-invalid]="isFieldInvalid('customer')"
-                formControlName="customer"
-                placeholder="Customer name"
-                autocomplete="off"
-              />
-              @if (isFieldInvalid('customer')) {
-                <span class="error-message">{{ getFieldError('customer') }}</span>
-              }
-            </div>
+            <!-- Step 2: Notes & Status -->
+            @if (currentStep() === 2) {
+            <div class="form-step" @slideInFrom>
+              <h2 class="step-title">{{ steps[2].title }}</h2>
+              <p class="step-description">{{ steps[2].description }}</p>
 
-            <!-- Date -->
-            <div class="col-12 col-md-6">
-              <label for="date" class="form-label">Date *</label>
-              <input
-                type="date"
-                id="date"
-                class="form-control"
-                [class.is-invalid]="isFieldInvalid('date')"
-                formControlName="date"
-                [attr.min]="minDate()"
-              />
-              @if (isFieldInvalid('date')) {
-                <span class="error-message">{{ getFieldError('date') }}</span>
-              }
-            </div>
+              <div class="row g-3">
+                <!-- Notes -->
+                <div class="col-12">
+                  <label for="notes" class="form-label">Additional Notes</label>
+                  <textarea id="notes" class="form-control textarea" formControlName="notes"
+                    placeholder="Additional information about the appointment..." rows="4"></textarea>
+                </div>
 
-            <!-- Time -->
-            <div class="col-12 col-md-6">
-              <label for="time" class="form-label">Time *</label>
-              <input
-                type="time"
-                id="time"
-                class="form-control"
-                [class.is-invalid]="isFieldInvalid('time')"
-                formControlName="time"
-              />
-              @if (isFieldInvalid('time')) {
-                <span class="error-message">{{ getFieldError('time') }}</span>
-              }
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Step 1: Device & Service -->
-      @if (currentStep() === 1) {
-        <div class="form-step" @slideInFrom>
-          <h2 class="step-title">{{ steps[1].title }}</h2>
-          <p class="step-description">{{ steps[1].description }}</p>
-
-          <div class="row g-3">
-            <!-- Device -->
-            <div class="col-12 col-md-4">
-              <label for="deviceId" class="form-label">Device *</label>
-              <div class="input-group">
-                <select autocomplete="off" class="form-select" formControlName="deviceId">
-                  <option value="">Select device</option>
-                  <option *ngFor="let device of devices()" [ngValue]="device.id">
-                    {{ device.name }}
-                  </option>
-                </select>
-                <button type="button" class="btn btn-outline-primary" (click)="createDevice()" aria-label="Add device">
-                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                </button>
-              </div>
-              <div *ngIf="appointmentForm.get('deviceId')?.touched && appointmentForm.get('deviceId')?.invalid"
-                class="text-danger small">
-                Device required
+                <!-- Status Info -->
+                <div class="col-12 status-section">
+                  <h3 class="status-title">Appointment Status</h3>
+                  @if (isAppointmentClosed()) {
+                  <div class="alert alert-info">The appointment is closed or canceled. It cannot be edited.</div>
+                  } @else {
+                  <div class="text-muted">You can close or cancel the appointment from the action buttons.</div>
+                  }
+                </div>
               </div>
             </div>
+            }
 
-            <!-- Service Type -->
-            <div class="col-12 col-md-4">
-              <label for="serviceTypeId" class="form-label">Service Type *</label>
-              <div class="input-group">
-                <select autocomplete="off" class="form-select" formControlName="serviceTypeId">
-                  <option value="">Select service</option>
-                  <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
-                    {{ service.name }}
-                  </option>
-                </select>
-                <button type="button" class="btn btn-outline-primary" (click)="createServiceType()" aria-label="Add service type">
-                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                </button>
-              </div>
-              <div *ngIf="appointmentForm.get('serviceTypeId')?.touched && appointmentForm.get('serviceTypeId')?.invalid"
-                class="text-danger small">
-                Service type required
-              </div>
-            </div>
-
-            <!-- Assigned Technician -->
-            <div class="col-12 col-md-4">
-              <label for="assignedTechId" class="form-label">Assigned Technician *</label>
-              <select autocomplete="off" class="form-select" formControlName="assignedTechId">
-                <option [ngValue]="null">Select technician</option>
-                <option *ngFor="let emp of employees()" [ngValue]="emp.id">
-                  {{ emp.firstName }} {{ emp.lastName }}
-                </option>
-              </select>
-              <div *ngIf="appointmentForm.get('assignedTechId')?.touched && appointmentForm.get('assignedTechId')?.invalid"
-                class="text-danger small">
-                Technician required
-              </div>
-            </div>
-
-            <!-- Duration -->
-            <div class="col-12 col-md-4">
-              <label for="duration" class="form-label">Duration (minutes) *</label>
-              <input autocomplete="off"
-                type="number"
-                id="duration"
-                class="form-control"
-                [class.is-invalid]="isFieldInvalid('duration')"
-                formControlName="duration"
-                min="15"
-                max="480"
-                placeholder="30"
-              />
-              @if (isFieldInvalid('duration')) {
-                <span class="error-message">{{ getFieldError('duration') }}</span>
-              }
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Step 2: Notes & Status -->
-      @if (currentStep() === 2) {
-        <div class="form-step" @slideInFrom>
-          <h2 class="step-title">{{ steps[2].title }}</h2>
-          <p class="step-description">{{ steps[2].description }}</p>
-
-          <div class="row g-3">
-            <!-- Notes -->
-            <div class="col-12">
-              <label for="notes" class="form-label">Additional Notes</label>
-              <textarea
-                id="notes"
-                class="form-control textarea"
-                formControlName="notes"
-                placeholder="Additional information about the appointment..."
-                rows="4"
-              ></textarea>
-            </div>
-
-            <!-- Status Info -->
-            <div class="col-12 status-section">
-              <h3 class="status-title">Appointment Status</h3>
-              @if (isAppointmentClosed()) {
-                <div class="alert alert-info">The appointment is closed or canceled. It cannot be edited.</div>
-              } @else {
-                <div class="text-muted">You can close or cancel the appointment from the action buttons.</div>
-              }
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Step Indicators -->
-      <div class="d-flex justify-content-center gap-2 my-4">
-        @for (step of steps; track step.id) {
-          <button
-            type="button"
-            class="step-indicator btn rounded-circle d-inline-flex align-items-center justify-content-center"
-            [class.btn-primary]="currentStep() === step.id"
-            [class.btn-success]="currentStep() > step.id"
-            [class.btn-outline-secondary]="currentStep() < step.id"
-            (click)="currentStep.set(step.id)"
-            [disabled]="currentStep() < step.id"
-          >
-            {{ step.id + 1 }}
-          </button>
-        }
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="form-actions d-flex flex-column gap-2">
-        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
-          @if (isEditMode() && !isAppointmentClosed()) {
-            <div class="d-flex flex-wrap gap-2" role="group" aria-label="Status actions">
-              <button type="button" class="btn btn-outline-success" (click)="openStatusConfirm('close')" [disabled]="isSaving()">
-                Close appointment
+            <!-- Step Indicators -->
+            <div class="d-flex justify-content-center gap-2 my-4">
+              @for (step of steps; track step.id) {
+              <button type="button"
+                class="step-indicator btn rounded-circle d-inline-flex align-items-center justify-content-center"
+                [class.btn-primary]="currentStep() === step.id" [class.btn-success]="currentStep() > step.id"
+                [class.btn-outline-secondary]="currentStep() < step.id" (click)="currentStep.set(step.id)"
+                [disabled]="currentStep() < step.id">
+                {{ step.id + 1 }}
               </button>
-              <button type="button" class="btn btn-outline-danger" (click)="openStatusConfirm('cancel')" [disabled]="isSaving()">
-                Cancel appointment
-              </button>
-            </div>
-          }
-        </div>
-        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            (click)="onCancel()"
-            [disabled]="isSaving()"
-          >
-            Cancel
-          </button>
-
-          @if (currentStep() > 0) {
-            <button
-              type="button"
-              class="btn btn-secondary"
-              (click)="prevStep()"
-              [disabled]="isSaving()"
-            >
-              <i class="bi bi-arrow-left"></i>
-              Previous
-            </button>
-          }
-
-          @if (currentStep() < steps.length - 1) {
-            <button
-              type="button"
-              class="btn btn-primary"
-              (click)="nextStep()"
-              [disabled]="!canProceedToNextStep() || isSaving()"
-            >
-              Next
-              <i class="bi bi-arrow-right"></i>
-            </button>
-          } @else {
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="!appointmentForm.valid || isSaving()"
-            >
-              @if (isSaving()) {
-                <span class="button-spinner"></span> Saving...
-              } @else {
-                {{ isEditMode() ? 'Update' : 'Create' }} Appointment
               }
-            </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions d-flex flex-column gap-2">
+              <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
+                @if (isEditMode() && !isAppointmentClosed()) {
+                <div class="d-flex flex-wrap gap-2" role="group" aria-label="Status actions">
+                  <button type="button" class="btn btn-outline-success" (click)="openStatusConfirm('close')"
+                    [disabled]="isSaving()">
+                    Close appointment
+                  </button>
+                  <button type="button" class="btn btn-outline-danger" (click)="openStatusConfirm('cancel')"
+                    [disabled]="isSaving()">
+                    Cancel appointment
+                  </button>
+                </div>
+                }
+              </div>
+              <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
+                <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+                  Cancel
+                </button>
+
+                @if (currentStep() > 0) {
+                <button type="button" class="btn btn-secondary" (click)="prevStep()" [disabled]="isSaving()">
+                  <i class="bi bi-arrow-left"></i>
+                  Previous
+                </button>
+                }
+
+                @if (currentStep() < steps.length - 1) { <button type="button" class="btn btn-primary"
+                  (click)="nextStep()" [disabled]="!canProceedToNextStep() || isSaving()">
+                  Next
+                  <i class="bi bi-arrow-right"></i>
+                  </button>
+                  } @else {
+                  <button type="submit" class="btn btn-primary" [disabled]="!appointmentForm.valid || isSaving()">
+                    @if (isSaving()) {
+                    <span class="button-spinner"></span> Saving...
+                    } @else {
+                    {{ isEditMode() ? 'Update' : 'Create' }} Appointment
+                    }
+                  </button>
+                  }
+              </div>
+            </div>
+          </form>
           }
-        </div>
-      </div>
-    </form>
-  }
         </div>
       </div>
     </div>
@@ -369,56 +355,76 @@
 </div>
 
 @if (showDeviceModal()) {
-  <app-devices-form
-    [isModal]="true"
-    [device]="deviceModalDefaults"
-    (save)="onDeviceSaved($event)"
-    (cancel)="closeDeviceModal()"
-  ></app-devices-form>
+<app-devices-form [isModal]="true" [device]="deviceModalDefaults" (save)="onDeviceSaved($event)"
+  (cancel)="closeDeviceModal()"></app-devices-form>
 }
 
 @if (showServiceTypeModal()) {
-  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
-    <div class="modal-dialog modal-lg" role="document" (click)="$event.stopPropagation()">
-      <div class="modal-content">
-        <div class="modal-body p-0">
-          <app-service-types-form
-            (save)="onServiceTypeSaved($event)"
-            (cancel)="closeServiceTypeModal()"
-          ></app-service-types-form>
-        </div>
+<div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+  <div class="modal-dialog modal-lg" role="document" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-body p-0">
+        <app-service-types-form (save)="onServiceTypeSaved($event)"
+          (cancel)="closeServiceTypeModal()"></app-service-types-form>
       </div>
     </div>
   </div>
-  <div class="modal-backdrop fade show" (click)="closeServiceTypeModal()"></div>
+</div>
+<div class="modal-backdrop fade show" (click)="closeServiceTypeModal()"></div>
 }
 
 @if (showStatusConfirmModal()) {
-  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
-    <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
-      <div class="modal-content">
-          <div class="modal-header">
-          <h5 class="modal-title">
-            @if (pendingStatusAction() === 'close') { Close appointment }
-            @else { Cancel appointment }
-          </h5>
-          <button type="button" class="btn-close" aria-label="Close" (click)="cancelStatusConfirm()"></button>
-        </div>
-        <div class="modal-body">
-          @if (pendingStatusAction() === 'close') {
-            <p>Are you sure you want to close this appointment?</p>
-          } @else {
-            <p>Are you sure you want to cancel this appointment?</p>
-          }
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="cancelStatusConfirm()">Back</button>
-          <button type="button" class="btn btn-primary" (click)="confirmStatusChange()" [disabled]="isSaving()">
-            Confirm
-          </button>
-        </div>
+<div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          @if (pendingStatusAction() === 'close') { Close appointment }
+          @else { Cancel appointment }
+        </h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="cancelStatusConfirm()"></button>
+      </div>
+      <div class="modal-body">
+        @if (pendingStatusAction() === 'close') {
+        <p>Are you sure you want to close this appointment?</p>
+        } @else {
+        <p>Are you sure you want to cancel this appointment?</p>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="cancelStatusConfirm()">Back</button>
+        <button type="button" class="btn btn-primary" (click)="confirmStatusChange()" [disabled]="isSaving()">
+          Confirm
+        </button>
       </div>
     </div>
   </div>
-  <div class="modal-backdrop fade show" (click)="cancelStatusConfirm()"></div>
+</div>
+<div class="modal-backdrop fade show" (click)="cancelStatusConfirm()"></div>
+}
+
+@if (showCustomerSearch) {
+<app-customer-search [isModal]="true" (select)="onCustomerSelected($event)" (cancel)="closeCustomerSearch()"></app-customer-search>
+}
+
+@if (showCustomerModal) {
+<div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title">New Customer</h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeCustomerForm()"></button>
+      </div>
+      <div class="modal-body">
+        <app-customers-form [customer]="editingCustomer" [centers]="centers()" [stores]="stores()"
+          [role]="userType() === 'employee' ? 'EMPLOYEE' : 'USER'" [isAdminCenter]="isCenterAdmin()"
+          [employeeCenterId]="currentEmployee()?.centerId ?? null"
+          [employeeStoreId]="currentEmployee()?.storeId ?? null" (save)="onCustomerSaved($event)"
+          (cancel)="closeCustomerForm()">
+        </app-customers-form>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
 }

@@ -38,13 +38,17 @@
               <label for="diagnostic" class="form-label">Diagnostic</label>
               <input id="diagnostic" formControlName="diagnostic" class="form-control" autocomplete="off" />
             </div>
-            <div class="form-check mb-3">
+            <div class="form-check mb-3" *ngIf="!soDiagnostic?.id">
               <input type="checkbox" id="sendEmail" formControlName="sendEmail" class="form-check-input" autocomplete="off" />
               <label class="form-check-label" for="sendEmail">Send Email</label>
             </div>
             <div class="d-flex justify-content-end">
               <button type="button" class="btn btn-secondary me-2" (click)="cancel.emit()">Cancel</button>
-              <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Save</button>
+              <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving">
+                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span *ngIf="!saving">Save</span>
+                <span *ngIf="saving">Saving...</span>
+              </button>
             </div>
           </form>
         </div>
@@ -65,7 +69,7 @@
           <label for="diagnostic" class="form-label">Diagnostic</label>
           <input id="diagnostic" formControlName="diagnostic" class="form-control" autocomplete="off" />
         </div>
-        <div class="form-check mb-3">
+        <div class="form-check mb-3" *ngIf="!soDiagnostic?.id">
           <input type="checkbox" id="sendEmail" formControlName="sendEmail" class="form-check-input" autocomplete="off" />
           <label class="form-check-label" for="sendEmail">Send Email</label>
         </div>

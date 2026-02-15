@@ -13,6 +13,7 @@ export interface Appointments {
   centerId: number;
   storeId: number;
   customer: string;
+  ecustomerId: number | null;
   date: string;
   time: string;
   deviceId: number;
@@ -29,4 +30,5 @@ export interface Appointments {
   employee?: Employees;
   serviceType?: ServiceTypes;
   store?: Stores;
+  ecustomer?: Customers;
 }

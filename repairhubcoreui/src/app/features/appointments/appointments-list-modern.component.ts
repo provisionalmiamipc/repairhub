@@ -15,6 +15,7 @@ import { Appointments } from '../../shared/models/Appointments';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { ServiceTypes } from '../../shared/models/ServiceTypes';
+import { AuthService } from '../../shared/services/auth.service';
 import { AppointmentsService } from '../../shared/services/appointments.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
@@ -54,6 +55,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   private centersService = inject(CentersService);
   private storesService = inject(StoresService);
   private serviceTypesService = inject(ServiceTypesService);
+  private authService = inject(AuthService);
 
   // Signals State Management
   appointments = signal<Appointments[]>([]);
@@ -63,7 +65,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   error = signal<string | null>(null);
   searchQuery = signal('');
-  filterStatus = signal('all');
+  filterStatus = signal('active'); // 'active', 'closed', 'canceled', 'all'
   sortBy = signal('date');
 
   private destroy$ = new Subject<void>();
@@ -102,6 +104,11 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
     return filtered;
   });
 
+  readonly isExpertNonCenterAdmin = computed(() => {
+    const employee = this.authService.getCurrentEmployee();
+    return this.authService.isExpert() && !!employee && !(employee.isCenterAdmin ?? false);
+  });
+
   isEmptyState = computed(() => this.filteredAppointments().length === 0 && !this.isLoading());
 
   ngOnInit() {
@@ -126,12 +133,20 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
-          this.appointments.set(data || []);
+          let list = data || [];
+          // If current employee is Expert and NOT center admin, show only appointments assigned to them
+          if (this.isExpertNonCenterAdmin()) {
+            const empId = this.authService.getEmployeeId();
+            if (empId != null) {
+              list = (list || []).filter((a: any) => Number(a.assignedTechId) === Number(empId));
+            }
+          }
+          this.appointments.set(list);
           this.isLoading.set(false);
         },
         error: (err) => {
           console.error('Error loading appointments:', err);
-          this.error.set('Error al cargar las citas. Intenta de nuevo.');
+          this.error.set('Error loading appointments. Please try again.');
           this.isLoading.set(false);
         }
       });
@@ -205,7 +220,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error deleting appointment:', err);
-            this.error.set('Error al eliminar la cita. Intenta de nuevo.');
+            this.error.set('Error deleting appointment. Please try again.');
           }
         });
     }
@@ -216,9 +231,9 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   }
 
   getStatusBadge(appointment: Appointments): string {
-    if (appointment.canceled) return 'Cancelada';
-    if (appointment.cloused) return 'Cerrada';
-    return 'Activa';
+    if (appointment.canceled) return 'Canceled';
+    if (appointment.cloused) return 'Closed';
+    return 'Active';
   }
 
   getStatusClass(appointment: Appointments): string {

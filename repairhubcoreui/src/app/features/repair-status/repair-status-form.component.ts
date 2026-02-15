@@ -22,6 +22,7 @@ export class RepairStatusFormComponent {
   @Input() storeIdInput?: number;
   @Input() createdByIdInput?: number;
   @Input() isModal: boolean = false;
+  @Input() saving: boolean = false;
   @Output() save = new EventEmitter<Partial<RepairStatus>>();
   @Output() cancel = new EventEmitter<void>();
 

@@ -33,7 +33,7 @@ import { SODiagnosticFormComponent } from '../so-diagnostic/so-diagnostic-form.c
 import { SOItemsFormComponent } from '../so-items/so-items-form.component';
 import { RepairStatusFormComponent } from '../repair-status/repair-status-form.component';
 import { Subject } from 'rxjs';
-import { debounceTime, takeUntil } from 'rxjs/operators';
+import { debounceTime, takeUntil, finalize } from 'rxjs/operators';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 
@@ -180,6 +180,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   showDiagnosticModal = false;
   showItemModal = false;
   showStatusModal = false;
+  showDiagnosticSaving = false;
+  showStatusSaving = false;
   showDeviceModal = false;
   showDeviceBrandModal = false;
   showPaymentTypeModal = false;
@@ -829,12 +831,14 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     };
 
     if (id) {
-      this.soDiagnosticService.update(id, sanitized).subscribe({
+      this.showDiagnosticSaving = true;
+      this.soDiagnosticService.update(id, sanitized).pipe(finalize(() => this.showDiagnosticSaving = false)).subscribe({
         next: () => { this.loadRelatedCollections(); this.closeDiagnosticModal(); this.toastService.success('Diagnostic updated'); },
         error: () => this.toastService.error('Error updating diagnostic')
       });
     } else {
-      this.soDiagnosticService.create(sanitized).subscribe({
+      this.showDiagnosticSaving = true;
+      this.soDiagnosticService.create(sanitized).pipe(finalize(() => this.showDiagnosticSaving = false)).subscribe({
         next: () => { this.loadRelatedCollections(); this.closeDiagnosticModal(); this.toastService.success('Diagnostic created'); },
         error: () => this.toastService.error('Error creating diagnostic')
       });
@@ -883,12 +887,14 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     };
 
     if (id) {
-      this.repairStatusService.update(id, sanitized).subscribe({
+      this.showStatusSaving = true;
+      this.repairStatusService.update(id, sanitized).pipe(finalize(() => this.showStatusSaving = false)).subscribe({
         next: () => { this.loadRelatedCollections(); this.closeStatusModal(); this.toastService.success('Status updated'); },
         error: () => this.toastService.error('Error updating status')
       });
     } else {
-      this.repairStatusService.create(sanitized).subscribe({
+      this.showStatusSaving = true;
+      this.repairStatusService.create(sanitized).pipe(finalize(() => this.showStatusSaving = false)).subscribe({
         next: () => { this.loadRelatedCollections(); this.closeStatusModal(); this.toastService.success('Status created'); },
         error: (err) => {
           const msg = err?.error?.message || err?.message || 'Error creating status';

@@ -13,11 +13,15 @@ import { DevicesService } from '../../shared/services/devices.service';
 import { ServiceTypesService } from '../../shared/services/service-types.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
+import { CustomersService } from '../../shared/services/customers.service';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
+import { Customers } from '../../shared/models/Customers';
 import { AuthService } from '../../shared/services/auth.service';
 import { DevicesFormComponent } from '../devices/devices-form.component';
 import { ServiceTypesFormComponent } from '../service-types/service-types-form.component';
+import { CustomerSearchComponent } from '../customers/customer-search.component';
+import { CustomersFormComponent } from '../customers/customers-form.component';
 
 interface FormState {
   isLoading: boolean;
@@ -30,7 +34,7 @@ interface FormState {
 @Component({
   selector: 'app-appointments-form-modern',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DevicesFormComponent, ServiceTypesFormComponent],
+  imports: [CommonModule, ReactiveFormsModule, DevicesFormComponent, ServiceTypesFormComponent, CustomerSearchComponent, CustomersFormComponent],
   templateUrl: './appointments-form-modern.component.html',
   //styleUrls: ['./appointments-form-modern.component.scss'],
   animations: [
@@ -57,6 +61,7 @@ export class AppointmentsFormModernComponent implements OnInit {
   private storesService = inject(StoresService);
   private authService = inject(AuthService);
   private employeesService = inject(EmployeesService);
+  private customersService = inject(CustomersService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -76,6 +81,10 @@ export class AppointmentsFormModernComponent implements OnInit {
   readonly selectedCenterId = signal<number | null>(null);
   readonly minDate = signal<string>(this.getTodayDate());
   readonly employees = signal<Employees[]>([]);
+  readonly ecustomers = signal<Customers[]>([]);
+  showCustomerSearch = false;
+  showCustomerModal = false;
+  editingCustomer: any = null;
   readonly userType = signal<'employee' | 'user' | null>(this.authService.getUserType());
   readonly showDeviceModal = signal(false);
   readonly showServiceTypeModal = signal(false);
@@ -127,6 +136,7 @@ export class AppointmentsFormModernComponent implements OnInit {
     this.loadDevices();
     this.loadServiceTypes();
     this.loadEmployees();
+    this.loadCustomers();
     this.checkEditMode();
   }
 
@@ -136,6 +146,7 @@ export class AppointmentsFormModernComponent implements OnInit {
       storeId: ['', [Validators.required]],
       createdById: [''],
       customer: ['', [Validators.required, Validators.minLength(3)]],
+      ecustomerId: [null],
       date: ['', [Validators.required]],
       time: ['', [Validators.required]],
       deviceId: ['', [Validators.required]],
@@ -148,6 +159,35 @@ export class AppointmentsFormModernComponent implements OnInit {
     });
 
     this.applyUserTypeRules();
+    // No usar control de formulario para toggle de cliente (evita que aparezca en payload)
+    this.useExistingCustomer = false;
+  }
+
+  private loadCustomers(): void {
+    this.customersService.getAll().subscribe({
+      next: (customers) => this.ecustomers.set(customers || []),
+      error: (err) => console.error('Error loading customers:', err)
+    });
+  }
+
+  // toggle control moved out of FormGroup to avoid sending it in the API payload
+  useExistingCustomer = false;
+
+  onUseExistingCustomerChange(useExisting: boolean): void {
+    this.useExistingCustomer = !!useExisting;
+    const customerControl = this.appointmentForm.get('customer');
+    const eCustomerControl = this.appointmentForm.get('ecustomerId');
+    if (this.useExistingCustomer) {
+      customerControl?.setValidators(null);
+      customerControl?.updateValueAndValidity({ emitEvent: false });
+      eCustomerControl?.setValidators([Validators.required]);
+      eCustomerControl?.updateValueAndValidity({ emitEvent: false });
+    } else {
+      eCustomerControl?.setValidators(null);
+      eCustomerControl?.updateValueAndValidity({ emitEvent: false });
+      customerControl?.setValidators([Validators.required, Validators.minLength(3)]);
+      customerControl?.updateValueAndValidity({ emitEvent: false });
+    }
   }
 
   private loadEmployees(): void {
@@ -357,10 +397,13 @@ export class AppointmentsFormModernComponent implements OnInit {
     }
     
     switch (step) {
-      case 0:
-        return (this.appointmentForm.get('customer')?.valid ?? false) &&
-               (this.appointmentForm.get('date')?.valid ?? false) &&
-               (this.appointmentForm.get('time')?.valid ?? false);
+      case 0: {
+        const useExisting = !!this.useExistingCustomer;
+        const customerValid = useExisting
+          ? (this.appointmentForm.get('ecustomerId')?.valid ?? false)
+          : (this.appointmentForm.get('customer')?.valid ?? false);
+        return customerValid && (this.appointmentForm.get('date')?.valid ?? false) && (this.appointmentForm.get('time')?.valid ?? false);
+      }
       case 1:
         return (this.appointmentForm.get('deviceId')?.valid ?? false) &&
                (this.appointmentForm.get('serviceTypeId')?.valid ?? false) &&
@@ -498,6 +541,20 @@ export class AppointmentsFormModernComponent implements OnInit {
     appointmentData.centerId = this.normalizeId(appointmentData.centerId);
     appointmentData.storeId = this.normalizeId(appointmentData.storeId);
     appointmentData.createdById = this.normalizeId(appointmentData.createdById);
+
+    // Remove internal-only flags and normalize customer fields for API
+    // Backend does not expect the `useExistingCustomer` flag
+    if ('useExistingCustomer' in appointmentData) delete appointmentData.useExistingCustomer;
+    // If ecustomerId is null/empty, remove it so API doesn't receive null
+    if (appointmentData.ecustomerId == null) {
+      delete appointmentData.ecustomerId;
+    } else {
+      // Ensure `customer` is present when ecustomerId is provided because DB requires non-null
+      if (!appointmentData.customer || appointmentData.customer === '') {
+        const found = (this.ecustomers() || []).find((c: any) => Number(c.id) === Number(appointmentData.ecustomerId));
+        appointmentData.customer = found ? `${found.firstName || ''} ${found.lastName || ''}`.trim() : '';
+      }
+    }
     const request = this.isEditMode()
       ? this.appointmentsService.update(this.currentAppointmentId()!, appointmentData)
       : this.appointmentsService.create(appointmentData);
@@ -614,6 +671,61 @@ export class AppointmentsFormModernComponent implements OnInit {
     if (this.isAppointmentClosed()) {
       this.appointmentForm.disable({ emitEvent: false });
     }
+  }
+
+  // Template helper: true when the current form is read-only for Expert non-center-admin
+  isFormReadOnly(): boolean {
+    const employee = this.authService.getCurrentEmployee();
+    return this.isEditMode() && !!employee && (employee as any).employee_type === 'Expert' && !(employee as any).isCenterAdmin;
+  }
+
+  isOrderFinalized(): boolean {
+    return !!this.appointmentForm.get('cloused')?.value || !!this.appointmentForm.get('canceled')?.value;
+  }
+
+  openCustomerSearch(): void {
+    this.showCustomerSearch = true;
+  }
+
+  openCustomerForm(): void {
+    this.editingCustomer = null;
+    this.showCustomerModal = true;
+  }
+
+  closeCustomerForm(): void {
+    this.showCustomerModal = false;
+  }
+
+  closeCustomerSearch(): void {
+    this.showCustomerSearch = false;
+  }
+
+  onCustomerSelected(customer: any): void {
+    if (customer && customer.id) {
+      this.appointmentForm.get('ecustomerId')?.setValue(customer.id);
+      const name = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+      if (name) this.appointmentForm.get('customer')?.setValue(name);
+      this.loadCustomers();
+    }
+    this.closeCustomerSearch();
+  }
+
+  onCustomerSaved(payload: Customers): void {
+    this.customersService.create(payload).subscribe({
+      next: (created) => {
+        const list = this.ecustomers();
+        this.ecustomers.set([...(list || []), created as any]);
+        if ((created as any)?.id) {
+          this.appointmentForm.get('ecustomerId')?.setValue((created as any).id);
+          const name = `${(created as any).firstName || ''} ${(created as any).lastName || ''}`.trim();
+          if (name) this.appointmentForm.get('customer')?.setValue(name);
+        }
+        this.closeCustomerForm();
+      },
+      error: () => {
+        console.error('Error creating customer');
+      }
+    });
   }
 
   private getTodayDate(): string {
