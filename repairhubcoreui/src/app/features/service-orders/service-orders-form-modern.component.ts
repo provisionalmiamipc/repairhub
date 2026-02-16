@@ -1,6 +1,6 @@
 import { Component, signal, computed, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
@@ -8,6 +8,7 @@ import { SONotes } from '../../shared/models/SONotes';
 import { SODiagnostic } from '../../shared/models/SODiagnostic';
 import { SOItems } from '../../shared/models/SOItems';
 import { RepairStatus } from '../../shared/models/RepairStatus';
+import { ReceivedPart } from '../../shared/models/ReceivedPart';
 import { ServiceOrdersService } from '../../shared/services/service-orders.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
@@ -32,8 +33,9 @@ import { SONotesFormComponent } from '../so-notes/so-notes-form.component';
 import { SODiagnosticFormComponent } from '../so-diagnostic/so-diagnostic-form.component';
 import { SOItemsFormComponent } from '../so-items/so-items-form.component';
 import { RepairStatusFormComponent } from '../repair-status/repair-status-form.component';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { debounceTime, takeUntil, finalize } from 'rxjs/operators';
+import { ReceivedPartsService } from '../received-parts/received-parts.service';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 
@@ -51,6 +53,7 @@ interface FormState {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     DevicesFormComponent,
     DeviceBrandsFormComponent,
     PaymentTypesFormComponent,
@@ -59,7 +62,8 @@ interface FormState {
     SONotesFormComponent,
     SODiagnosticFormComponent,
     SOItemsFormComponent,
-    RepairStatusFormComponent
+    RepairStatusFormComponent,
+    // ReceivedPartsFormComponent removed: using inline modal for received parts
   ],
   templateUrl: './service-orders-form-modern.component.html',
   //styleUrls: ['./service-orders-form-modern.component.scss'],
@@ -96,6 +100,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   public authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private receivedPartsService = inject(ReceivedPartsService);
   private destroy$ = new Subject<void>();
 
   // Lógica de visibilidad y valores por tipo de usuario
@@ -187,6 +192,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   showPaymentTypeModal = false;
   showCustomerSearch = false;
   showCustomerModal = false;
+  showReceivedPartModal = false;
 
   // Editing models
   editingNote: Partial<SONotes> | null = null;
@@ -197,6 +203,10 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   editingDeviceBrand: Partial<any> | null = null;
   editingPaymentType: Partial<any> | null = null;
   editingCustomer: Customers | null = null;
+  editingReceivedPart: Partial<ReceivedPart> | null = null;
+
+  // Collected received parts before saving the order
+  receivedParts: ReceivedPart[] = [];
 
   serviceOrderForm!: FormGroup;
   private costChangeSubject = new Subject<void>();
@@ -321,8 +331,23 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (order) => {
-          this.serviceOrderForm.patchValue(order);
-          this.serviceOrder.set(order);
+            this.serviceOrderForm.patchValue(order);
+            this.serviceOrder.set(order);
+            // Load received parts from server into local array so template shows them in edit mode
+            try {
+              this.receivedParts = Array.isArray((order as any).receivedParts) ? (order as any).receivedParts.map((rp: any) => ({
+                id: rp.id,
+                accessory: rp.accessory,
+                observations: rp.observations ?? undefined,
+                centerId: rp.centerId ?? undefined,
+                storeId: rp.storeId ?? undefined,
+                serviceOrderId: rp.serviceOrderId ?? undefined,
+                createdById: rp.createdById ?? undefined,
+                createdAt: rp.createdAt ?? new Date().toISOString()
+              })) : [];
+            } catch (e) {
+              this.receivedParts = [];
+            }
           this.lockFormIfFinalized();
           // Initialize selectedCenterId signal after patching form
           const centerId = this.serviceOrderForm.get('centerId')?.value;
@@ -513,20 +538,68 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
     this.formState.update(s => ({ ...s, isSaving: true, error: null }));
 
-    const orderData = this.serviceOrderForm.getRawValue();
+    const orderData: any = this.serviceOrderForm.getRawValue();
+    // Include received parts in payload only on create (no enviar en edición)
+    if (!this.isEditMode() && (this.receivedParts || []).length) {
+      // Determine final createdById to apply to parts when missing
+      let finalCreatedById = orderData.createdById ?? undefined;
+      // Normalize falsy / zero values to undefined to avoid FK violations
+      if (finalCreatedById === 0 || finalCreatedById === '0' || finalCreatedById === '') finalCreatedById = undefined;
+      if (!finalCreatedById) {
+        if (this.userType() !== 'user') {
+          const emp = this.authService.getCurrentEmployee();
+          finalCreatedById = emp?.id ?? undefined;
+        } else {
+          const u = (this.authService as any).getCurrentUser?.();
+          finalCreatedById = u?.id ?? undefined;
+        }
+      }
+
+      const normalizeId = (v: any) => (v === 0 || v === '0' || v === '' ? undefined : v ?? undefined);
+      orderData.receivedParts = (this.receivedParts || []).map(p => ({
+        accessory: p.accessory,
+        observations: p.observations,
+        centerId: normalizeId(p.centerId) ?? orderData.centerId,
+        storeId: normalizeId(p.storeId) ?? orderData.storeId,
+        createdById: normalizeId(p.createdById) ?? normalizeId(finalCreatedById) ?? undefined
+      }));
+    }
+    // Debug: log payload and auth context to help diagnose server 500
+    try {
+      console.log('ServiceOrder payload (to send):', orderData);
+      if (orderData.receivedParts) {
+        console.table(orderData.receivedParts);
+      }
+      const empDbg = this.authService.getCurrentEmployee?.() ?? null;
+      const usrDbg = (this.authService as any).getCurrentUser?.() ?? null;
+      console.log('Auth context:', { userType: this.userType(), employee: empDbg, user: usrDbg });
+    } catch (e) {
+      console.warn('Failed to stringify payload for debug', e);
+    }
+
     const request = this.isEditMode()
       ? this.serviceOrdersService.update(this.currentServiceOrderId()!, orderData)
       : this.serviceOrdersService.create(orderData);
 
     request.pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.formState.update(s => ({ ...s, isSaving: false, success: true }));
-          const msg = this.isEditMode() ? 'Service order updated' : 'Service order created';
-          this.toastService.success(msg);
-          setTimeout(() => {
-            this.router.navigate(['/service-orders']);
-          }, 1500);
+        next: (res: any) => {
+          const savedOrder = res as any;
+          const savedId = savedOrder?.id ?? this.currentServiceOrderId() ?? null;
+
+          const finalizeSuccess = () => {
+            this.formState.update(s => ({ ...s, isSaving: false, success: true }));
+            const msg = this.isEditMode() ? 'Service order updated' : 'Service order created';
+            this.toastService.success(msg);
+            // clear temporary list only when creating (do not clear on edit)
+            if (!this.isEditMode()) {
+              this.receivedParts = [];
+            }
+            setTimeout(() => this.router.navigate(['/service-orders']), 1200);
+          };
+
+          // receivedParts were included only on create; backend handles persistence
+          finalizeSuccess();
         },
         error: (err) => {
           this.formState.update(s => ({
@@ -584,6 +657,42 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         },
         error: () => this.toastService.error('Error creating customer')
       });
+  }
+
+  /* Received parts (local management before order save) */
+  openReceivedPartModal(): void {
+    this.editingReceivedPart = { accessory: '', observations: '', centerId: this.serviceOrderForm.get('centerId')?.value ?? undefined, storeId: this.serviceOrderForm.get('storeId')?.value ?? undefined } as any;
+    this.showReceivedPartModal = true;
+  }
+
+  closeReceivedPartModal(): void {
+    this.editingReceivedPart = null;
+    this.showReceivedPartModal = false;
+  }
+
+  saveReceivedPartLocal(payload: Partial<ReceivedPart> | null): void {
+    if (!payload) return;
+    const p: ReceivedPart = {
+      id: (payload as any)?.id ?? undefined as any,
+      accessory: String(payload.accessory || ''),
+      observations: payload.observations ?? undefined,
+      centerId: payload.centerId ?? this.serviceOrderForm.get('centerId')?.value ?? undefined,
+      storeId: payload.storeId ?? this.serviceOrderForm.get('storeId')?.value ?? undefined,
+      serviceOrderId: undefined,
+      createdById: (() => {
+        const val = payload.createdById ?? this.serviceOrderForm.get('createdById')?.value ?? undefined;
+        return (val === 0 || val === '0' || val === '') ? undefined : val;
+      })(),
+      createdAt: new Date().toISOString()
+    } as any;
+    this.receivedParts.push(p);
+    this.toastService.success('Accessory added');
+    this.closeReceivedPartModal();
+  }
+
+  removeReceivedPart(index: number): void {
+    if (index < 0 || index >= this.receivedParts.length) return;
+    this.receivedParts.splice(index, 1);
   }
 
   openAddDevice(): void {
