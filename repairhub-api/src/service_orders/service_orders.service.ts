@@ -9,6 +9,7 @@ import { ServiceOrder } from './entities/service_order.entity';
 import { RepairStatus } from '../repair_status/entities/repair_status.entity';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
+import { ReceivedPart } from '../received-parts/entities/received-part.entity';
 
 
 @Injectable()
@@ -56,22 +57,46 @@ formatDateToMMDDYYYY(date: Date): string {
     }
     const orderCode = `SO${nextNumber.toString().padStart(5, '0')}`;
 
-    const entity = this.serviceOrderRepository.create({ ...createDto, orderCode });
-    const savedOrder = await this.serviceOrderRepository.save(entity);
+    // Use a transaction to create service order, initial repair status and any received parts atomically
+    const savedOrder = await this.serviceOrderRepository.manager.transaction(async (manager) => {
+      const entity = manager.create(ServiceOrder, { ...createDto, orderCode });
+      const order = await manager.save(entity);
 
-    // Create initial repair status for the new service order
-    try {
-      const initialStatus = this.repairStatusRepository.create({
-        centerId: savedOrder.centerId,
-        storeId: savedOrder.storeId,
-        serviceOrderId: savedOrder.id,
-        status: 'Pending',
-        createdById: savedOrder.createdById,
-      });
-      await this.repairStatusRepository.save(initialStatus);
-    } catch (err) {
-      // Do not fail the creation of the service order if repair status cannot be created
-    }
+      // Create initial repair status for the new service order
+      try {
+        const initialStatus = manager.create(RepairStatus, {
+          centerId: order.centerId,
+          storeId: order.storeId,
+          serviceOrderId: order.id,
+          status: 'Pending',
+          createdById: order.createdById,
+        });
+        await manager.save(initialStatus);
+      } catch (err) {
+        // swallow errors for initial status
+      }
+
+      // Create received parts if provided
+      if (createDto.receivedParts && Array.isArray(createDto.receivedParts) && createDto.receivedParts.length) {
+        const partsRepo = manager.getRepository(ReceivedPart);
+        const normalizeId = (v: any) => {
+          if (v === undefined || v === null) return null;
+          const n = Number(v);
+          return Number.isFinite(n) && n > 0 ? n : null;
+        };
+        const partsToSave = createDto.receivedParts.map(p => ({
+          accessory: p.accessory,
+          observations: p.observations ?? null,
+          createdById: normalizeId(p.createdById) ?? normalizeId(order.createdById) ?? null,
+          serviceOrderId: order.id,
+          centerId: p.centerId ?? order.centerId,
+          storeId: p.storeId ?? order.storeId,
+        }));
+        await partsRepo.save(partsToSave as any);
+      }
+
+      return order;
+    });
 
     // Recuperar la orden con relaciones completas
     const fullOrder = await this.serviceOrderRepository.findOne({
@@ -184,7 +209,8 @@ formatDateToMMDDYYYY(date: Date): string {
         'soitems.item',
         'sonotes',
         'sodiagnostic',
-        'repairStatus'
+        'repairStatus',
+        'receivedParts'
         
       ],
     });
@@ -206,7 +232,8 @@ formatDateToMMDDYYYY(date: Date): string {
         'soitems.item',
         'sonotes',
         'sodiagnostic',
-        'repairStatus'
+        'repairStatus',
+        'receivedParts'
       ],
     });
     if (!entity) throw new NotFoundException(`ServiceOrder #${id} not found`);

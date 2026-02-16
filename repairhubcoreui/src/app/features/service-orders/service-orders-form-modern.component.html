@@ -231,8 +231,8 @@
                 <!-- Model -->
                 <div class="col-md-6 col-xl-4">
                   <label for="model" class="form-label">Model *</label>
-                  <input type="text" id="model" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('model')"
-                    formControlName="model" placeholder="Device model" />
+                  <input type="text" id="model" autocomplete="off" class="form-control"
+                    [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model" />
                   @if (isFieldInvalid('model')) {
                   <span class="error-message">{{ getFieldError('model') }}</span>
                   }
@@ -248,8 +248,8 @@
                 <!-- Defective Part -->
                 <div class="col-12">
                   <label for="defectivePart" class="form-label">Defective Part</label>
-                  <input type="text" id="defectivePart" autocomplete="off" class="form-control" formControlName="defectivePart"
-                    placeholder="Describe the defective part" />
+                  <input type="text" id="defectivePart" autocomplete="off" class="form-control"
+                    formControlName="defectivePart" placeholder="Describe the defective part" />
                 </div>
 
                 <!-- Reception Note -->
@@ -270,7 +270,8 @@
                 @if (showCenterAndStoreFields()) {
                 <div class="col-12">
                   <div class="form-check">
-                    <input id="lock" type="checkbox" formControlName="lock" class="form-check-input" autocomplete="off" />
+                    <input id="lock" type="checkbox" formControlName="lock" class="form-check-input"
+                      autocomplete="off" />
                     <label class="form-check-label" for="lock">Lock order</label>
                   </div>
                 </div>
@@ -287,8 +288,8 @@
                 <!-- Price -->
                 <div class="col-md-6 col-xl-4">
                   <label for="price" class="form-label">Price *</label>
-                  <input type="number" id="price" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('price')"
-                    formControlName="price" min="0" step="0" />
+                  <input type="number" id="price" autocomplete="off" class="form-control"
+                    [class.is-invalid]="isFieldInvalid('price')" formControlName="price" min="0" step="0" />
                   @if (isFieldInvalid('price')) {
                   <span class="error-message">{{ getFieldError('price') }}</span>
                   }
@@ -307,15 +308,15 @@
                 <!-- Discount -->
                 <div class="col-md-6 col-xl-4">
                   <label for="costdiscount" class="form-label">Discount (%)</label>
-                  <input type="number" id="costdiscount" autocomplete="off" class="form-control" formControlName="costdiscount" min="0"
-                    step="0" />
+                  <input type="number" id="costdiscount" autocomplete="off" class="form-control"
+                    formControlName="costdiscount" min="0" step="0" />
                 </div>
 
                 <!-- Advance Payment -->
                 <div class="col-md-6 col-xl-4">
                   <label for="advancePayment" class="form-label">Advance Payment</label>
-                  <input type="number" id="advancePayment" autocomplete="off" class="form-control" formControlName="advancePayment" min="0"
-                    step="0" />
+                  <input type="number" id="advancePayment" autocomplete="off" class="form-control"
+                    formControlName="advancePayment" min="0" step="0" />
                 </div>
 
                 <!-- Payment Type -->
@@ -336,13 +337,15 @@
                 <!-- Tax -->
                 <div class="col-md-6 col-xl-4">
                   <label for="tax" class="form-label">Tax (%)</label>
-                  <input type="number" id="tax" autocomplete="off" class="form-control" formControlName="tax" min="0" step="0" />
+                  <input type="number" id="tax" autocomplete="off" class="form-control" formControlName="tax" min="0"
+                    step="0" />
                 </div>
 
                 <!-- Total Cost (read-only) -->
                 <div class="col-md-6 col-xl-">
                   <label for="totalCost" class="form-label">Total Cost</label>
-                  <input type="number" id="totalCost" autocomplete="off" class="form-control" formControlName="totalCost" readonly />
+                  <input type="number" id="totalCost" autocomplete="off" class="form-control"
+                    formControlName="totalCost" readonly />
                   <small class="text-muted">Calculated automatically</small>
                 </div>
                 <div class="col-md-2 col-xl-2"></div>
@@ -417,16 +420,18 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ d.diagnostic }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail" class="btn btn-link" type="button"
-                        (click)="openEditDiagnostic(d)" aria-label="Edit diagnostic">
+                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail" class="btn btn-link"
+                        type="button" (click)="openEditDiagnostic(d)" aria-label="Edit diagnostic">
                         <i class="bi bi-pencil" aria-hidden="true"></i>
                       </button>
-                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail" class="btn btn-link text-danger" type="button" (click)="deleteDiagnostic(d.id)"
+                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail"
+                        class="btn btn-link text-danger" type="button" (click)="deleteDiagnostic(d.id)"
                         [disabled]="isFormReadOnly()" aria-label="Delete diagnostic">
                         <i class="bi bi-trash" aria-hidden="true"></i>
                       </button>
                       <div *ngIf="d.sendEmail" class="d-flex align-items-center">
-                        <i class="bi bi-envelope-fill text-success me-2" title="Sent to customer" aria-hidden="true"></i>
+                        <i class="bi bi-envelope-fill text-success me-2" title="Sent to customer"
+                          aria-hidden="true"></i>
                         <small class="text-muted">{{ d.createdAt | date:'dd/MM/yyyy' }}</small>
                       </div>
                     </div>
@@ -493,6 +498,35 @@
                   <li class="list-group-item text-muted">No items</li>
                   }
                 </ul>
+              </div>
+            </div>
+
+            <!-- Received Parts (local) -->
+            <div class="card mt-3">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Received Parts</span>
+                <!--button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                  type="button" (click)="openReceivedPartModal()">+</button-->
+              </div>
+              <div class="card-body">
+                @if (!receivedParts.length) {
+                <div class="text-muted">No accessories added</div>
+                }
+                <div class="d-flex flex-column gap-2">
+                  @for (rp of receivedParts; track rp.id) {
+                  <div class="d-inline-flex align-items-center justify-content-between mb-0 p-2 border rounded bg-transparent">
+                    <div class="d-flex flex-column">
+                      <strong>{{ rp.accessory }}</strong>
+                      <div class="small text-muted">{{ rp.observations }}</div>
+                    </div>
+                    <!--button type="button" class="btn-close ms-2" aria-label="Close"
+                      (click)="removeReceivedPart(receivedParts.indexOf(rp))"></button-->
+                  </div>
+                  
+                  }
+                  
+                  
+                </div>
               </div>
             </div>
             }
@@ -633,6 +667,39 @@
               }
             </div>
 
+            <!-- Received Parts (create step) -->
+            <div class="col-12">
+              <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center bg-transparent ">
+                  <span>Received Parts</span>
+                  <button *ngIf="!isFormReadOnly()" class="btn btn-sm btn-outline-primary" type="button"
+                    (click)="openReceivedPartModal()">+</button>
+                </div>
+                <div class="card-body">                  
+                  @if (!receivedParts.length) {
+                  <div class="text-muted">No accessories added</div>
+                  }
+                  <div class="d-flex flex-row flex-wrap gap-2 align-items-start">
+                  @for (rp of receivedParts; track rp.accessory) {
+                  <div class="d-inline-flex align-items-center justify-content-between mb-0 p-2 border rounded bg-transparent">
+                    <div class="d-flex flex-column">
+                      <strong>{{ rp.accessory }}</strong>
+                      <div class="small text-muted">{{ rp.observations }}</div>
+                    </div>
+                    <button type="button" class="btn-close ms-2" aria-label="Close"
+                      (click)="removeReceivedPart(receivedParts.indexOf(rp))"></button>
+                  </div>
+                    
+                    }                   
+                  
+                  </div>                
+                  
+                </div>
+              </div>
+            </div>
+
+            
+
             <!-- Reception Note -->
             <div class="col-12">
               <label for="noteReception" class="form-label">Reception Notes</label>
@@ -653,8 +720,8 @@
             <!-- Model -->
             <div class="col-md-6 col-xl-4">
               <label for="model" class="form-label">Model *</label>
-              <input type="text" id="model" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('model')"
-                formControlName="model" placeholder="Device model" />
+              <input type="text" id="model" autocomplete="off" class="form-control"
+                [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model" />
               @if (isFieldInvalid('model')) {
               <span class="error-message">{{ getFieldError('model') }}</span>
               }
@@ -702,8 +769,8 @@
             <!-- Defective Part -->
             <div class="col-12">
               <label for="defectivePart" class="form-label">Defective Part</label>
-              <input type="text" id="defectivePart" autocomplete="off" class="form-control" formControlName="defectivePart"
-                placeholder="Describe the defective part" />
+              <input type="text" id="defectivePart" autocomplete="off" class="form-control"
+                formControlName="defectivePart" placeholder="Describe the defective part" />
             </div>
 
             <!-- Estimated -->
@@ -727,8 +794,8 @@
             <!-- Price -->
             <div class="col-md-6 col-xl-4">
               <label for="price" class="form-label">Price *</label>
-              <input type="number" id="price" autocomplete="off" class="form-control" [class.is-invalid]="isFieldInvalid('price')"
-                formControlName="price" min="0" step="0" />
+              <input type="number" id="price" autocomplete="off" class="form-control"
+                [class.is-invalid]="isFieldInvalid('price')" formControlName="price" min="0" step="0" />
               @if (isFieldInvalid('price')) {
               <span class="error-message">{{ getFieldError('price') }}</span>
               }
@@ -747,21 +814,22 @@
             <!-- Discount -->
             <div class="col-md-6 col-xl-4">
               <label for="costdiscount" class="form-label">Discount (%)</label>
-              <input type="number" id="costdiscount" autocomplete="off" class="form-control" formControlName="costdiscount" min="0"
-                step="0" />
+              <input type="number" id="costdiscount" autocomplete="off" class="form-control"
+                formControlName="costdiscount" min="0" step="0" />
             </div>
 
             <!-- Tax -->
             <div class="col-md-6 col-xl-4">
               <label for="tax" class="form-label">Tax (%)</label>
-              <input type="number" id="tax" autocomplete="off" class="form-control" formControlName="tax" min="0" step="0" />
+              <input type="number" id="tax" autocomplete="off" class="form-control" formControlName="tax" min="0"
+                step="0" />
             </div>
 
             <!-- Advance Payment -->
             <div class="col-md-6 col-xl-4">
               <label for="advancePayment" class="form-label">Advance Payment</label>
-              <input type="number" id="advancePayment" autocomplete="off" class="form-control" formControlName="advancePayment" min="0"
-                step="0" />
+              <input type="number" id="advancePayment" autocomplete="off" class="form-control"
+                formControlName="advancePayment" min="0" step="0" />
             </div>
 
             <!-- Payment Type -->
@@ -789,7 +857,8 @@
             <div class="col-6">
               <div class="alert alert-info mb-0">
                 <label for="totalCost" class="form-label">Total Price (Calculated)</label>
-                <input type="number" id="totalCost" hidden autocomplete="off" class="form-control" formControlName="totalCost" readonly />
+                <input type="number" id="totalCost" hidden autocomplete="off" class="form-control"
+                  formControlName="totalCost" readonly />
                 <div class="col-md-2 col-xl-2"></div>
                 <div class="col-md-6 col-xl-4">
                   @if (!isEditMode()) {
@@ -932,7 +1001,8 @@
     [centerId]="serviceOrder()?.centerId ?? serviceOrderForm.get('centerId')?.value"
     [storeId]="serviceOrder()?.storeId ?? serviceOrderForm.get('storeId')?.value"
     [createdById]="serviceOrder()?.createdById ?? serviceOrderForm.get('createdById')?.value" [isModal]="true"
-    [saving]="showDiagnosticSaving" (save)="onDiagnosticSaved($event)" (cancel)="closeDiagnosticModal()"></app-so-diagnostic-form>
+    [saving]="showDiagnosticSaving" (save)="onDiagnosticSaved($event)"
+    (cancel)="closeDiagnosticModal()"></app-so-diagnostic-form>
   }
 
   @if (showItemModal) {
@@ -949,5 +1019,34 @@
     [storeIdInput]="serviceOrder()?.storeId ?? serviceOrderForm.get('storeId')?.value"
     [createdByIdInput]="serviceOrder()?.createdById ?? serviceOrderForm.get('createdById')?.value" [isModal]="true"
     [saving]="showStatusSaving" (save)="onStatusSaved($event)" (cancel)="closeStatusModal()"></app-repair-status-form>
+  }
+
+  @if (showReceivedPartModal) {
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title">Add accessory</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeReceivedPartModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">Accessory</label>
+            <input class="form-control" [(ngModel)]="editingReceivedPart!.accessory" />
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Observations</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="editingReceivedPart!.observations"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" (click)="closeReceivedPartModal()">Cancel</button>
+          <button class="btn btn-primary" type="button" (click)="saveReceivedPartLocal(editingReceivedPart)"
+            [disabled]="!editingReceivedPart || !editingReceivedPart.accessory">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
   }
 </div>

@@ -28,6 +28,10 @@ export const routes: Routes = [
     redirectTo: 'login',
     pathMatch: 'full'
   },
+      { 
+      path: 'received-parts', loadComponent: () => import('./features/received-parts/received-parts-list.component').then(m => m.ReceivedPartsListComponent),
+      canActivate: [authGuard]
+     },
   { 
     path: 'login', 
     loadComponent: () => import('./shared/components/login/login.component').then(c => c.LoginComponent),

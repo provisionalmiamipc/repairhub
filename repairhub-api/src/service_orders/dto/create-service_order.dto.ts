@@ -1,4 +1,6 @@
-import { IsInt, IsNumber, IsOptional, IsBoolean, IsString } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsBoolean, IsString, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateReceivedPartNestedDto } from './create-received-part-nested.dto';
 
 export class CreateServiceOrderDto {
 	@IsInt()
@@ -69,4 +71,10 @@ export class CreateServiceOrderDto {
     
 	@IsInt()
 	createdById: number;
+
+	@IsOptional()
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreateReceivedPartNestedDto)
+	receivedParts?: CreateReceivedPartNestedDto[];
 }

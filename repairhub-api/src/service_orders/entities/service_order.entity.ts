@@ -12,6 +12,7 @@ import { SODiagnostic } from '../../s_o_diagnostic/entities/s_o_diagnostic.entit
 import { RepairStatus } from '../../repair_status/entities/repair_status.entity';
 import { SOItem } from '../../s_o_items/entities/s_o_item.entity';
 import { ServiceOrdersRequested } from '../../service_orders_requested/entities/service_orders_requested.entity';
+import { ReceivedPart } from '../../received-parts/entities/received-part.entity';
 import { Exclude } from 'class-transformer';
 
 
@@ -173,5 +174,8 @@ export class ServiceOrder {
 
     @OneToMany(() => ServiceOrdersRequested, (soRequested) => soRequested.serviceOrder)
     soRequested: ServiceOrdersRequested[];
+
+    @OneToMany(() => ReceivedPart, (rp) => rp.serviceOrder)
+    receivedParts: ReceivedPart[];
 
 }
