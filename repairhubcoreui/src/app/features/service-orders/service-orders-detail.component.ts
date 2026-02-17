@@ -13,4 +13,9 @@ export class ServiceOrdersDetailComponent {
   @Input() serviceOrder: ServiceOrders | null = null;
   @Output() back = new EventEmitter();
   @Output() edit = new EventEmitter(); 
+
+  // trackBy helper for ngFor
+  trackById(index: number, item: any) {
+    return item?.id ?? index;
+  }
 }

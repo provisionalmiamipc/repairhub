@@ -62,7 +62,7 @@ export class ServiceOrderPdfService {
             'cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not' +
             'include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. -' +
             'Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not' +
-            'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -';
+            'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -' +
             'Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or' +
             'discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics' + 
             'performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:' +

@@ -112,7 +112,8 @@ formatDateToMMDDYYYY(date: Date): string {
         'soitems.item',
         'sonotes',
         'sodiagnostic',
-        'repairStatus'
+        'repairStatus',
+        'receivedParts'
       ],
     });
 
@@ -170,6 +171,10 @@ formatDateToMMDDYYYY(date: Date): string {
           quantity: it.quantity || 1,
           price: it.price || it.cost || 0,
           discount: it.discount || 0,
+        })),
+        receivedParts: (fullOrder.receivedParts || []).map(rp => ({
+          accessory: rp.accessory || '',
+          observations: rp.observations || '',
         })),
       };
       // Enqueue PDF generation + email send to background job for faster response
@@ -278,7 +283,8 @@ formatDateToMMDDYYYY(date: Date): string {
         'soitems.item',
         'sonotes',
         'sodiagnostic',
-        'repairStatus'
+        'repairStatus',
+        'receivedParts'
       ],
     });
 
@@ -336,6 +342,10 @@ formatDateToMMDDYYYY(date: Date): string {
         price: it.price || it.cost || 0,
         discount: it.discount || 0,
       })),
+        receivedParts: (fullOrder.receivedParts || []).map(rp => ({
+          accessory: rp.accessory || '',
+          observations: rp.observations || '',
+        })),
     };
 
     if (this.pdfJobService) {

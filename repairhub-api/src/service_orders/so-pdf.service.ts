@@ -29,6 +29,7 @@ export class RepairPdfService {
         this.drawSummarySection(doc, data);
         this.drawDeviceSection(doc, data);
         this.drawDefectivePartsSection(doc, data);
+        this.drawReceivedPartsSection(doc, data);
         this.drawStatusHistorySection(doc, data);
 
         // Add new page for notes
@@ -70,12 +71,15 @@ export class RepairPdfService {
         this.drawSummarySection(doc, data);
         this.drawDeviceSection(doc, data);
         this.drawDefectivePartsSection(doc, data);
+        this.drawReceivedPartsSection(doc, data);
         this.drawStatusHistorySection(doc, data);
 
         // Add new page for notes and remaining sections
         doc.addPage();
         this.drawNotesSection(doc, data);
         this.drawProductSummarySection(doc, data);
+
+        doc.addPage();
         this.drawTermsAndConditions(doc);
 
         doc.end();
@@ -84,6 +88,39 @@ export class RepairPdfService {
       }
     });
   }
+
+  /**
+   * Generates the repair PDF and streams it to the response
+   * @param data - Repair data object
+   * @param res - Express Response object
+   
+  async streamRepairPdf(data: any, res: Response): Promise<void> {
+    const doc = new PDFDocument({
+      size: 'letter',
+      margins: { top: 50, bottom: 50, left: 50, right: 50 },
+    });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="repair.pdf"');
+
+    doc.pipe(res);
+
+    // Draw the document
+    this.drawHeader(doc, data);
+    this.drawSummarySection(doc, data);
+    this.drawDeviceSection(doc, data);
+    this.drawDefectivePartsSection(doc, data);
+    //this.drawReceivedPartsSection(doc, data);
+    this.drawStatusHistorySection(doc, data);
+
+    // Add new page for notes
+    doc.addPage();
+    this.drawNotesSection(doc, data);
+    this.drawProductSummarySection(doc, data);
+    this.drawTermsAndConditions(doc);
+
+    doc.end();
+  }*/
 
   /**
    * Draw the header with logo and company info
@@ -388,7 +425,7 @@ export class RepairPdfService {
       .fontSize(11)
       .font('Helvetica')
       .fillColor('#000000')
-      .text(data.defectivePart, marginLeft + 10, yPos);
+      .text(data.defectivePart, marginLeft + 10, yPos);      
 
     // Defective parts (with X)
     /*data.defectiveParts.forEach((part) => {
@@ -429,6 +466,50 @@ export class RepairPdfService {
   }
 
   /**
+   * Draw RECEIVED PARTS section
+   */
+  private drawReceivedPartsSection(doc: PDFDocument, data: any): void {
+    if (!data.receivedParts || data.receivedParts.length === 0) {
+      return;
+    }
+
+    const marginLeft = doc.page.margins.left;
+    let yPos = doc.y + 20;
+
+    // Section title
+    doc
+      .fontSize(18)
+      .font('Helvetica-Bold')
+      .fillColor('#000000')
+      .text('Received Parts', marginLeft, yPos);
+
+    yPos += 25;
+
+    // Table headers
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .text('Accessory', marginLeft, yPos)
+      .text('Observations', marginLeft + 200, yPos);
+
+    yPos += 15;
+
+    // Table content
+    data.receivedParts.forEach((part: any) => {
+      doc
+        .fontSize(11)
+        .font('Helvetica')
+        .fillColor('#000000')
+        .text(part.accessory, marginLeft, yPos)
+        .text(part.observations || 'N/A', marginLeft + 200, yPos);
+
+      yPos += 15;
+    });
+
+    doc.moveDown();
+  }
+
+  /**
    * Draw STATUS HISTORY section
    */
   private drawStatusHistorySection(doc: PDFDocument, data: any): void {
@@ -439,7 +520,7 @@ export class RepairPdfService {
       const pageWidth = doc.page.width;
       const contentWidth = pageWidth - marginLeft - marginRight;
 
-      let yPos = 540;
+      let yPos = doc.y + 20;
 
       // Section title
       doc
@@ -911,7 +992,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
-    let yPos = 530;
+    let yPos = doc.y + 25;
 
     // Section title
     doc
@@ -923,7 +1004,20 @@ export class RepairPdfService {
     yPos += 20;
 
     // Terms text
-    const termsText = `Miami Photography Center Last updated: August 2025 Repairs (in workshop) Scope of Service Technical repair and maintenance of photographic cameras, lenses, flashes, and accessories at our specialized workshop. Estimates and Diagnosis - Free estimates conducted in our workshop. - If final cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. - Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup - Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, and`;
+    const termsText = 'Miami Photography Center Last updated: August 2025 Repairs (in workshop) Scope of Service' +
+            'Technical repair and maintenance of photographic cameras, lenses, flashes, and accessories at our' +   
+            'specialized workshop. Estimates and Diagnosis - Free estimates conducted in our workshop. - If final' +
+            'cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not' +
+            'include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. -' +
+            'Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not' +
+            'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -';
+            'Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or' +
+            'discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics' + 
+            'performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:' +
+            '$45, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not' +
+            'guaranteed on-site. Warranty and Liability - Same 6-month warranty as workshop repairs. - Immediate' +
+            'on-site resolution not guaranteed if parts are needed. Logistics - Client must provide proper access to' +
+            'the service area. - Rescheduling allowed with at least 24-hour notice.';
 
     doc
       .fontSize(7)
@@ -931,24 +1025,12 @@ export class RepairPdfService {
       .text(termsText, marginLeft, yPos, {
         width: contentWidth,
         align: 'justify',
-      });
+      });    
 
-    // Add new page for continuation
-    doc.addPage();
-    yPos = 50;
-
-    const termsText2 = `diagnostics performed at the client's location via mobile unit. Diagnosis and Costs - On-site diagnosis: $45, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not guaranteed on-site. Warranty and Liability - Same 6-month warranty as workshop repairs. - Immediate on-site resolution not guaranteed if parts are needed. Logistics - Client must provide proper access to the service area. - Rescheduling allowed with at least 24-hour notice.`;
-
-    doc
-      .fontSize(7)
-      .font('Helvetica')
-      .text(termsText2, marginLeft, yPos, {
-        width: contentWidth,
-        align: 'justify',
-      });
+    
 
     // Signature line
-    yPos += 80;
+    yPos += 180;
     doc
       .strokeColor('#000000')
       .lineWidth(1)
@@ -975,5 +1057,49 @@ export class RepairPdfService {
     doc.fontSize(fontSize);
     const heightUsed = doc.heightOfString(text, { width });
     return heightUsed;
+  }
+
+  /**
+   * Draw DIAGNOSTICS section
+   */
+  private drawDiagnosticsSection(doc: PDFDocument, data: any): void {
+    if (!data.diagnostics || data.diagnostics.length === 0) {
+      return;
+    }
+
+    const marginLeft = doc.page.margins.left;
+    let yPos = doc.y + 20;
+
+    // Section title
+    doc
+      .fontSize(18)
+      .font('Helvetica-Bold')
+      .fillColor('#000000')
+      .text('Diagnostics', marginLeft, yPos);
+
+    yPos += 25;
+
+    // Table headers
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .text('Title', marginLeft, yPos)
+      .text('Date', marginLeft + 200, yPos);
+
+    yPos += 15;
+
+    // Table content
+    data.diagnostics.forEach((diagnostic: any) => {
+      doc
+        .fontSize(11)
+        .font('Helvetica')
+        .fillColor('#000000')
+        .text(diagnostic.title, marginLeft, yPos)
+        .text(diagnostic.date, marginLeft + 200, yPos);
+
+      yPos += 15;
+    });
+
+    doc.moveDown();
   }
 }

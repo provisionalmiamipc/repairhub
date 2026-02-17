@@ -10,6 +10,7 @@ import { SODiagnostic } from "./SODiagnostic";
 import { SOItems } from "./SOItems";
 import { SONotes } from "./SONotes";
 import { Stores } from "./Stores";
+import { ReceivedPart } from './ReceivedPart';
 
 export interface ServiceOrders {
   id: number;
@@ -43,6 +44,7 @@ export interface ServiceOrders {
   sOItems?: SOItems[];
   sONotes?: SONotes[];
   serviceOrderRequestes?: ServiceOrderRequeste[];
+  receivedParts?: ReceivedPart[];
   center?: Centers;
   assignedTech?: Employees;
   customer?: Customers;

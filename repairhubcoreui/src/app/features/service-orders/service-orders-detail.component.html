@@ -152,6 +152,20 @@
             </div>
           </div>
 
+          <!-- Received Parts -->
+          <div class="row mb-4" *ngIf="serviceOrder && serviceOrder['receivedParts'] && serviceOrder['receivedParts'].length">
+            <div class="col-12">
+              <h5 class="text-primary mb-3"><i class="bi bi-box-seam"></i> Received Parts</h5>
+              <div class="list-group">
+                <div class="list-group-item" *ngFor="let rp of serviceOrder['receivedParts']; trackBy: trackById">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ rp.accessory }} <small class="text-muted" *ngIf="rp.observations"> - {{ rp.observations }}</small></h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Timestamps -->
           <div class="row">
             <div class="col-12">
