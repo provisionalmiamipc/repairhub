@@ -29,13 +29,16 @@ export class RepairPdfService {
         this.drawSummarySection(doc, data);
         this.drawDeviceSection(doc, data);
         this.drawDefectivePartsSection(doc, data);
-        this.drawReceivedPartsSection(doc, data);
-        this.drawStatusHistorySection(doc, data);
+        this.drawNotesSection(doc, data);
+        this.drawReceivedPartsSection(doc, data);        
 
         // Add new page for notes
         doc.addPage();
-        this.drawNotesSection(doc, data);
+        this.drawDiagnosticsSection(doc, data);
+        this.drawStatusHistorySection(doc, data);
         this.drawProductSummarySection(doc, data);
+
+        doc.addPage();
         this.drawTermsAndConditions(doc);
 
         // Finalize PDF
@@ -71,12 +74,13 @@ export class RepairPdfService {
         this.drawSummarySection(doc, data);
         this.drawDeviceSection(doc, data);
         this.drawDefectivePartsSection(doc, data);
-        this.drawReceivedPartsSection(doc, data);
-        this.drawStatusHistorySection(doc, data);
+        this.drawNotesSection(doc, data);
+        this.drawReceivedPartsSection(doc, data); 
 
         // Add new page for notes and remaining sections
         doc.addPage();
-        this.drawNotesSection(doc, data);
+        this.drawDiagnosticsSection(doc, data);
+        this.drawStatusHistorySection(doc, data);
         this.drawProductSummarySection(doc, data);
 
         doc.addPage();
@@ -143,7 +147,7 @@ export class RepairPdfService {
       }
     } else {
       // Yellow logo box (approximation - you would use an actual image)
-      doc
+      /*doc
         .rect(marginLeft, 50, 100, 100)
         .fillAndStroke('#FFED00', '#FFED00');
 
@@ -152,7 +156,7 @@ export class RepairPdfService {
         .fillColor('#000000')
         .fontSize(28)
         .font('Helvetica-Bold')
-        .text('MPC', marginLeft + 20, 80, { width: 70, align: 'center' });
+        .text('MPC', marginLeft + 20, 80, { width: 70, align: 'center' });*/
     }
 
 
@@ -230,7 +234,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
-    let yPos = 250;
+    let yPos = doc.y + 25;
 
     // SUMMARY title
     doc
@@ -239,12 +243,12 @@ export class RepairPdfService {
       .fillColor('#000000')
       .text('SUMMARY', marginLeft, yPos);
 
-    yPos += 30;
+    yPos += 25;
 
     // Table header
     const tableTop = yPos;
     const colWidths = [contentWidth * 0.25, contentWidth * 0.25, contentWidth * 0.25, contentWidth * 0.25];
-    const headers = ['EMPLOYEE', ' ', 'CUSTOMER:', 'STATUS'];
+    const headers = ['EMPLOYEE', ' ', 'CUSTOMER', 'STATUS'];
 
     // Header background
     doc
@@ -308,13 +312,13 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
-    let yPos = 350;
+    let yPos = doc.y + 25;
 
     // Table header
     const tableTop = yPos;
     const colWidths = [
-      contentWidth * 0.20,
       contentWidth * 0.40,
+      contentWidth * 0.20,
       contentWidth * 0.20,
       contentWidth * 0.20,
     ];
@@ -410,22 +414,23 @@ export class RepairPdfService {
    */
   private drawDefectivePartsSection(doc: PDFDocument, data: any): void {
     const marginLeft = doc.page.margins.left;
-    let yPos = 430;
+
+    let yPos = doc.y + 30;
 
     // Section title
     doc
       .fontSize(18)
       .font('Helvetica-Bold')
       .fillColor('#000000')
-      .text('DEFECTIVE PARTS', marginLeft, yPos);
+      .text('DEFECTIVE PART', marginLeft, yPos);
 
-    yPos += 35;
+    yPos += 25;
 
     doc
-      .fontSize(11)
+      .fontSize(9)
       .font('Helvetica')
       .fillColor('#000000')
-      .text(data.defectivePart, marginLeft + 10, yPos);      
+      .text(data.defectivePart, marginLeft + 5, yPos);      
 
     // Defective parts (with X)
     /*data.defectiveParts.forEach((part) => {
@@ -469,44 +474,73 @@ export class RepairPdfService {
    * Draw RECEIVED PARTS section
    */
   private drawReceivedPartsSection(doc: PDFDocument, data: any): void {
+
     if (!data.receivedParts || data.receivedParts.length === 0) {
       return;
     }
 
     const marginLeft = doc.page.margins.left;
-    let yPos = doc.y + 20;
+    const marginRight = doc.page.margins.right;
+    const pageWidth = doc.page.width;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+
+    let yPos = doc.y + 25;
 
     // Section title
     doc
       .fontSize(18)
       .font('Helvetica-Bold')
       .fillColor('#000000')
-      .text('Received Parts', marginLeft, yPos);
+      .text('RECEIVED PARTS', marginLeft, yPos);
 
-    yPos += 25;
+    yPos += 20;   
+
+      // Table header
+      const tableTop = yPos;
+      const colWidths = [contentWidth * 0.5, contentWidth * 0.5];
+      
+
+      // Header background
+      doc
+        .rect(marginLeft, tableTop, contentWidth, 25)
+        .fill('#E8E8E8')
+        .stroke();
 
     // Table headers
     doc
-      .fontSize(12)
+      .fillColor('#000000')
+      .fontSize(9)
       .font('Helvetica-Bold')
-      .text('Accessory', marginLeft, yPos)
-      .text('Observations', marginLeft + 200, yPos);
+      .text('ACCESSORY', marginLeft + 5, tableTop + 8, {
+        width: colWidths[0] - 10,
+        align: 'left',
+      })
+      .text('OBSERVATIONS', marginLeft + colWidths[0] + 5, tableTop + 8, {
+        width: colWidths[1] - 10,
+        align: 'left',
+      });
 
-    yPos += 15;
+    yPos = tableTop + 25;
 
     // Table content
     data.receivedParts.forEach((part: any) => {
       doc
-        .fontSize(11)
+        .fontSize(9)
         .font('Helvetica')
         .fillColor('#000000')
-        .text(part.accessory, marginLeft, yPos)
-        .text(part.observations || 'N/A', marginLeft + 200, yPos);
+        .text(part.accessory, marginLeft + 5, yPos + 8, {
+            width: colWidths[0] - 10,
+            align: 'left',
+          })
+        .text(part.observations || '---', marginLeft + colWidths[0] + 5, yPos + 8, {
+          width: colWidths[1] - 10,
+          align: 'left',
+        });
 
-      yPos += 15;
+      yPos += 20;
     });
 
-    doc.moveDown();
+    //doc.moveDown();
   }
 
   /**
@@ -520,7 +554,7 @@ export class RepairPdfService {
       const pageWidth = doc.page.width;
       const contentWidth = pageWidth - marginLeft - marginRight;
 
-      let yPos = doc.y + 20;
+      let yPos = doc.y + 25;
 
       // Section title
       doc
@@ -529,7 +563,7 @@ export class RepairPdfService {
         .fillColor('#000000')
         .text('STATUS HISTORY', marginLeft, yPos);
 
-      yPos += 30;
+      yPos += 25;
 
       // Table header
       const tableTop = yPos;
@@ -591,9 +625,81 @@ export class RepairPdfService {
             width: colWidths[1] - 10,
           });
 
-        yPos += 25;
+        yPos += 20;
       });
     }
+  }
+
+  /**
+   * Draw DIAGNOSTICS section
+   */
+  private drawDiagnosticsSection(doc: PDFDocument, data: any): void {
+    if (!data.diagnostics || data.diagnostics.length === 0) {
+      return;
+    }
+
+    const marginLeft = doc.page.margins.left;
+    const marginRight = doc.page.margins.right;
+    const pageWidth = doc.page.width;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+
+    let yPos = doc.y + 25;
+
+    // Section title
+    doc
+      .fontSize(18)
+      .font('Helvetica-Bold')
+      .fillColor('#000000')
+      .text('DIAGNOSTICS', marginLeft, yPos);
+
+    yPos += 25;
+
+    // Table header
+      const tableTop = yPos;
+      const colWidths = [contentWidth * 0.8, contentWidth * 0.2];
+      
+
+      // Header background
+      doc
+        .rect(marginLeft, tableTop, contentWidth, 25)
+        .fill('#E8E8E8')
+        .stroke();
+
+    // Table headers
+    doc
+      .fontSize(9)
+      .fillColor('#000000')
+      .font('Helvetica-Bold')
+      .text('TITLE', marginLeft + 5, yPos + 8, {
+            width: colWidths[0] - 10,
+            align: 'left',
+          })
+      .text('DATE', marginLeft + colWidths[0] + 5, yPos + 8, {
+            width: colWidths[1] - 10,
+            align: 'left',
+          });
+
+    yPos += 25;
+
+    // Table content
+    data.diagnostics.forEach((diagnostic: any) => {
+      doc
+        .fontSize(9)
+        .font('Helvetica')
+        .fillColor('#000000')
+        .text(diagnostic.title, marginLeft + 5, yPos + 8, {
+            width: colWidths[0] - 10,
+            align: 'left',
+          })
+        .text(diagnostic.date, marginLeft + colWidths[0] + 5, yPos + 8, {
+            width: colWidths[1] - 10,
+            align: 'left',
+          });
+
+      yPos += 20;
+    });
+
+    //doc.moveDown();
   }
 
   /**
@@ -605,7 +711,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
-    let yPos = 50;
+    let yPos = doc.y + 30;
 
     // Section title
     doc
@@ -614,7 +720,7 @@ export class RepairPdfService {
       .fillColor('#000000')
       .text('NOTES', marginLeft, yPos);
 
-    yPos += 30;
+    yPos += 25;
 
     // Table header
     const tableTop = yPos;
@@ -651,7 +757,7 @@ export class RepairPdfService {
     // Notes rows
     notes.forEach((note) => {
       const noteHeight = this.calculateTextHeight(doc, note.note, colWidths[2] - 10, 9);
-      const rowHeight = Math.max(25, noteHeight + 16);
+      const rowHeight = Math.max(20, noteHeight + 16);
 
       /*doc
         .rect(marginLeft, yPos, contentWidth, rowHeight)
@@ -663,7 +769,7 @@ export class RepairPdfService {
       doc
         .fillColor('#000000')
         .fontSize(9)
-        .font('Helvetica')
+        .font('Helvetica-Bold')
         .text(note.type, xPos + 5, yPos + 8, {
           width: colWidths[0] - 10,
         });
@@ -713,7 +819,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
-    let yPos = 220;
+    let yPos = doc.y + 25;
 
     // Section title
     doc
@@ -972,16 +1078,7 @@ export class RepairPdfService {
     });*/
   }
 
-  /**
-   * Draw Total SUMMARY section
-   */
-  private drawTotalSummarySection(doc: PDFDocument, data: any): void {
-    const marginLeft = doc.page.margins.left;
-    const marginRight = doc.page.margins.right;
-    const pageWidth = doc.page.width;
-    const contentWidth = pageWidth - marginLeft - marginRight;
-
-  }
+ 
 
   /**
    * Draw Terms and Conditions section
@@ -1010,7 +1107,7 @@ export class RepairPdfService {
             'cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not' +
             'include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. -' +
             'Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not' +
-            'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -';
+            'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -' +
             'Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or' +
             'discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics' + 
             'performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:' +
@@ -1030,7 +1127,7 @@ export class RepairPdfService {
     
 
     // Signature line
-    yPos += 180;
+    yPos += 200;
     doc
       .strokeColor('#000000')
       .lineWidth(1)
@@ -1059,47 +1156,5 @@ export class RepairPdfService {
     return heightUsed;
   }
 
-  /**
-   * Draw DIAGNOSTICS section
-   */
-  private drawDiagnosticsSection(doc: PDFDocument, data: any): void {
-    if (!data.diagnostics || data.diagnostics.length === 0) {
-      return;
-    }
-
-    const marginLeft = doc.page.margins.left;
-    let yPos = doc.y + 20;
-
-    // Section title
-    doc
-      .fontSize(18)
-      .font('Helvetica-Bold')
-      .fillColor('#000000')
-      .text('Diagnostics', marginLeft, yPos);
-
-    yPos += 25;
-
-    // Table headers
-    doc
-      .fontSize(12)
-      .font('Helvetica-Bold')
-      .text('Title', marginLeft, yPos)
-      .text('Date', marginLeft + 200, yPos);
-
-    yPos += 15;
-
-    // Table content
-    data.diagnostics.forEach((diagnostic: any) => {
-      doc
-        .fontSize(11)
-        .font('Helvetica')
-        .fillColor('#000000')
-        .text(diagnostic.title, marginLeft, yPos)
-        .text(diagnostic.date, marginLeft + 200, yPos);
-
-      yPos += 15;
-    });
-
-    doc.moveDown();
-  }
+  
 }

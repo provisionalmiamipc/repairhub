@@ -39,6 +39,7 @@
     "@coreui/utils": "^2.0.2",
     "@ng-bootstrap/ng-bootstrap": "^19.0.1",
     "@popperjs/core": "^2.11.8",
+    "@supabase/supabase-js": "^2.97.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.5.0",

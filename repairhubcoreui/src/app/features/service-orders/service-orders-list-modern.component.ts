@@ -45,7 +45,7 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   readonly listState = signal<ListState>({ isLoading: false, error: null });
   readonly serviceOrders = signal<ServiceOrders[]>([]);
   readonly searchQuery = signal('');
-  readonly filterStatus = signal<'all' | 'active' | 'completed' | 'canceled'>('all');
+  readonly filterStatus = signal<'all' | 'active' | 'completed' | 'canceled'>('active');
   readonly filterLock = signal<'all' | 'locked' | 'unlocked'>('all');
   readonly sortBy = signal<'orderCode' | 'customer' | 'date' | 'totalCost'>('date');
 

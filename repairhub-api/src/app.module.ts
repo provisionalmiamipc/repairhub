@@ -8,7 +8,6 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { UploadsModule } from './uploads/uploads.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { CentersModule } from './centers/centers.module';
 import { CustomersModule } from './customers/customers.module';
@@ -153,9 +152,7 @@ const DebugModuleOptional = (() => {
     AppointmentsModule, 
     DevicesModule,DeviceBrandsModule,
     ItemModule, 
-    ItemTypesModule, 
-    // Uploads
-    UploadsModule,
+    ItemTypesModule,     
     OrdersItemModule, 
     SalesModule, 
     SaleItemsModule, ServiceOrdersRequestedModule, RepairStatusModule, SONotesModule, SODiagnosticModule, SOItemsModule, ServiceTypeModule, PaymentTypeModule, InventoryMovementsModule, NotificationsModule,

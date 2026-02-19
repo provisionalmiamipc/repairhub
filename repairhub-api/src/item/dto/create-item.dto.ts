@@ -13,8 +13,7 @@ export class CreateItemDto {
 	@IsNotEmpty()
 	product: string;
 
-	@IsString()
-	@IsNotEmpty()
+	@IsString()	
 	sku: string;
 
 	@IsNumber()

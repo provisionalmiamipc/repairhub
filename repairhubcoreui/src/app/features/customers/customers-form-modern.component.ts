@@ -383,9 +383,9 @@ export class CustomersFormModernComponent implements OnInit {
   }
 
   onCancel(): void {
-    if (confirm('¿Descartar cambios?')) {
+    
       this.router.navigate(['/customers']);
-    }
+    
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

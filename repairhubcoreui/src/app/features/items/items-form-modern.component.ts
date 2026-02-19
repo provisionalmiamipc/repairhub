@@ -114,7 +114,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
 
       // Step 1: Basic Info & Prices & Stock
       product: ['', Validators.required],
-      sku: ['', Validators.required],
+      sku: [''],
       shortTitleDesc: [''],
       barcode: [''],
       price: [0, [Validators.required, Validators.min(0)]],
@@ -543,8 +543,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
     }
     if (this.currentStep() === 1) {
       return controls['itemTypeId'].valid
-        && controls['product'].valid
-        && controls['sku'].valid
+        && controls['product'].valid       
         && controls['price'].valid
         && controls['cost'].valid
         && controls['stock'].valid;

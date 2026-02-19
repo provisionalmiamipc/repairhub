@@ -49,7 +49,7 @@ export class ItemsFormComponent {
       storeId: [null, Validators.required],
       itemTypeId: [null, Validators.required],
       product: ['', Validators.required],
-      sku: ['', Validators.required],
+      sku: [''],
       price: [0, [Validators.required, Validators.min(0)]],
       cost: [0, [Validators.required, Validators.min(0)]],
       shortTitleDesc: [''],

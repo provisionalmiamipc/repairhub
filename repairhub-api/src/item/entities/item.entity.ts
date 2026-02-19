@@ -34,8 +34,7 @@ export class Item {
 	product: string;
 
 	@Column()
-	@IsString()
-	@IsNotEmpty()
+	@IsString()	
 	sku: string;
 
 	@Column('decimal', { precision: 10, scale: 2, default: 0 })

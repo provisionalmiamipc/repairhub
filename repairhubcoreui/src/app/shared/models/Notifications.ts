@@ -18,7 +18,10 @@ export interface Notifications {
   createdAt: Date;
   updatedAt: Date;
   readAt: Date;
-  center: Centers;
-  employee: Employees;
-  store: Stores;
+  centerId: number;
+  employeeId: number;
+  storeId: number;
+  center?: Centers;
+  employee?: Employees;
+  store?: Stores;
 }

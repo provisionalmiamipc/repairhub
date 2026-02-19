@@ -71,7 +71,6 @@ export class ServiceOrderMailService {
             const dumpPath = `/tmp/service-order-${order.orderCode}.pdf`;
             fs.writeFileSync(dumpPath, pdfBuffer);
             fs.writeFileSync(`${dumpPath}.base64`, pdfBuffer.toString('base64'));
-            console.log('ServiceOrderMailService: dumped PDF to', dumpPath);
           } else {
             // skip dumping in normal flow to reduce IO and latency
           }

@@ -119,23 +119,42 @@
           }
         </div>
 
-        <div class="form-group">
-          <label>Image URL</label>
-          <input 
-            type="text" 
-            formControlName="img" 
-            placeholder="https://example.com/logo.png"
-            [class.invalid]="isFieldInvalid('img')"
-          />
-          @if (isFieldInvalid('img')) {
-            <div class="error-message">{{ getFieldError('img') }}</div>
-          }
-          @if (deviceBrandForm.get('img')?.value) {
-            <div class="image-preview">
-              <img [src]="deviceBrandForm.get('img')?.value" alt="Preview" />
+        <!--div class="form-group">
+          <label>Image</label>
+
+          <div class="image-preview" *ngIf="previewUrl || deviceBrandForm.get('img')?.value">
+            <img [src]="previewUrl ? previewUrl : deviceBrandForm.get('img')?.value" alt="Preview" />
+          </div>
+
+          <div class="file-upload">
+            <input
+              type="text"
+              formControlName="img"
+              placeholder="O subir un archivo o pegar URL"
+              [class.invalid]="isFieldInvalid('img')"
+            />
+
+            <div class="upload-controls">
+              <input #brandImageFile id="brandImageFile" type="file" accept="image/*" style="display:none" (change)="onFileSelected($event)" />
+              <button type="button" class="btn-secondary" (click)="triggerFileInput()">Seleccionar archivo</button>
+
+              @if (uploading) {
+                <div class="upload-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+                  </div>
+                  <span>{{ uploadProgress }}%</span>
+                </div>
+              } @else {
+                <button type="button" class="btn-primary" (click)="uploadFile()" [disabled]="!selectedFile">Subir</button>
+              }
             </div>
-          }
-        </div>
+
+            @if (isFieldInvalid('img')) {
+              <div class="error-message">{{ getFieldError('img') }}</div>
+            }
+          </div>
+        </div-->
       </div>
     }
 
