@@ -6,9 +6,34 @@
         <h1><i class="bi bi-box-seam me-2" aria-hidden="true"></i>Item Management</h1>
         <p class="subtitle">{{ filteredItems().length }} items found</p>
       </div>
-      <button class="btn btn-primary" (click)="createNew()">
-        <span>+</span> New Item
-      </button>
+      <div class="header-actions d-flex align-items-center">
+        <div class="btn-group me-2" role="group" aria-label="View toggle">
+          <button
+            class="btn btn-outline-secondary btn-sm"
+            (click)="setView('professional')"
+            [class.active]="viewMode() === 'professional'"
+            [attr.aria-pressed]="viewMode() === 'professional'"
+            title="Professional list"
+            aria-label="Professional list"
+          >
+            <i class="bi bi-list-ul"></i>
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm"
+            (click)="setView('cards')"
+            [class.active]="viewMode() === 'cards'"
+            [attr.aria-pressed]="viewMode() === 'cards'"
+            title="Card view"
+            aria-label="Card view"
+          >
+            <i class="bi bi-grid-3x3-gap"></i>
+          </button>
+        </div>
+
+        <button class="btn btn-primary btn-sm" (click)="createNew()">
+          <span class="me-1">+</span> New Item
+        </button>
+      </div>
     </div>
   </div>
 
@@ -97,21 +122,58 @@
     </div>
   }
 
-  <!-- Items Grid -->
-  @if (!listState().isLoading && !listState().error && !isEmptyState()) {
-    <div class="items-grid">
-      @for (item of filteredItems(); track item.id) {
-        <div class="item-card" [@fadeInUp]>
+  <!-- Items Grid / Table -->
+  <ng-container *ngIf="!listState().isLoading && !listState().error && !isEmptyState()">
+    <ng-container *ngIf="viewMode() === 'professional'; else cardsView">
+      <div class="items-table table-responsive" @fadeInUp>
+        <table class="table table-striped table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Barcode</th>              
+              <th>State</th>
+              <th>Type</th>
+              <th>Stock</th>
+              <th></th>
+              <th>Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isEmptyState()">
+              <td colspan="9" class="text-center">No items found. <button class="btn btn-sm btn-link" (click)="createNew()">Create one</button></td>
+            </tr>
+            <tr *ngFor="let item of filteredItems()">
+              <td>{{ item.product }}</td>
+              <td>{{ item.sku }}</td>
+              <td>{{ item.barcode || '-' }}</td>              
+              <td>{{ item.isActive ? 'Active' : 'Inactive' }}</td>
+              <td>{{ getTypeName(item.itemTypeId) }}</td>
+              <td>{{ item.stock }} </td>
+              <th>
+                <div *ngIf="getStockStatus(item) === 'critical'" class="stock-badge critical">🔴 Out of stock</div>
+                <div *ngIf="getStockStatus(item) === 'low'" class="stock-badge low">🟡 Low stock</div>
+              </th>
+              <td>{{ formatCurrency(item.price) }}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-secondary me-1" (click)="viewItem(item)" title="View"><i class="bi bi-eye"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="editItem(item)" title="Edit"><i class="bi bi-pencil"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+    <ng-template #cardsView>
+      <div class="items-grid">
+        <div class="item-card" *ngFor="let item of filteredItems()" [@fadeInUp]>
           <div class="card-header">
             <div class="status-badge" [class]="item.isActive ? 'active' : 'inactive'">
               {{ item.isActive ? '✓ Active' : '✗ Inactive' }}
             </div>
-            @if (getStockStatus(item) === 'critical') {
-              <div class="stock-badge critical">🔴 Out of stock</div>
-            }
-            @if (getStockStatus(item) === 'low') {
-              <div class="stock-badge low">🟡 Low stock</div>
-            }
+            <div *ngIf="getStockStatus(item) === 'critical'" class="stock-badge critical">🔴 Out of stock</div>
+            <div *ngIf="getStockStatus(item) === 'low'" class="stock-badge low">🟡 Low stock</div>
           </div>
 
           <div class="card-content">
@@ -145,8 +207,7 @@
             </div>
 
             <!-- Price & Margin -->
-            @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
-            <div class="price-section">
+            <div *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)" class="price-section">
               <div class="price-row">
                 <span class="label">Cost</span>
                 <span class="value">{{ formatCurrency(item.cost) }}</span>
@@ -162,7 +223,6 @@
                 </span>
               </div>
             </div>
-            }
 
             <!-- Stock Info -->
             <div class="stock-section">
@@ -186,12 +246,8 @@
 
             <!-- Taxable & Warranty -->
             <div class="features-section">
-              @if (item.taxable) {
-                <span class="feature-badge taxable">Taxable</span>
-              }
-              @if (item.warranty > 0) {
-                <span class="feature-badge warranty">Warranty</span>
-              }
+              <span *ngIf="item.taxable" class="feature-badge taxable">Taxable</span>
+              <span *ngIf="item.warranty > 0" class="feature-badge warranty">Warranty</span>
             </div>
 
             <!-- Dates -->
@@ -214,17 +270,9 @@
                 <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L21 7z"></path>
               </svg>
             </button>
-            <!--button class="action-btn delete" (click)="deleteItem(item)" title="Delete">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </button-->
           </div>
         </div>
-      }
-    </div>
-  }
+      </div>
+    </ng-template>
+  </ng-container>
 </div>

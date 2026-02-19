@@ -6,10 +6,35 @@
         <h1 class="page-title">Customers</h1>
         <p class="page-subtitle">Manage your customers and their orders</p>
       </div>
-      <button class="btn-new" (click)="onNew()" [attr.aria-label]="'New customer'">
-        <span class="btn-icon"><i class="bi bi-plus"></i></span>
-        New Customer
-      </button>
+      <div class="header-actions d-flex align-items-center">
+        <div class="btn-group me-2" role="group" aria-label="View toggle">
+          <button
+            class="btn btn-outline-secondary btn-sm"
+            (click)="setView('professional')"
+            [class.active]="viewMode() === 'professional'"
+            [attr.aria-pressed]="viewMode() === 'professional'"
+            title="Professional list"
+            aria-label="Professional list"
+          >
+            <i class="bi bi-list-ul"></i>
+          </button>
+          <button
+            class="btn btn-outline-secondary btn-sm"
+            (click)="setView('cards')"
+            [class.active]="viewMode() === 'cards'"
+            [attr.aria-pressed]="viewMode() === 'cards'"
+            title="Card view"
+            aria-label="Card view"
+          >
+            <i class="bi bi-grid-3x3-gap"></i>
+          </button>
+        </div>
+
+        <button class="btn btn-primary btn-sm" (click)="onNew()" aria-label="New customer">
+          <span class="btn-icon me-1"><i class="bi bi-plus"></i></span>
+          New Customer
+        </button>
+      </div>
     </div>
   </div>
 
@@ -77,92 +102,126 @@
   </div>
   }
 
-  <!-- Cards Grid -->
+  <!-- Customers Grid / Table -->
   @if (!isLoading()) {
-  <div class="customers-grid">
-    @if (isEmptyState()) {
-    <div class="empty-state" @fadeInUp>
-      <div class="empty-icon"><i class="bi bi-people"></i></div>
-      <h3>No customers</h3>
-      <p>Start by creating your first customer</p>
-      <button class="btn-empty" (click)="onNew()">Create Customer</button>
-    </div>
+    @if (viewMode() === 'professional') {
+      <div class="customers-table table-responsive" @fadeInUp>
+        <table class="table table-striped table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Customer</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Type</th>
+              <th>Discount</th>              
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isEmptyState()) {
+              <tr>
+                <td colspan="9" class="text-center">No customers. <button class="btn btn-sm btn-link" (click)="onNew()">Create one</button></td>
+              </tr>
+            } @else {
+              @for (customer of filteredCustomers(); track customer.id) {
+                <tr [class.b2b]="customer.b2b">
+                  <td>{{ customer.customerCode }}</td>
+                  <td>{{ customer.firstName }} {{ customer.lastName }}</td>
+                  <td>{{ customer.email }}</td>
+                  <td>{{ customer.phone || 'N/A' }}</td>
+                  <td>{{ customer.city }}</td>
+                  <td>{{ customer.b2b ? 'B2B' : 'B2C' }}</td>
+                  <td style="text-align: center">{{ customer.discount }}%</td>                  
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" (click)="onView(customer)" title="View details" aria-label="View customer"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline-success" (click)="onEdit(customer)" title="Edit" aria-label="Edit customer"><i class="bi bi-pencil"></i></button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
     } @else {
-    @for (customer of filteredCustomers(); track customer.id) {
-    <div class="customer-card" [class.b2b]="customer.b2b" @cardEnter>
-      <!-- Card Header -->
-      <div class="card-header">
-        <div class="customer-type-badge">{{ customer.b2b ? 'B2B' : 'B2C' }}</div>
-        <div class="card-actions">
-          <button
-            class="btn-action btn-view"
-            (click)="onView(customer)"
-            title="View details"
-            [attr.aria-label]="'View details of ' + customer.firstName + ' ' + customer.lastName"
-          >
-            <i class="bi bi-eye"></i>
-          </button>
-          <button
-            class="btn-action btn-edit"
-            (click)="onEdit(customer)"
-            title="Edit"
-            [attr.aria-label]="'Edit customer ' + customer.firstName + ' ' + customer.lastName"
-          >
-            <i class="bi bi-pencil"></i>
-          </button>
-          <!--button
-            class="btn-action btn-delete"
-            (click)="onDelete(customer)"
-            title="Delete"
-            [attr.aria-label]="'Delete customer ' + customer.firstName + ' ' + customer.lastName"
-          >
-            <i class="bi bi-trash"></i>
-          </button-->
+      <div class="customers-grid">
+        @if (isEmptyState()) {
+        <div class="empty-state" @fadeInUp>
+          <div class="empty-icon"><i class="bi bi-people"></i></div>
+          <h3>No customers</h3>
+          <p>Start by creating your first customer</p>
+          <button class="btn-empty" (click)="onNew()">Create Customer</button>
         </div>
-      </div>
+        } @else {
+        @for (customer of filteredCustomers(); track customer.id) {
+        <div class="customer-card" [class.b2b]="customer.b2b" @cardEnter>
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="customer-type-badge">{{ customer.b2b ? 'B2B' : 'B2C' }}</div>
+            <div class="card-actions">
+              <button
+                class="btn-action btn-view"
+                (click)="onView(customer)"
+                title="View details"
+                [attr.aria-label]="'View details of ' + customer.firstName + ' ' + customer.lastName"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+              <button
+                class="btn-action btn-edit"
+                (click)="onEdit(customer)"
+                title="Edit"
+                [attr.aria-label]="'Edit customer ' + customer.firstName + ' ' + customer.lastName"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+            </div>
+          </div>
 
-      <!-- Customer Info -->
-      <div class="customer-info">
-        <h3 class="customer-name">{{ customer.firstName }} {{ customer.lastName }}</h3>
-        <p class="customer-code">{{ customer.customerCode }}</p>
-      </div>
+          <!-- Customer Info -->
+          <div class="customer-info">
+            <h3 class="customer-name">{{ customer.firstName }} {{ customer.lastName }}</h3>
+            <p class="customer-code">{{ customer.customerCode }}</p>
+          </div>
 
-      <!-- Customer Stats -->
-      <div class="stats-grid">
-        <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-envelope"></i> Email</span>
-          <span class="stat-value">{{ customer.email }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-telephone"></i> Phone</span>
-          <span class="stat-value">{{ customer.phone || 'N/A' }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-geo-alt"></i> Address</span>
-          <span class="stat-value">{{ customer.city }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-person"></i> Gender</span>
-          <span class="stat-value">{{ customer.gender }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-percent"></i> Discount</span>
-          <span class="stat-value">{{ customer.discount }}%</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label"><i class="bi bi-card-text"></i> Extra Info</span>
-          <span class="stat-value">{{ customer.extraInfo || 'N/A' }}</span>
-        </div>
-      </div>
+          <!-- Customer Stats -->
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label"><i class="bi bi-envelope"></i> Email</span>
+              <span class="stat-value">{{ customer.email }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label"><i class="bi bi-telephone"></i> Phone</span>
+              <span class="stat-value">{{ customer.phone || 'N/A' }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label"><i class="bi bi-geo-alt"></i> Address</span>
+              <span class="stat-value">{{ customer.city }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label"><i class="bi bi-person"></i> Gender</span>
+              <span class="stat-value">{{ customer.gender }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label"><i class="bi bi-percent"></i> Discount</span>
+              <span class="stat-value">{{ customer.discount }}%</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label"><i class="bi bi-card-text"></i> Extra Info</span>
+              <span class="stat-value">{{ customer.extraInfo || 'N/A' }}</span>
+            </div>
+          </div>
 
-      <!-- Card Footer -->
-      <div class="card-footer">
-        <span class="created-date">Since: {{ customer.createdAt | date: 'short' }}</span>
+          <!-- Card Footer -->
+          <div class="card-footer">
+            <span class="created-date">Since: {{ customer.createdAt | date: 'short' }}</span>
+          </div>
+        </div>
+        }
+        }
       </div>
-    </div>
     }
-    }
-  </div>
   }
 
   <!-- Results Counter -->

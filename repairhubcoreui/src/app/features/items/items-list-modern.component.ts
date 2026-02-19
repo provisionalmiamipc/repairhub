@@ -55,6 +55,8 @@ export class ItemsListModernComponent implements OnInit {
   readonly filterStore = signal<number | 0>(0);
   readonly filterType = signal<number | 0>(0);
   readonly sortBy = signal<'product' | 'sku' | 'price' | 'stock' | 'date'>('date');
+  // viewMode: 'professional' = table/list view, 'cards' = card/grid view
+  readonly viewMode = signal<'professional' | 'cards'>('professional');
 
   // Search debouncer
   private searchSubject = new Subject<string>();
@@ -176,6 +178,10 @@ export class ItemsListModernComponent implements OnInit {
 
   onSearchChange(query: string) {
     this.searchSubject.next(query);
+  }
+
+  setView(mode: 'professional' | 'cards') {
+    this.viewMode.set(mode);
   }
 
   onFilterChange(field: 'status' | 'center' | 'store' | 'type', value: string) {

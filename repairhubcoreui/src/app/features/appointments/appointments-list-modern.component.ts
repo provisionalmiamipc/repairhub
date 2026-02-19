@@ -15,11 +15,13 @@ import { Appointments } from '../../shared/models/Appointments';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { ServiceTypes } from '../../shared/models/ServiceTypes';
+import { Employees } from '../../shared/models/Employees';
 import { AuthService } from '../../shared/services/auth.service';
 import { AppointmentsService } from '../../shared/services/appointments.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { ServiceTypesService } from '../../shared/services/service-types.service';
+import { EmployeesService } from '../../shared/services/employees.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
@@ -55,6 +57,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   private centersService = inject(CentersService);
   private storesService = inject(StoresService);
   private serviceTypesService = inject(ServiceTypesService);
+  private employeesService = inject(EmployeesService);
   private authService = inject(AuthService);
 
   // Signals State Management
@@ -62,11 +65,14 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   centers = signal<Centers[]>([]);
   stores = signal<Stores[]>([]);
   serviceTypes = signal<ServiceTypes[]>([]);
+  employees = signal<Employees[]>([]);
   isLoading = signal(false);
   error = signal<string | null>(null);
   searchQuery = signal('');
   filterStatus = signal('active'); // 'active', 'closed', 'canceled', 'all'
   sortBy = signal('date');
+  // viewMode: 'professional' = list view, 'cards' = card/grid view
+  viewMode = signal<'professional' | 'cards'>('professional');
 
   private destroy$ = new Subject<void>();
   private searchSubject$ = new Subject<string>();
@@ -116,6 +122,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
     this.loadCenters();
     this.loadStores();
     this.loadServiceTypes();
+    this.loadEmployees();
     this.setupSearchListener();
   }
 
@@ -173,6 +180,13 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
     });
   }
 
+  private loadEmployees() {
+    this.employeesService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data) => this.employees.set(data || []),
+      error: () => this.employees.set([])
+    });
+  }
+
   private setupSearchListener() {
     this.searchSubject$
       .pipe(
@@ -187,6 +201,10 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
 
   onSearchChange(query: string) {
     this.searchSubject$.next(query);
+  }
+
+  setView(mode: 'professional' | 'cards') {
+    this.viewMode.set(mode);
   }
 
   onFilterChange(filter: string) {
@@ -242,6 +260,18 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
     return 'active';
   }
 
+  /**
+   * Returns Bootstrap badge classes for an appointment status.
+   * Example: 'badge bg-success'
+   */
+  getStatusBadgeClasses(appointment: Appointments): string {
+    const cls = this.getStatusClass(appointment);
+    const base = 'badge';
+    if (cls === 'canceled') return `${base} bg-danger`;
+    if (cls === 'closed') return `${base} bg-success`;
+    return `${base} bg-primary`;
+  }
+
   getServiceTypeName(appointment: Appointments): string {
     const id = this.getServiceTypeId(appointment);
     if (!id) return 'N/A';
@@ -270,5 +300,16 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
 
   private getStoreId(appointment: Appointments): number | null {
     return Number((appointment as any).storeId ?? (appointment as any).storeid ?? (appointment as any).store?.id ?? null) || null;
+  }
+
+  getTechnicianName(appointment: Appointments): string {
+    const id = Number((appointment as any).assignedTechId) || null;
+    if (!id) return 'N/A';
+    const emp = this.employees().find(e => Number(e.id) === Number(id)) || null;
+    if (!emp) return `Tech N/A`;
+    const first = (emp.firstName ).toString().trim();
+    const last = (emp.lastName ).toString().trim();
+    const full = `${first} ${last}`.trim();
+    return full || `Tech N/N`;
   }
 }

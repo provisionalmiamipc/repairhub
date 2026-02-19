@@ -53,6 +53,8 @@ export class CustomersListModernComponent implements OnInit, OnDestroy {
   searchQuery = signal('');
   filterType = signal('all');
   sortBy = signal('name');
+  // viewMode: 'professional' = list/table view, 'cards' = card view
+  viewMode = signal<'professional' | 'cards'>('professional');
 
   private destroy$ = new Subject<void>();
   private searchSubject$ = new Subject<string>();
@@ -138,6 +140,10 @@ export class CustomersListModernComponent implements OnInit, OnDestroy {
 
   onSearchChange(query: string) {
     this.searchSubject$.next(query);
+  }
+
+  setView(mode: 'professional' | 'cards') {
+    this.viewMode.set(mode);
   }
 
   onFilterChange(filter: string) {
