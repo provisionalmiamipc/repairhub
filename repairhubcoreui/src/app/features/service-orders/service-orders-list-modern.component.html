@@ -11,10 +11,11 @@
         <i *ngIf="isProfessional()" class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>
         
       </button>
-
+      @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
       <button class="btn btn-primary" (click)="goToNew()">
         <span>+</span> New Order
       </button>
+    }
     </div>
   </div>
 
@@ -121,14 +122,14 @@
     </div>
   } @else {
     @if (isProfessional()) {
-      <div class="table-responsive" @fadeInUp>
+      <div class="table-responsive overflow-auto" style="max-height: 50vh;" @fadeInUp>
         <table class="table table-hover align-middle">
           <thead class="table small text-muted">
             <tr>
               <th scope="col">Order</th>
               <th scope="col">Customer</th>
               <th scope="col">Device</th>
-              <th scope="col">Center</th>
+              <th scope="col">Store</th>
               <th scope="col">Status</th>
               @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
               <th scope="col" class="text-end">Total</th>
@@ -156,7 +157,7 @@
                   </div>
                 </td>
                 <td>{{ order.device?.name || '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
-                <td>{{ order.center?.centerName || 'N/A' }}</td>                
+                <td>{{ order.store?.storeName || 'N/A' }}</td>                
                 <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span></td>
                 @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
                 <td class="text-end fw-semibold">{{ formatCurrency(order.price) }}</td>
