@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter  } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../shared/services/auth.service';
 
 
 @Component({
@@ -13,6 +14,8 @@ export class ServiceOrdersDetailComponent {
   @Input() serviceOrder: ServiceOrders | null = null;
   @Output() back = new EventEmitter();
   @Output() edit = new EventEmitter(); 
+
+  public authService = inject(AuthService);
 
   // trackBy helper for ngFor
   trackById(index: number, item: any) {

@@ -95,7 +95,7 @@ export class SONotesFormComponent {
   private applyUserBasedDefaults() {
     const userType = this.auth.getUserType();
 
-    // Priority: if parent provided a storeId (e.g. client/service order selected), use it
+    // Priority: if parent provided a storeId (e.g. from the service order), use it
     if (this.storeId) {
       const found = this.stores.find(s => Number(s.id) === Number(this.storeId));
       if (found) {
@@ -106,10 +106,22 @@ export class SONotesFormComponent {
         }
         // set store value
         this.form.get('storeId')?.setValue(Number(this.storeId), { emitEvent: false });
-        // show store field; center field only for regular `user`
-        this.showCenterField = userType === 'user';
-        this.showStoreField = true;
-        return;
+
+        // For regular users: show both selectors
+        if (userType === 'user') {
+          this.showCenterField = true;
+          this.showStoreField = true;
+          return;
+        }
+
+        // For employees: use the provided center/store values but hide selectors
+        // unless the employee is a center admin (in which case allow store selection)
+        if (userType === 'employee') {
+          const emp = this.auth.getCurrentEmployee();
+          this.showCenterField = false;
+          this.showStoreField = emp?.isCenterAdmin ?? false;
+          return;
+        }
       }
     }
 

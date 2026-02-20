@@ -35,15 +35,15 @@
               <strong>Order Code:</strong>
               <div class="mb-0">{{ serviceOrder.orderCode }}</div>
             </div>
-            <div class="col-md-3 mb-2">
+            <div class="col-md-3 mb-2" *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)">
               <strong>Center ID:</strong>
               <div class="mb-0">{{ serviceOrder.center?.centerName }}</div>
             </div>
-            <div class="col-md-3 mb-2">
+            <div class="col-md-3 mb-2" *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)">
               <strong>Store ID:</strong>
               <div class="mb-0">{{ serviceOrder.store?.storeName }}</div>
             </div>
-            <div class="col-md-3 mb-2">
+            <div class="col-md-3 mb-2" *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)">
               <strong>Customer ID:</strong>
               <div class="mb-0">{{ serviceOrder.customer?.firstName + ' ' + serviceOrder.customer?.lastName }}</div>
             </div>
@@ -79,7 +79,7 @@
           </div>
 
           <!-- Financial Details -->
-          <div class="row mb-4">
+          <div class="row mb-4" *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)">
             <div class="col-12">
               <h5 class="text-primary mb-3">
                 <i class="bi bi-currency-dollar"></i> Financial Details
