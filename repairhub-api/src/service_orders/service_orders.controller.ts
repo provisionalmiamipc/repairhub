@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { Res } from '@nestjs/common';
 import type { Response } from 'express';
+import type { Request } from 'express';
 import { ServiceOrdersService } from './service_orders.service';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
@@ -15,8 +16,9 @@ export class ServiceOrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.serviceOrdersService.findAll();
+  findAll(@Req() req: Request) {
+    const user = (req as any).user;
+    return this.serviceOrdersService.findAll(user);
   }
 
   @Get(':id')

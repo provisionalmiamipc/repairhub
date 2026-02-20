@@ -199,26 +199,45 @@ formatDateToMMDDYYYY(date: Date): string {
     return fullOrder;
   }
 
-  async findAll() {
-    return this.serviceOrderRepository.find({
-      relations: [
-        'center',
-        'store',
-        'customer',
-        'device',
-        'deviceBrand',
-        'assignedTech',
-        'employee',
-        'paymentType',
-        'soitems',
-        'soitems.item',
-        'sonotes',
-        'sodiagnostic',
-        'repairStatus',
-        'receivedParts'
-        
-      ],
-    });
+  async findAll(user?: any) {
+    const relations = [
+      'center',
+      'store',
+      'customer',
+      'device',
+      'deviceBrand',
+      'assignedTech',
+      'employee',
+      'paymentType',
+      'soitems',
+      'soitems.item',
+      'sonotes',
+      'sodiagnostic',
+      'repairStatus',
+      'receivedParts'
+    ];
+
+    // If caller provides an authenticated user who is an Expert and NOT a center admin,
+    // return only service orders created by them or assigned to them.
+    try {
+      const empType = user?.employee_type ?? user?.type ?? user?.role;
+      const empId = user?.employeeId ?? user?.sub ?? user?.id;
+      const isCenterAdmin = !!user?.isCenterAdmin;
+
+      if (empType === 'Expert' && !isCenterAdmin && empId) {
+        return this.serviceOrderRepository.find({
+          where: [
+            { createdById: empId },
+            { assignedTechId: empId }
+          ],
+          relations,
+        });
+      }
+    } catch (err) {
+      // fallback to full list if any error inspecting user
+    }
+
+    return this.serviceOrderRepository.find({ relations });
   }
 
   async findOne(id: number) {

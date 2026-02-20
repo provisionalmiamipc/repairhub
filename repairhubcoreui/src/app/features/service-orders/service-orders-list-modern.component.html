@@ -166,7 +166,9 @@
                   <div class="btn-group" role="group">
                     <button type="button" class="btn btn-sm btn-outline-primary" (click)="goToDetail(order); $event.stopPropagation()"><i class="bi bi-eye"></i></button>
                     <button type="button" *ngIf="!(order.cloused || order.canceled)" class="btn btn-sm btn-outline-secondary" (click)="goToEdit(order); $event.stopPropagation()"><i class="bi bi-pencil"></i></button>
+                    @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
                     <button type="button" class="btn btn-sm btn-outline-success" (click)="resendOrderEmail(order); $event.stopPropagation()" [disabled]="!order.id || order.canceled" title="Resend email"><i class="bi bi-envelope"></i></button>
+                    }
                   </div>
                 </td>
               </tr>
@@ -274,9 +276,11 @@
               <button type="button" *ngIf="!(order.cloused || order.canceled)" class="action-btn edit btn btn-sm btn-outline-secondary" (click)="goToEdit(order); $event.stopPropagation()" title="Edit order">
                 <i class="bi bi-pencil"></i> Edit
               </button>
+              @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
               <button type="button" class="action-btn resend btn btn-sm btn-outline-secondary" (click)="resendOrderEmail(order); $event.stopPropagation()" [disabled]="!order.id || order.canceled" title="Resend email">
                 <i class="bi bi-envelope"></i> Resend
               </button>
+            }
             </div>
           </div>
         }
