@@ -108,7 +108,7 @@ export class PinInputModalComponent implements OnInit {
     // Desactivar submit si se alcanzó el máximo de intentos
     if (this.attemptCount >= this.maxAttempts) {
       this.pinForm.disable();
-      this.errorMessage = `Máximo de intentos alcanzado (${this.maxAttempts}). Cierre sesión e intente nuevamente.`;
+      this.errorMessage = `Maximum attempts reached (${this.maxAttempts}). Log out and try again.`;
     }
 
     // Limpiar campo PIN

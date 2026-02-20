@@ -9,14 +9,14 @@ import { SONotes } from '../../shared/models/SONotes';
   standalone: true,
   imports: [CommonModule, SONotesListComponent],
   template: `
-    <h1>Notas</h1>
+    <h1>Notes</h1>
     <app-so-notes-list
       [soNotesList]="soNotesList"
       (select)="view($event)"
       (edit)="edit($event)"
       (delete)="delete($event)"
     ></app-so-notes-list>
-    <button routerLink="/so-notes/new">Nueva Nota</button>
+    <button routerLink="/so-notes/new">New Note</button>
   `,
   providers: [SONotesService],
 })
@@ -40,7 +40,7 @@ export class SONotesListPageComponent {
   }
 
   delete(soNotes: SONotes) {
-    if (confirm('¿Seguro que desea eliminar esta nota?')) {
+    if (confirm('Are you sure you want to delete this note?')) {
       this.soNotesService.delete(soNotes.id).subscribe(() => this.load());
     }
   }

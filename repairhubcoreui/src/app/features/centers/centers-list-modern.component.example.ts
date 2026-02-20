@@ -114,7 +114,7 @@ export class CentersListModernComponent implements OnInit {
       error: (err) => {
         this.state.update(s => ({
           ...s,
-          error: 'Error cargando centros',
+          error: 'Error loading centers',
           loading: false
         }));
       }
@@ -156,7 +156,7 @@ export class CentersListModernComponent implements OnInit {
   onDelete(center: Centers, $event: Event): void {
     $event.stopPropagation();
     
-    if (confirm(`¿Eliminar ${center.centerName}?`)) {
+    if (confirm(`Delete ${center.centerName}?`)) {
       this.centersService.delete(center.id).subscribe({
         next: () => {
           this.state.update(s => ({
@@ -167,7 +167,7 @@ export class CentersListModernComponent implements OnInit {
         error: () => {
           this.state.update(s => ({ 
             ...s, 
-            error: 'Error al eliminar centro' 
+            error: 'Error deleting center' 
           }));
         }
       });

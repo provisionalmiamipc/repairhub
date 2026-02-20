@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { PaymentTypesService } from '../../shared/services/payment-types.service';
 import { PaymentTypes } from '../../shared/models/PaymentTypes';
 import { PaymentTypesListComponent } from './payment-types-list.component';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -19,7 +19,7 @@ import { takeUntil } from 'rxjs/operators';
         </div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nuevo Tipo
+            <i class="cil-plus me-2"></i> New Type
           </button>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { takeUntil } from 'rxjs/operators';
       <div *ngIf="loading$ | async">
         <div class="text-center py-5">
           <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
@@ -48,16 +48,20 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class PaymentTypesListPageComponent implements OnInit, OnDestroy {
-  paymentTypes$ = this.paymentTypesService.data$;
-  loading$ = this.paymentTypesService.loading$;
-  error$ = this.paymentTypesService.error$;
+  paymentTypes$!: Observable<PaymentTypes[]>;
+  loading$!: Observable<boolean>;
+  error$!: Observable<string | null>;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private paymentTypesService: PaymentTypesService,
     private router: Router
-  ) {}
+  ) {
+    this.paymentTypes$ = this.paymentTypesService.data$;
+    this.loading$ = this.paymentTypesService.loading$;
+    this.error$ = this.paymentTypesService.error$;
+  }
 
   ngOnInit(): void {
     this.paymentTypesService.getAll();
@@ -76,7 +80,7 @@ export class PaymentTypesListPageComponent implements OnInit, OnDestroy {
   }
 
   onDelete(paymentType: PaymentTypes): void {
-    if (confirm(`¿Eliminar ${paymentType.type}?`)) {
+    if (confirm(`Delete ${paymentType.type}?`)) {
       this.paymentTypesService
         .delete(paymentType.id)
         .pipe(takeUntil(this.destroy$))

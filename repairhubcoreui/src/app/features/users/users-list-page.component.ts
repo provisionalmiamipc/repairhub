@@ -29,9 +29,9 @@ import { tap, catchError } from 'rxjs/operators';
     <div class="container-lg py-4">
       <!-- Header con título y botón nuevo -->
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Gestión de Usuarios</h1>
+        <h1 class="h3 mb-0">User Management</h1>
         <button class="btn btn-primary" routerLink="/users/new">
-          <i class="icon-plus me-2"></i> Nuevo Usuario
+          <i class="icon-plus me-2"></i> New User
         </button>
       </div>
 
@@ -41,7 +41,7 @@ import { tap, catchError } from 'rxjs/operators';
           <input
             type="text"
             class="form-control"
-            placeholder="Buscar por email o nombre..."
+            placeholder="Search by email or name..."
             [formControl]="searchControl"
           />
         </div>
@@ -49,7 +49,7 @@ import { tap, catchError } from 'rxjs/operators';
 
       <!-- Indicador de carga -->
       <div *ngIf="loading$ | async" class="alert alert-info">
-        <i class="icon-spinner me-2"></i> Cargando usuarios...
+        <i class="icon-spinner me-2"></i> Loading users...
       </div>
 
       <!-- Mensaje de error -->
@@ -70,14 +70,14 @@ import { tap, catchError } from 'rxjs/operators';
 
         <!-- Paginación simple -->
         <div class="mt-4 text-center text-muted" *ngIf="users.length > 0">
-          Mostrando {{ users.length }} de {{ (totalUsers$ | async) || 0 }} usuarios
+          Showing {{ users.length }} of {{ (totalUsers$ | async) || 0 }} users
         </div>
       </div>
 
       <!-- Template vacío -->
       <ng-template #empty>
         <div class="alert alert-info text-center py-5">
-          <i class="icon-info me-2"></i> No hay usuarios para mostrar
+          <i class="icon-info me-2"></i> No users to display
         </div>
       </ng-template>
     </div>
@@ -86,12 +86,12 @@ import { tap, catchError } from 'rxjs/operators';
 })
 export class UsersListPageComponent implements OnInit, OnDestroy {
   // Observables para la vista
-  users$ = this.usersService.data$;
-  loading$ = this.usersService.loading$;
-  error$ = this.usersService.error$;
+  users$: Observable<Users[]>;
+  loading$: Observable<boolean>;
+  error$: Observable<string | null>;
 
   // Total de usuarios
-  totalUsers$ = this.users$.pipe(map((users) => users.length));
+  totalUsers$: Observable<number>;
 
   // Control de búsqueda
   searchControl = new FormControl('');
@@ -107,6 +107,14 @@ export class UsersListPageComponent implements OnInit, OnDestroy {
     private router: Router,
     private toastService: ToastService
   ) {
+    // Inicializar observables que dependen de servicios después de inyectarlos
+    this.users$ = this.usersService.data$;
+    this.loading$ = this.usersService.loading$;
+    this.error$ = this.usersService.error$;
+
+    // Total de usuarios
+    this.totalUsers$ = this.users$.pipe(map((users) => users.length));
+
     // Combinar usuarios con búsqueda
     this.filteredUsers$ = combineLatest([
       this.users$,
@@ -138,7 +146,7 @@ export class UsersListPageComponent implements OnInit, OnDestroy {
           // Los datos se actualizan automáticamente vía BehaviorSubject
         },
         error: () => {
-          this.toastService.error('Error al cargar usuarios');
+          this.toastService.error('Error loading users');
         },
       });
   }
@@ -163,17 +171,17 @@ export class UsersListPageComponent implements OnInit, OnDestroy {
    * Eliminar usuario con confirmación
    */
   deleteUser(user: Users): void {
-    const message = `¿Eliminar usuario ${user.firstName} ${user.lastName}?`;
+    const message = `Delete user ${user.firstName} ${user.lastName}?`;
 
     if (confirm(message)) {
       this.usersService
         .delete(user.id)
         .pipe(
           tap(() => {
-            this.toastService.success('Usuario eliminado correctamente');
+            this.toastService.success('User deleted successfully');
           }),
           catchError((err) => {
-            this.toastService.error('Error al eliminar usuario');
+            this.toastService.error('Error deleting user');
             return EMPTY;
           }),
           takeUntil(this.destroy$)

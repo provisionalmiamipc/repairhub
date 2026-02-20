@@ -44,7 +44,7 @@ export class ServiceTypesListPageComponent {
   }
 
   onDelete(serviceType: ServiceTypes) {
-    if (confirm('¿Eliminar este tipo?')) {
+    if (confirm('Delete this type?')) {
       this.service.delete(serviceType.id).subscribe(() => this.load());
     }
   }

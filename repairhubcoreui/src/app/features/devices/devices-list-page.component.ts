@@ -14,10 +14,10 @@ import { takeUntil } from 'rxjs/operators';
   template: `
     <div class="container-lg py-4">
       <div class="row mb-4">
-        <div class="col-md-8"><h1 class="h2">Dispositivos</h1></div>
+        <div class="col-md-8"><h1 class="h2">Devices</h1></div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nuevo Dispositivo
+            <i class="cil-plus me-2"></i> New Device
           </button>
         </div>
       </div>
@@ -51,7 +51,7 @@ export class DevicesListPageComponent implements OnInit, OnDestroy {
   onSelect(item: Devices): void { this.router.navigate(['/devices', item.id]); }
   onEdit(item: Devices): void { this.router.navigate(['/devices', item.id, 'edit']); }
   onDelete(item: Devices): void {
-    if (confirm('Delete?')) {
+    if (confirm('Delete device?')) {
       this.service.delete(item.id).pipe(takeUntil(this.destroy$)).subscribe(() => this.service.getAll());
     }
   }

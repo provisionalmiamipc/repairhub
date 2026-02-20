@@ -363,34 +363,34 @@ export abstract class BaseService<T extends { id: number }> {
   protected handleError(error: any): string {
     if (error instanceof HttpErrorResponse) {
       if (error.status === 0) {
-        return 'Error de conexión. Verifica tu conexión a internet.';
+        return 'Connection error. Check your internet connection.';
       }
       if (error.status === 400) {
-        return error.error?.message || 'Solicitud inválida.';
+        return error.error?.message || 'Invalid request.';
       }
       if (error.status === 401) {
-        return 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+        return 'Session expired. Please sign in again.';
       }
       if (error.status === 403) {
-        return 'No tienes permisos para realizar esta acción.';
+        return 'You do not have permission to perform this action.';
       }
       if (error.status === 404) {
-        return 'El recurso solicitado no fue encontrado.';
+        return 'The requested resource was not found.';
       }
       if (error.status === 409) {
-        return error.error?.message || 'El recurso ya existe o hay un conflicto.';
+        return error.error?.message || 'The resource already exists or there is a conflict.';
       }
       if (error.status === 500) {
-        return 'Error del servidor. Por favor, intenta más tarde.';
+        return 'Server error. Please try again later.';
       }
       return error.error?.message || `Error HTTP ${error.status}`;
     }
 
     if (error.name === 'TimeoutError') {
-      return 'La solicitud tardó demasiado. Intenta de nuevo.';
+      return 'The request timed out. Please try again.';
     }
 
-    return error.message || 'Ocurrió un error desconocido.';
+    return error.message || 'An unknown error occurred.';
   }
 
   /**

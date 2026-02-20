@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, SalesFormComponent],
   template: `
-    <h1 *ngIf="!isNew">Editar Venta</h1>
-    <h1 *ngIf="isNew">Nueva Venta</h1>
+    <h1 *ngIf="!isNew">Edit Sale</h1>
+    <h1 *ngIf="isNew">New Sale</h1>
     <app-sales-form
       [sale]="sale"
       (save)="onSave($event)"

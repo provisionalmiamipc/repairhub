@@ -197,13 +197,13 @@ export class SalesListModernComponent implements OnInit {
   }
 
   deleteSale(sale: Sales) {
-    if (confirm(`¿Eliminar venta #${sale.id}?`)) {
+    if (confirm(`Delete sale #${sale.id}?`)) {
       this.salesService.delete(sale.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.sales.update(sales => sales.filter(s => s.id !== sale.id));
         },
         error: (err) => {
-          alert(`Error al eliminar: ${err.message}`);
+          alert(`Error deleting: ${err.message}`);
         }
       });
     }

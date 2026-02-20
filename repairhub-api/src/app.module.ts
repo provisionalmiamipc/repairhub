@@ -9,6 +9,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { ScheduleModule } from '@nestjs/schedule';
 import { CentersModule } from './centers/centers.module';
 import { CustomersModule } from './customers/customers.module';
 import { DevicesModule } from './devices/devices.module';
@@ -139,6 +140,7 @@ const DebugModuleOptional = (() => {
       inject: [ConfigService],
       
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     // Debug tools (only enable in deployments when needed)
     ...(DebugModuleOptional ? [DebugModuleOptional] : []),
@@ -155,7 +157,10 @@ const DebugModuleOptional = (() => {
     ItemTypesModule,     
     OrdersItemModule, 
     SalesModule, 
-    SaleItemsModule, ServiceOrdersRequestedModule, RepairStatusModule, SONotesModule, SODiagnosticModule, SOItemsModule, ServiceTypeModule, PaymentTypeModule, InventoryMovementsModule, NotificationsModule,
+    SaleItemsModule, ServiceOrdersRequestedModule, 
+    RepairStatusModule, SONotesModule, SODiagnosticModule, 
+    SOItemsModule, ServiceTypeModule, PaymentTypeModule, 
+    InventoryMovementsModule, NotificationsModule,
 
   ],
   controllers: [AppController],

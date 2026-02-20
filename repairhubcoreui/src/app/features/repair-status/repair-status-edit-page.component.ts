@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, RepairStatusFormComponent],
   template: `
-    <h1 *ngIf="!isNew">Editar Estado</h1>
-    <h1 *ngIf="isNew">Nuevo Estado</h1>
+    <h1 *ngIf="!isNew">Edit Status</h1>
+    <h1 *ngIf="isNew">New Status</h1>
     <app-repair-status-form
       [repairStatus]="repairStatus"
       (save)="onSave($event)"

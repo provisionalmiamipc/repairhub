@@ -1,14 +1,8 @@
 <!--<c-header class="mb-4 d-print-none" position="sticky">-->
 <ng-container>
   <c-container [fluid]="true" class="border-bottom px-4">
-    <button
-      [cSidebarToggle]="sidebarId()"
-      cHeaderToggler
-      class="btn"
-      toggle="visible"
-      style="margin-inline-start: -14px;"
-      aria-label="Toggle sidebar navigation"
-    >
+    <button [cSidebarToggle]="sidebarId()" cHeaderToggler class="btn" toggle="visible"
+      style="margin-inline-start: -14px;" aria-label="Toggle sidebar navigation">
       <svg cIcon name="cilMenu" size="lg"></svg>
     </button>
     <c-header-nav class="d-none d-md-flex">
@@ -24,6 +18,7 @@
     </c-header-nav>
 
     <c-header-nav class="d-none d-md-flex ms-auto ">
+
       <!--a cNavLink>
         <svg cIcon class="my-1" name="cilBell" size="lg"></svg>
       </a>
@@ -33,6 +28,9 @@
       <a cNavLink>
         <svg cIcon class="my-1" name="cilEnvelopeOpen" size="lg"></svg>
       </a-->
+      <c-nav-item>
+        <app-notifications-dropdown ></app-notifications-dropdown>
+      </c-nav-item>
     </c-header-nav>
 
     <c-header-nav class="ms-auto ms-md-0">
@@ -54,21 +52,14 @@
     <c-breadcrumb-router />
   </c-container>
 </ng-container>
-<!--</c-header>-->
+<!--/c-header>-->
 
 <ng-template #userDropdown>
   <c-dropdown [popperOptions]="{ placement: 'bottom-start' }" variant="nav-item">
     <button [caret]="false" cDropdownToggle class="py-0 pe-0" aria-label="Open user menu">
-      <c-avatar
-        shape="rounded-1"
-        size="md"
-        src=""
-        status="success"
-        textColor="primary"
-        alt="User avatar"
-      >
-      <i class="bi bi-person-circle"></i>
-    </c-avatar>
+      <c-avatar shape="rounded-1" size="md" src="" status="success" textColor="primary" alt="User avatar">
+        <i class="bi bi-person-circle"></i>
+      </c-avatar>
     </button>
     <ul cDropdownMenu class="pt-0 w-auto">
       <li>
@@ -170,15 +161,11 @@
     </button>
     <div cDropdownMenu>
       @for (mode of colorModes; track mode.name) {
-        <button
-          (click)="colorMode.set(mode.name)"
-          [active]="colorMode()===mode.name"
-          cDropdownItem
-          class="d-flex align-items-center"
-        >
-          <svg cIcon class="me-2" [name]="mode.icon" size="lg"></svg>
-          {{ mode.text }}
-        </button>
+      <button (click)="colorMode.set(mode.name)" [active]="colorMode()===mode.name" cDropdownItem
+        class="d-flex align-items-center">
+        <svg cIcon class="me-2" [name]="mode.icon" size="lg"></svg>
+        {{ mode.text }}
+      </button>
       }
     </div>
   </c-dropdown>

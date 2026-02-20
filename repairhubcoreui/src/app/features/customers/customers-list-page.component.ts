@@ -15,11 +15,11 @@ import { CustomersListComponent } from './customers-list.component';
     <div class="container-lg py-4">
       <div class="row mb-4">
         <div class="col-md-8">
-          <h1 class="h2">Clientes</h1>
+          <h1 class="h2">Customers</h1>
         </div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nuevo Cliente
+            <i class="cil-plus me-2"></i> New Customer
           </button>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { CustomersListComponent } from './customers-list.component';
       <div *ngIf="loading$ | async">
         <div class="text-center py-5">
           <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ export class CustomersListPageComponent implements OnInit, OnDestroy {
   }
 
   onDelete(customer: Customers): void {
-    if (confirm(`¿Eliminar cliente ${customer.firstName} ${customer.lastName}?`)) {
+    if (confirm(`Delete customer ${customer.firstName} ${customer.lastName}?`)) {
       this.customersService
         .delete(customer.id)
         .pipe(takeUntil(this.destroy$))

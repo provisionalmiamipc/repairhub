@@ -21,6 +21,8 @@ import { JwtEmployeeStrategy } from './strategies/jwt-employee.strategy';
 import { JwtUserGuard } from './guards/jwt-user.guard';
 import { JwtEmployeeGuard } from './guards/jwt-employee.guard';
 import { JwtAnyGuard } from './guards/jwt-any.guard';
+import { WsJwtGuard } from './guards/ws-jwt.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 // Modules
 import { UsersModule } from '../user/user.module';
@@ -44,6 +46,8 @@ import { EmployeesModule }from '../employees/employees.module';
     JwtUserGuard,
     JwtEmployeeGuard,
     JwtAnyGuard,
+    WsJwtGuard,
+    RolesGuard,
   ],
   controllers: [AuthController],
   exports: [
@@ -52,6 +56,8 @@ import { EmployeesModule }from '../employees/employees.module';
     JwtUserGuard,
     JwtEmployeeGuard,
     JwtAnyGuard,
+    WsJwtGuard,
+    RolesGuard,
   ],
 })
 export class AuthModule {}

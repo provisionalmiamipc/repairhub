@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
     <h1>Detalle de Venta</h1>
     <app-sales-detail [sale]="sale"></app-sales-detail>
     <button (click)="goBack()">Volver</button>
-    <button (click)="onEdit()">Editar</button>
+    <button (click)="onEdit()">Edit</button>
   `,
 })
 export class SalesDetailPageComponent {

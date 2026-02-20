@@ -74,7 +74,7 @@
       ============================================ -->
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modern-form" autocomplete="off">
     <!-- ============================================
-         STEP 1: INFORMACIÓN PERSONAL
+         STEP 1: PERSONAL INFORMATION
          ============================================ -->
     @if (!isEditMode() && currentStep() === 1) {
       <div class="form-step" @stepSlide>
@@ -325,7 +325,7 @@
     }
 
     <!-- ============================================
-         STEP 3: DETALLES DE TRABAJO
+         STEP 3: JOB DETAILS
          ============================================ -->
     @if (!isEditMode() && currentStep() === 3) {
       <div class="form-step" @stepSlide>

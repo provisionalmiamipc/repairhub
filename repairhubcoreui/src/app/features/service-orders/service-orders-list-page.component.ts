@@ -15,12 +15,12 @@ import { takeUntil, map } from 'rxjs/operators';
   template: `
     <div class="container-lg py-4">
       <div class="row mb-4">
-        <div class="col-md-8">
-          <h1 class="h2">Órdenes de Servicio</h1>
+          <div class="col-md-8">
+          <h1 class="h2">Service Orders</h1>
         </div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nueva Orden
+            <i class="cil-plus me-2"></i> New Order
           </button>
         </div>
       </div>
@@ -33,7 +33,7 @@ import { takeUntil, map } from 'rxjs/operators';
       <div *ngIf="loading$ | async">
         <div class="text-center py-5">
           <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>

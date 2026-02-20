@@ -69,7 +69,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   isLoading = signal(false);
   error = signal<string | null>(null);
   searchQuery = signal('');
-  filterStatus = signal('active'); // 'active', 'closed', 'canceled', 'all'
+  filterStatus = signal<'active' | 'closed' | 'canceled' | 'all'>('active'); // 'active', 'closed', 'canceled', 'all'
   sortBy = signal('date');
   // viewMode: 'professional' = list view, 'cards' = card/grid view
   viewMode = signal<'professional' | 'cards'>('professional');
@@ -100,7 +100,8 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
     // Apply sorting
     const sortKey = this.sortBy();
     if (sortKey === 'date') {
-      filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      // Ascendente: citas más próximas primero
+      filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     } else if (sortKey === 'customer') {
       filtered.sort((a, b) => a.customer.localeCompare(b.customer));
     } else if (sortKey === 'duration') {
@@ -207,7 +208,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
     this.viewMode.set(mode);
   }
 
-  onFilterChange(filter: string) {
+  onFilterChange(filter: 'active' | 'closed' | 'canceled' | 'all') {
     this.filterStatus.set(filter);
   }
 
@@ -228,7 +229,7 @@ export class AppointmentsListModernComponent implements OnInit, OnDestroy {
   }
 
   onDelete(appointment: Appointments) {
-    if (confirm(`¿Estás seguro de que deseas eliminar la cita de "${appointment.customer}" del ${appointment.date}?`)) {
+    if (confirm(`Are you sure you want to delete the appointment for "${appointment.customer}" on ${appointment.date}?`)) {
       this.appointmentsService
         .delete(appointment.id)
         .pipe(takeUntil(this.destroy$))

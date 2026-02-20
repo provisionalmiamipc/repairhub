@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, OrdersFormComponent],
   template: `
-    <h1 *ngIf="!isNew">Editar Orden</h1>
-    <h1 *ngIf="isNew">Nueva Orden</h1>
+    <h1 *ngIf="!isNew">Edit Order</h1>
+    <h1 *ngIf="isNew">New Order</h1>
     <app-orders-form
       [order]="order"
       (save)="onSave($event)"

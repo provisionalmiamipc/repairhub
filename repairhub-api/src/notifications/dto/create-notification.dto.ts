@@ -8,16 +8,20 @@ import {
 	IsBoolean,
 	IsDate,
 	IsObject,
+	MaxLength,
+	IsUrl,
 } from 'class-validator';
 import { NotificationType, NotificationPriority, NotificationStatus } from '../entities/notification.entity';
 
 export class CreateNotificationDto {
 	@IsNotEmpty()
 	@IsString()
+	@MaxLength(255)
 	title: string;
 
 	@IsNotEmpty()
 	@IsString()
+	@MaxLength(2000)
 	message: string;
 
 	@IsEnum(NotificationType)
@@ -49,7 +53,8 @@ export class CreateNotificationDto {
 	metadata?: Record<string, any>;
 
 	@IsOptional()
-	@IsString()
+	@IsUrl()
+	@IsOptional()
 	actionUrl?: string;
 
 	@IsOptional()

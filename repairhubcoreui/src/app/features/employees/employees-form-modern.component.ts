@@ -472,7 +472,7 @@ export class EmployeesFormModernComponent implements OnInit {
         error: (err) => {
           this.state.update(s => ({
             ...s,
-            submitError: err?.message || 'Error cargando el empleado'
+            submitError: err?.message || 'Error loading employee'
           }));
         }
       });
@@ -585,7 +585,7 @@ export class EmployeesFormModernComponent implements OnInit {
           this.state.update(s => ({
             ...s,
             isSubmitting: false,
-            submitError: err?.message || 'Error al guardar el empleado'
+            submitError: err?.message || 'Error saving employee'
           }));
         }
       });

@@ -104,12 +104,12 @@ export class CentersListModernComponent implements OnInit {
         }));
       },
       error: (err) => {
-        this.state.update(s => ({ 
-          ...s, 
-          loading: false,
-          error: err?.error?.message || 'Error cargando centros'
-        }));
-      }
+          this.state.update(s => ({ 
+            ...s, 
+            loading: false,
+            error: err?.error?.message || 'Error loading centers'
+          }));
+        }
     });
   }
 
@@ -142,7 +142,7 @@ export class CentersListModernComponent implements OnInit {
   }
 
   onDelete(center: Centers): void {
-    if (confirm(`¿Está seguro de que desea eliminar "${center.centerName}"?`)) {
+    if (confirm(`Are you sure you want to delete "${center.centerName}"?`)) {
       this.centersService.delete(center.id).subscribe({
         next: () => {
           this.state.update(s => ({
@@ -153,7 +153,7 @@ export class CentersListModernComponent implements OnInit {
         error: (err) => {
           this.state.update(s => ({
             ...s,
-            error: err?.error?.message || 'Error al eliminar'
+            error: err?.error?.message || 'Error deleting'
           }));
         }
       });

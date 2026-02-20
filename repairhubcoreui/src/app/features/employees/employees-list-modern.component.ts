@@ -152,7 +152,7 @@ export class EmployeesListModernComponent implements OnInit {
       error: (err) => {
         this.state.update(s => ({
           ...s,
-          error: 'Error cargando empleados',
+          error: 'Error loading employees',
           loading: false
         }));
       }
@@ -226,7 +226,7 @@ export class EmployeesListModernComponent implements OnInit {
   onDelete(employee: Employees, $event: Event): void {
     $event.stopPropagation();
     
-    if (confirm(`¿Eliminar ${employee.firstName} ${employee.lastName}?`)) {
+    if (confirm(`Delete ${employee.firstName} ${employee.lastName}?`)) {
       this.employeesService.delete(employee.id).subscribe({
         next: () => {
           this.state.update(s => ({
@@ -235,7 +235,7 @@ export class EmployeesListModernComponent implements OnInit {
           }));
         },
         error: () => {
-          this.state.update(s => ({ ...s, error: 'Error al eliminar empleado' }));
+          this.state.update(s => ({ ...s, error: 'Error deleting employee' }));
         }
       });
     }

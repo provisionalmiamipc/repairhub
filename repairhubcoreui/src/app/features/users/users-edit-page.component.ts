@@ -23,7 +23,7 @@ import { EMPTY } from 'rxjs';
           <!-- Indicador de carga inicial -->
           <div *ngIf="isLoadingUser" class="alert alert-info text-center">
             <span class="spinner-border spinner-border-sm me-2"></span>
-            Cargando usuario...
+            Loading user...
           </div>
 
           <!-- Formulario -->
@@ -99,7 +99,7 @@ export class UsersEditPageComponent implements OnInit, OnDestroy {
           this.router.navigate(['/users']);
         }),
         catchError((err) => {
-          this.toastService.error('Error al actualizar usuario');
+          this.toastService.error('Error updating user');
           return EMPTY;
         }),
         takeUntil(this.destroy$)

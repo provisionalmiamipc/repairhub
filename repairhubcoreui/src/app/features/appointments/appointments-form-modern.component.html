@@ -61,7 +61,7 @@
                 <!-- Center -->
                 <div class="col-12 col-md-6">
                   <label for="centerId" class="form-label">Center *</label>
-                  <select autocomplete="off" class="form-select" formControlName="centerId">
+                  <select autocomplete="off" class="form-select" formControlName="centerId" [disabled]="isOrderFinalized() || isFormReadOnly()">
                     <option value="">Select center</option>
                     <option *ngFor="let center of centers()" [ngValue]="center.id">
                       {{ center.centerName || ('Center #' + center.id) }}
@@ -76,7 +76,7 @@
                 <!-- Store -->
                 <div class="col-12 col-md-6">
                   <label for="storeId" class="form-label">Store *</label>
-                  <select autocomplete="off" class="form-select" formControlName="storeId">
+                  <select autocomplete="off" class="form-select" formControlName="storeId" [disabled]="isOrderFinalized() || isFormReadOnly()">
                     <option value="">Select store</option>
                     <option *ngFor="let store of stores()" [ngValue]="store.id"
                       [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
@@ -94,7 +94,7 @@
                 <!-- Store (Admin Center) -->
                 <div class="col-12 col-md-6">
                   <label for="storeId" class="form-label">Store *</label>
-                  <select autocomplete="off" class="form-select" formControlName="storeId">
+                  <select autocomplete="off" class="form-select" formControlName="storeId" [disabled]="isOrderFinalized() || isFormReadOnly()">
                     <option value="">Select store</option>
                     <option *ngFor="let store of stores()" [ngValue]="store.id"
                       [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
@@ -109,11 +109,11 @@
                 }
 
                 @if (hideLocationFields()) {
-                <div class="col-12">
+                <!--div class="col-12">
                   <div class="alert alert-info">
                     Center and store are assigned automatically.
                   </div>
-                </div>
+                </div-->
                 }
 
                 <!-- Customer Name / Existing Customer toggle -->
@@ -128,7 +128,7 @@
 
                   @if (!useExistingCustomer) {
                   <input type="text" id="customer" class="form-control" [class.is-invalid]="isFieldInvalid('customer')"
-                    formControlName="customer" placeholder="Customer name" autocomplete="off" />
+                    formControlName="customer" placeholder="Customer name" autocomplete="off" [disabled]="isOrderFinalized() || isFormReadOnly()" />
                   @if (isFieldInvalid('customer')) {
                   <span class="error-message">{{ getFieldError('customer') }}</span>
                   }
@@ -137,8 +137,8 @@
                   @if (useExistingCustomer) {
                   
                   <div class="input-group">
-                    <select id="ecustomerId" class="form-select" [class.is-invalid]="isFieldInvalid('ecustomerId')"
-                      formControlName="ecustomerId">
+                      <select id="ecustomerId" class="form-select" [class.is-invalid]="isFieldInvalid('ecustomerId')"
+                      formControlName="ecustomerId" [disabled]="isOrderFinalized() || isFormReadOnly()">
                       <option [ngValue]="null" disabled>Select customer</option>
                       @for (customer of ecustomers(); track customer.id) {
                       <option [value]="customer.id">{{ customer.firstName }} {{ customer.lastName }}</option>
@@ -163,7 +163,7 @@
                 <div class="col-12 col-md-6">
                   <label for="date" class="form-label">Date *</label>
                   <input type="date" id="date" class="form-control" [class.is-invalid]="isFieldInvalid('date')"
-                    formControlName="date" [attr.min]="minDate()" />
+                    formControlName="date" [attr.min]="minDate()" [disabled]="isOrderFinalized() || isFormReadOnly()" />
                   @if (isFieldInvalid('date')) {
                   <span class="error-message">{{ getFieldError('date') }}</span>
                   }
@@ -173,7 +173,7 @@
                 <div class="col-12 col-md-6">
                   <label for="time" class="form-label">Time *</label>
                   <input type="time" id="time" class="form-control" [class.is-invalid]="isFieldInvalid('time')"
-                    formControlName="time" />
+                    formControlName="time" [disabled]="isOrderFinalized() || isFormReadOnly()" />
                   @if (isFieldInvalid('time')) {
                   <span class="error-message">{{ getFieldError('time') }}</span>
                   }
@@ -193,14 +193,14 @@
                 <div class="col-12 col-md-4">
                   <label for="deviceId" class="form-label">Device *</label>
                   <div class="input-group">
-                    <select autocomplete="off" class="form-select" formControlName="deviceId">
+                    <select autocomplete="off" class="form-select" formControlName="deviceId" [disabled]="isOrderFinalized() || isFormReadOnly()">
                       <option value="">Select device</option>
                       <option *ngFor="let device of devices()" [ngValue]="device.id">
                         {{ device.name }}
                       </option>
                     </select>
                     <button type="button" class="btn btn-outline-primary" (click)="createDevice()"
-                      aria-label="Add device">
+                      aria-label="Add device" [disabled]="isOrderFinalized() || isFormReadOnly()">
                       <i class="bi bi-plus-lg" aria-hidden="true"></i>
                     </button>
                   </div>
@@ -214,14 +214,14 @@
                 <div class="col-12 col-md-4">
                   <label for="serviceTypeId" class="form-label">Service Type *</label>
                   <div class="input-group">
-                    <select autocomplete="off" class="form-select" formControlName="serviceTypeId">
+                    <select autocomplete="off" class="form-select" formControlName="serviceTypeId" [disabled]="isOrderFinalized() || isFormReadOnly()">
                       <option value="">Select service</option>
                       <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
                         {{ service.name }}
                       </option>
                     </select>
                     <button type="button" class="btn btn-outline-primary" (click)="createServiceType()"
-                      aria-label="Add service type">
+                      aria-label="Add service type" [disabled]="isOrderFinalized() || isFormReadOnly()">
                       <i class="bi bi-plus-lg" aria-hidden="true"></i>
                     </button>
                   </div>
@@ -235,7 +235,7 @@
                 <!-- Assigned Technician -->
                 <div class="col-12 col-md-4">
                   <label for="assignedTechId" class="form-label">Assigned Technician *</label>
-                  <select autocomplete="off" class="form-select" formControlName="assignedTechId">
+                  <select autocomplete="off" class="form-select" formControlName="assignedTechId" [disabled]="isOrderFinalized() || isFormReadOnly()">
                     <option [ngValue]="null">Select technician</option>
                     <option *ngFor="let emp of employees()" [ngValue]="emp.id">
                       {{ emp.firstName }} {{ emp.lastName }}
@@ -253,7 +253,7 @@
                   <label for="duration" class="form-label">Duration (minutes) *</label>
                   <input autocomplete="off" type="number" id="duration" class="form-control"
                     [class.is-invalid]="isFieldInvalid('duration')" formControlName="duration" min="15" max="480"
-                    placeholder="30" />
+                    placeholder="30" [disabled]="isOrderFinalized() || isFormReadOnly()" />
                   @if (isFieldInvalid('duration')) {
                   <span class="error-message">{{ getFieldError('duration') }}</span>
                   }
@@ -273,7 +273,7 @@
                 <div class="col-12">
                   <label for="notes" class="form-label">Additional Notes</label>
                   <textarea id="notes" class="form-control textarea" formControlName="notes"
-                    placeholder="Additional information about the appointment..." rows="4"></textarea>
+                    placeholder="Additional information about the appointment..." rows="4" [disabled]="isOrderFinalized() || isFormReadOnly()"></textarea>
                 </div>
 
                 <!-- Status Info -->
@@ -336,6 +336,7 @@
                   <i class="bi bi-arrow-right"></i>
                   </button>
                   } @else {
+                  @if (!(isEditMode() && isFormReadOnly())) {
                   <button type="submit" class="btn btn-primary" [disabled]="!appointmentForm.valid || isSaving()">
                     @if (isSaving()) {
                     <span class="button-spinner"></span> Saving...
@@ -343,6 +344,7 @@
                     {{ isEditMode() ? 'Update' : 'Create' }} Appointment
                     }
                   </button>
+                  }
                   }
               </div>
             </div>

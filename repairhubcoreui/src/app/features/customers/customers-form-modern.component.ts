@@ -97,7 +97,7 @@ export class CustomersFormModernComponent implements OnInit {
     },
     {
       id: 1,
-      title: 'Información Personal',
+      title: 'Personal Information',
       description: 'Nombre, tipo y género del cliente'
     },
     {
@@ -107,8 +107,8 @@ export class CustomersFormModernComponent implements OnInit {
     },
     {
       id: 3,
-      title: 'Datos Comerciales',
-      description: 'Código, descuento e información extra'
+          title: 'Commercial Data',
+          description: 'Code, discount and extra information'
     }
   ];
 
@@ -229,13 +229,13 @@ export class CustomersFormModernComponent implements OnInit {
             this.loadStoresForCenter(normalized);
           }
         }
-        this.formState.update(s => ({ ...s, isLoading: false }));
+            this.formState.update(s => ({ ...s, isLoading: false }));
       },
       error: (err) => {
         this.formState.update(s => ({
           ...s,
           isLoading: false,
-          error: err?.error?.message || 'Error cargando el cliente'
+              error: err?.error?.message || 'Error loading customer'
         }));
       }
     });
@@ -376,7 +376,7 @@ export class CustomersFormModernComponent implements OnInit {
         this.formState.update(s => ({
           ...s,
           isSaving: false,
-          error: err?.error?.message || 'Error al guardar el cliente'
+          error: err?.error?.message || 'Error saving customer'
         }));
       }
     });

@@ -119,7 +119,7 @@ formatDateToMMDDYYYY(date: Date): string {
 
     // Preparar datos para PDF y correo
     if (!fullOrder) {
-      throw new NotFoundException('La orden de servicio no se encontró después de guardar.');
+      throw new NotFoundException('Service order not found after saving.');
     }
      const lastRepairStatus = (fullOrder.repairStatus && (Array.isArray(fullOrder.repairStatus)
       ? fullOrder.repairStatus[fullOrder.repairStatus.length - 1]

@@ -210,13 +210,13 @@ export class SaleItemsListModernComponent implements OnInit {
   }
 
   deleteSaleItem(saleItem: SaleItems) {
-    if (confirm(`¿Eliminar ítem de venta #${saleItem.id}?`)) {
+    if (confirm(`Are you sure you want to delete sale item #${saleItem.id}?`)) {
       this.saleItemsService.delete(saleItem.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.saleItems.update(items => items.filter(item => item.id !== saleItem.id));
         },
         error: (err) => {
-          alert(`Error al eliminar: ${err.message}`);
+          alert(`Error deleting: ${err.message}`);
         }
       });
     }

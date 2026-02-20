@@ -70,7 +70,7 @@ export class CentersFormModernComponent implements OnInit {
   steps = [
     {
       id: 0,
-      title: 'Información Básica',
+      title: 'Basic Information',
       description: 'Nombre del centro'
     },
     {
@@ -164,7 +164,7 @@ export class CentersFormModernComponent implements OnInit {
         this.formState.update(s => ({
           ...s,
           isLoading: false,
-          error: err?.error?.message || 'Error cargando el centro'
+          error: err?.error?.message || 'Error loading center'
         }));
       }
     });
@@ -174,7 +174,7 @@ export class CentersFormModernComponent implements OnInit {
     this.storesService.getAll().subscribe({
       next: (data) => this.stores.set(data),
       error: (err) => {
-        console.error('Error cargando tiendas:', err);
+        console.error('Error loading stores:', err);
       }
     });
   }

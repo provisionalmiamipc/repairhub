@@ -215,7 +215,7 @@ export class UsersFormComponent implements OnInit, OnChanges {
         break;
 
       case 'confirmPassword':
-        if (errors['required']) return 'Confirmar contraseña es requerido';
+        if (errors['required']) return 'Confirm password is required';
         break;
     }
 

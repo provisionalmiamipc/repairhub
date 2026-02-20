@@ -1,0 +1,23 @@
+<div class="dropdown">
+  <button class="btn btn-link position-relative" type="button" (click)="toggleMenu($event)" [attr.aria-expanded]="menuOpen">
+    <i class="bi bi-bell" style="font-size: 1.2rem;"></i>
+    <span *ngIf="(svc.unreadCount() > 0)"
+      class="badge rounded-pill bg-danger"
+      style="position: absolute; top: 4px; right: 4px; transform: translate(25%, -25%); font-size: 0.65rem; padding: 0.25rem 0.45rem;"
+      aria-label="unread notifications">
+      {{ svc.unreadCount() }}
+    </span>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end" [class.show]="menuOpen" [attr.data-bs-popper]="menuOpen ? 'none' : null">
+    <li *ngFor="let n of unreadNotifications; trackBy: trackById">
+      <a class="dropdown-item d-flex justify-content-between align-items-start" (click)="open(n)">
+        <div>
+          <div class="fw-bold">{{ n.title }}</div>
+          <div class="small text-muted">{{ n.message }}</div>
+        </div>
+        <span class="badge" [ngClass]="getBadgeClass(n)">{{ n.type }}</span>
+      </a>
+    </li>
+    <li *ngIf="unreadNotifications.length === 0"><div class="dropdown-item text-muted">No unread notifications</div></li>
+  </ul>
+</div>

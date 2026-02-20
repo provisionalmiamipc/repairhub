@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, SalesListComponent],
   template: `
-    <h1>Ventas</h1>
-    <button (click)="onCreate()">Nueva Venta</button>
+    <h1>Sales</h1>
+    <button (click)="onCreate()">New Sale</button>
     <app-sales-list
       [sales]="sales"
       (select)="onSelect($event)"
@@ -44,7 +44,7 @@ export class SalesListPageComponent {
   }
 
   onDelete(sale: Sales) {
-    if (confirm('¿Eliminar esta venta?')) {
+    if (confirm('Delete this sale?')) {
       this.service.delete(sale.id).subscribe(() => this.load());
     }
   }

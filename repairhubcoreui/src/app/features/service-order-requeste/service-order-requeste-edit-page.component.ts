@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, ServiceOrderRequesteFormComponent],
   template: `
-    <h1 *ngIf="!isNew">Editar Solicitud</h1>
-    <h1 *ngIf="isNew">Nueva Solicitud</h1>
+    <h1 *ngIf="!isNew">Edit Request</h1>
+    <h1 *ngIf="isNew">New Request</h1>
     <app-service-order-requeste-form
       [request]="request"
       (save)="onSave($event)"

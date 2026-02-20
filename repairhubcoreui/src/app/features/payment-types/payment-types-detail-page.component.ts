@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
     <h1>Detalle de Tipo de Pago</h1>
     <app-payment-types-detail [paymentType]="paymentType"></app-payment-types-detail>
     <button (click)="goBack()">Volver</button>
-    <button (click)="onEdit()">Editar</button>
+    <button (click)="onEdit()">Edit</button>
   `,
 })
 export class PaymentTypesDetailPageComponent {

@@ -137,7 +137,7 @@ export class SOItemsFormComponent {
   onSubmit() {
     // Validar que existe el serviceOrderId
     if (!this.serviceOrderId) {
-      this.toastService.error('Debe guardar la orden de servicio antes de agregar items.');
+      this.toastService.error('You must save the service order before adding items.');
       return;
     }
     

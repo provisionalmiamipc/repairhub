@@ -61,11 +61,11 @@ async function bootstrap() {
 
       // En desarrollo, loggear y permitir; en producción, rechazar
       if (nodeEnv === 'development') {
-        logger.warn(`CORS: Origen no configurado pero permitido en desarrollo: ${origin}`);
+        
         return callback(null, true);
       }
 
-      logger.error(`CORS: Origen no permitido en producción: ${origin}`);
+      
       return callback(new Error('No permitido por CORS'), false);
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],

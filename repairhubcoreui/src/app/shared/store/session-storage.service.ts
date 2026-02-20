@@ -60,7 +60,7 @@ export class SessionStorageService {
     try {
       sessionStorage.removeItem(key);
     } catch (e: any) {
-      console.error(`[SessionStorage] Error al eliminar "${key}":`, e.message);
+      console.error(`[SessionStorage] Error deleting "${key}":`, e.message);
     }
   }
 

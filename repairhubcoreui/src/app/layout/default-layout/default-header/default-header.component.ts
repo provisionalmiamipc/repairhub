@@ -1,6 +1,7 @@
 import { NgTemplateOutlet, NgIf } from '@angular/common';
 import { Component, computed, inject, input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NotificationsDropdownComponent } from '../../../shared/components/notifications-dropdown/notifications-dropdown.component';
 
 import {
   AvatarComponent,
@@ -30,7 +31,12 @@ import { EmployeeType, UserType } from '../../../shared/models/rbac.constants';
 @Component({
   selector: 'app-default-header',
   templateUrl: './default-header.component.html',
-  imports: [ContainerComponent, HeaderTogglerDirective, SidebarToggleDirective, IconDirective, HeaderNavComponent, NavItemComponent, NavLinkDirective, RouterLink, RouterLinkActive, NgTemplateOutlet, NgIf, BreadcrumbRouterComponent, DropdownComponent, DropdownToggleDirective, AvatarComponent, DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, DropdownDividerDirective]
+  imports: [ContainerComponent, HeaderTogglerDirective, 
+    SidebarToggleDirective, IconDirective, HeaderNavComponent, 
+    NavItemComponent, NavLinkDirective, RouterLink, RouterLinkActive, 
+    NgTemplateOutlet, NgIf, BreadcrumbRouterComponent, DropdownComponent, 
+    DropdownToggleDirective, AvatarComponent, DropdownMenuDirective, 
+    DropdownHeaderDirective, DropdownItemDirective, DropdownDividerDirective, NotificationsDropdownComponent]
 })
 export class DefaultHeaderComponent extends HeaderComponent {
 

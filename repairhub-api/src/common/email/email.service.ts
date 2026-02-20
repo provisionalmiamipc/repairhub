@@ -34,7 +34,6 @@ export class EmailService {
     // Verify transporter configuration early so failures surface at startup
     this.transporter
       .verify()
-      .then(() => this.logger.log('transporter verified'))
       .catch((err) => this.logger.warn('transporter verification failed: ' + (err && err.message)));
   }
 

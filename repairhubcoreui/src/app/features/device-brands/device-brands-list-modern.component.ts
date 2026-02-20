@@ -158,13 +158,13 @@ export class DeviceBrandsListModernComponent implements OnInit {
   }
 
   deleteDeviceBrand(brand: DeviceBrands) {
-    if (confirm(`¿Eliminar marca "${brand.name}"?`)) {
+    if (confirm(`Are you sure you want to delete brand "${brand.name}"?`)) {
       this.deviceBrandsService.delete(brand.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           this.deviceBrands.update(brands => brands.filter(b => b.id !== brand.id));
         },
         error: (err) => {
-          alert(`Error al eliminar: ${err.message}`);
+          alert(`Error deleting: ${err.message}`);
         }
       });
     }

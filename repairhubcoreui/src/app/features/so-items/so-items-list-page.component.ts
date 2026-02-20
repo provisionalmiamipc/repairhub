@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, SOItemsListComponent],
   template: `
-    <h1>Items de Orden de Servicio</h1>
-    <button (click)="onCreate()">Nuevo Item</button>
+    <h1>Service Order Items</h1>
+    <button (click)="onCreate()">New Item</button>
     <app-so-items-list
       [soItems]="soItems"
       (select)="onSelect($event)"
@@ -44,7 +44,7 @@ export class SOItemsListPageComponent {
   }
 
   onDelete(soItem: SOItems) {
-    if (confirm('¿Eliminar este item?')) {
+    if (confirm('Delete this item?')) {
       this.service.delete(soItem.id).subscribe(() => this.load());
     }
   }

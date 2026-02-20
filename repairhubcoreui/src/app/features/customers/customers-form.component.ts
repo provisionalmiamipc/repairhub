@@ -153,7 +153,7 @@ export class CustomersFormComponent implements OnInit, OnChanges {
       try {
         this.save.emit(customerData);
       } catch (err: any) {
-        this.backendError = err?.message || 'Error desconocido al guardar.';
+        this.backendError = err?.message || 'Unknown error saving.';
       }
     } else {
       this.markFormGroupTouched(this.customerForm);

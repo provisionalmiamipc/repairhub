@@ -566,7 +566,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     if (!this.itemForm.valid) {
-      this.formState.update(s => ({ ...s, error: 'Por favor completa todos los campos requeridos' }));
+      this.formState.update(s => ({ ...s, error: 'Please complete all required fields' }));
       return;
     }
 
@@ -581,7 +581,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       : formValue.storeId;
 
     if (centerId == null || storeId == null) {
-      this.formState.update(s => ({ ...s, error: 'Selecciona centro y tienda antes de guardar.', isSaving: false }));
+      this.formState.update(s => ({ ...s, error: 'Select a center and store before saving.', isSaving: false }));
       return;
     }
 
@@ -590,7 +590,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
       try {
         parsedSpecs = JSON.parse(formValue.specs);
       } catch {
-        this.formState.update(s => ({ ...s, error: 'Las especificaciones no tienen un JSON válido.', isSaving: false }));
+        this.formState.update(s => ({ ...s, error: 'Specifications do not contain valid JSON.', isSaving: false }));
         return;
       }
     }
@@ -645,15 +645,15 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
           this.router.navigate(['/items']);
         }, 1500);
       },
-      error: (err) => {
+        error: (err) => {
         const apiMessage = this.getApiErrorMessage(err);
-        this.formState.update(s => ({ ...s, error: apiMessage ?? 'Error al guardar el artículo', isSaving: false }));
+        this.formState.update(s => ({ ...s, error: apiMessage ?? 'Error saving the item', isSaving: false }));
       }
     });
   }
 
   onCancel() {
-    if (this.itemForm.dirty && !confirm('¿Descartar cambios?')) {
+    if (this.itemForm.dirty && !confirm('Discard changes?')) {
       return;
     }
     this.router.navigate(['/items']);
@@ -689,7 +689,7 @@ export class ItemsFormModernComponent implements OnInit, OnDestroy {
     const storeId = this.itemForm.get('storeId')?.value ?? this.employeeStoreId();
 
     if (centerId == null || storeId == null) {
-      this.itemTypeError.set('Selecciona centro y tienda antes de crear el tipo.');
+      this.itemTypeError.set('Select center and store before creating the type.');
       return;
     }
 

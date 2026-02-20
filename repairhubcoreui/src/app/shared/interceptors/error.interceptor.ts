@@ -30,19 +30,19 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      let errorMessage = 'Ha ocurrido un error inesperado';
+      let errorMessage = 'An unexpected error occurred';
       
       // Manejo según código de estado HTTP
       switch (error.status) {
         case 0:
-          // Error de conexión (sin respuesta del servidor)
-          errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión a internet.';
+          // Connection error (no response from server)
+          errorMessage = 'Could not connect to server. Check your internet connection.';
           appState.addNotification('error', errorMessage, 5000);
           break;
           
         case 401:
-          // No autorizado - Token inválido o expirado
-          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          // Unauthorized - Invalid or expired token
+          errorMessage = 'Session expired. Please sign in again.';
           appState.addNotification('error', errorMessage, 3000);
           
           // Limpiar sesión del usuario
@@ -65,26 +65,26 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
           
         case 403:
-          // Prohibido - Usuario no tiene permisos
-          errorMessage = 'No tienes permisos para realizar esta acción.';
+          // Forbidden - User lacks permissions
+          errorMessage = 'You do not have permission to perform this action.';
           appState.addNotification('error', errorMessage, 4000);
           break;
           
         case 404:
-          // No encontrado
-          errorMessage = error.error?.message || 'El recurso solicitado no existe.';
+          // Not found
+          errorMessage = error.error?.message || 'The requested resource does not exist.';
           appState.addNotification('error', errorMessage, 3000);
           break;
           
         case 422:
-          // Error de validación
-          errorMessage = error.error?.message || 'Los datos enviados no son válidos.';
+          // Validation error
+          errorMessage = error.error?.message || 'The submitted data is not valid.';
           appState.addNotification('error', errorMessage, 4000);
           break;
           
         case 423:
-          // Sesión bloqueada (caso específico)
-          errorMessage = error.error?.message || 'Sesión bloqueada. Por favor, ingresa tu PIN.';
+          // Session locked (specific case)
+          errorMessage = error.error?.message || 'Session locked. Please enter your PIN.';
           appState.addNotification('error', errorMessage, 4000);
           break;
           
@@ -98,8 +98,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         case 502:
         case 503:
         case 504:
-          // Error del servidor
-          errorMessage = 'Error del servidor. Intenta nuevamente en unos momentos.';
+          // Server error
+          errorMessage = 'Server error. Please try again later.';
           appState.addNotification('error', errorMessage, 5000);
           break;
           

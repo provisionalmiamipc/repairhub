@@ -114,7 +114,7 @@ export class StoresListModernComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error loading stores:', err);
-          this.error.set('Error al cargar las tiendas. Intenta de nuevo.');
+          this.error.set('Error loading stores. Please try again.');
           this.isLoading.set(false);
         }
       });
@@ -157,7 +157,7 @@ export class StoresListModernComponent implements OnInit, OnDestroy {
   }
 
   onDelete(store: Stores) {
-    if (confirm(`¿Estás seguro de que deseas eliminar la tienda "${store.storeName}"?`)) {
+    if (confirm(`Are you sure you want to delete the store "${store.storeName}"?`)) {
       this.storesService
         .delete(store.id)
         .pipe(takeUntil(this.destroy$))
@@ -167,7 +167,7 @@ export class StoresListModernComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             console.error('Error deleting store:', err);
-            this.error.set('Error al eliminar la tienda. Intenta de nuevo.');
+            this.error.set('Error deleting store. Please try again.');
           }
         });
     }

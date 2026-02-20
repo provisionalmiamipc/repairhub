@@ -110,18 +110,18 @@ export class AppointmentsFormModernComponent implements OnInit {
   steps = [
     {
       id: 0,
-      title: 'Información Básica',
-      description: 'Cliente, fecha y hora'
+      title: 'Basic Information',
+      description: 'Customer, date and time'
     },
     {
       id: 1,
-      title: 'Dispositivo y Servicio',
-      description: 'Dispositivo, tipo de servicio y duración'
+      title: 'Device and Service',
+      description: 'Device, service type and duration'
     },
     {
       id: 2,
-      title: 'Notas',
-      description: 'Información adicional y estado'
+      title: 'Notes',
+      description: 'Additional information and status'
     }
   ];
 
@@ -281,7 +281,15 @@ export class AppointmentsFormModernComponent implements OnInit {
 
   private updateFieldsEnabledState(): void {
     const isClosed = this.appointmentForm.get('cloused')?.value || this.appointmentForm.get('canceled')?.value;
-    const fieldsToToggle = ['customer', 'date', 'time', 'deviceId', 'serviceTypeId', 'duration', 'notes'];
+    const fieldsToToggle = ['customer', 'date', 'time', 'deviceId', 'serviceTypeId', 'duration', 'notes', 'assignedTechId', 'ecustomerId'];
+    // If the current user is an Expert (and not a center admin) and we're in edit mode,
+    // keep the form read-only regardless of closed/canceled state.
+    if (this.isFormReadOnly()) {
+      fieldsToToggle.forEach(fieldName => {
+        this.appointmentForm.get(fieldName)?.disable({ emitEvent: false });
+      });
+      return;
+    }
 
     fieldsToToggle.forEach(fieldName => {
       const control = this.appointmentForm.get(fieldName);
@@ -337,7 +345,7 @@ export class AppointmentsFormModernComponent implements OnInit {
         this.formState.update(s => ({
           ...s,
           isLoading: false,
-          error: err?.error?.message || 'Error cargando la cita'
+          error: err?.error?.message || 'Error loading appointment'
         }));
       }
     });
@@ -390,6 +398,10 @@ export class AppointmentsFormModernComponent implements OnInit {
   canProceedToNextStep(): boolean {
     const step = this.currentStep();
     const isClosed = this.isAppointmentClosed();
+    // Allow proceeding when form is read-only for Expert non-center-admin users
+    if (this.isFormReadOnly()) {
+      return true;
+    }
     
     // Si la cita está cerrada, permitir navegar sin validar (solo ir al paso anterior)
     if (isClosed && step > 0) {
@@ -570,7 +582,7 @@ export class AppointmentsFormModernComponent implements OnInit {
         this.formState.update(s => ({
           ...s,
           isSaving: false,
-          error: err?.error?.message || 'Error al guardar la cita'
+              error: err?.error?.message || 'Error saving appointment'
         }));
       }
     });
@@ -655,7 +667,7 @@ export class AppointmentsFormModernComponent implements OnInit {
         this.formState.update(s => ({
           ...s,
           isSaving: false,
-          error: err?.error?.message || 'Error al actualizar la cita'
+          error: err?.error?.message || 'Error updating appointment'
         }));
       }
     });

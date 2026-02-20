@@ -182,7 +182,7 @@ export class ServiceTypesFormComponent implements OnInit, OnChanges {
         },
         error: (err) => {
           this.isLoading = false;
-          this.errorMessage = err?.error?.message ?? 'Error al actualizar el tipo de servicio.';
+          this.errorMessage = err?.error?.message ?? 'Error updating service type.';
           console.error('Update error:', err);
         }
       });

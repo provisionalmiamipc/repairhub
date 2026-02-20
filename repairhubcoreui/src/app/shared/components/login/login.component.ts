@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { NotificationsService } from '../../services/notifications.service';
 import { PinInputModalComponent } from '../pin-input-modal/pin-input-modal.component';
 
 @Component({
@@ -48,7 +49,8 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationsService: NotificationsService
   ) {}
 
   ngOnInit(): void {
@@ -98,6 +100,8 @@ export class LoginComponent implements OnInit {
       if (response?.userType === 'user') {
         // Super-admin - no PIN required, navigate directly
         this.router.navigate(['/dashboard']);
+        // load notifications for admin
+        try { this.notificationsService.loadMy(); } catch (e) { /* ignore */ }
         return;
       }
 
@@ -137,6 +141,9 @@ export class LoginComponent implements OnInit {
           this.authService.setPinVerified(true);
           this.showPinModal = false;
           this.router.navigate(['/employee/dashboard']);
+          // cargar notificaciones una vez el token PIN-verified está almacenado
+          const employee = this.authService.getCurrentEmployee();
+          try { this.notificationsService.loadMy(employee?.id); } catch (e) { /* ignore */ }
         } else {
           // PIN inválido
           this.handlePinError(response.error || 'Invalid PIN. Please try again.');

@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, ItemTypesListComponent],
   template: `
     <h1>Tipos de Item</h1>
-    <button (click)="onCreate()">Nuevo Tipo</button>
+    <button (click)="onCreate()">New Type</button>
     <app-item-types-list
       [itemTypes]="itemTypes"
       (select)="onSelect($event)"
@@ -44,7 +44,7 @@ export class ItemTypesListPageComponent {
   }
 
   onDelete(itemType: ItemTypes) {
-    if (confirm('¿Eliminar este tipo?')) {
+    if (confirm('Delete this type?')) {
       this.service.delete(itemType.id).subscribe(() => this.load());
     }
   }

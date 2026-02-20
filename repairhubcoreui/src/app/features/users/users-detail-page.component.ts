@@ -36,7 +36,7 @@ import { EMPTY } from 'rxjs';
       <!-- Indicador de carga -->
       <div *ngIf="isLoading" class="alert alert-info text-center">
         <span class="spinner-border spinner-border-sm me-2"></span>
-        Cargando usuario...
+        Loading user...
       </div>
 
       <!-- Detalle -->

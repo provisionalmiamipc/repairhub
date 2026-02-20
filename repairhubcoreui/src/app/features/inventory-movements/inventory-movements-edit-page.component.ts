@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, InventoryMovementsFormComponent],
   template: `
-    <h1 *ngIf="!isNew">Editar Movimiento</h1>
-    <h1 *ngIf="isNew">Nuevo Movimiento</h1>
+    <h1 *ngIf="!isNew">Edit Movement</h1>
+    <h1 *ngIf="isNew">New Movement</h1>
     <app-inventory-movements-form
       [movement]="movement"
       (save)="onSave($event)"

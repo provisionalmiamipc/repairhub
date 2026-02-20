@@ -55,6 +55,7 @@
       <select
         class="select-filter"
         (change)="onFilterChange($any($event).target.value)"
+        [value]="filterStatus()"
         [attr.aria-label]="'Filter appointments'"
       >
         <option value="all">All</option>
@@ -110,6 +111,7 @@
         <table class="table table-striped table-hover align-middle">
           <thead>
             <tr>
+              <th>Code</th>
               <th>Customer</th>
               <th>Date</th>
               <th>Time</th>
@@ -126,6 +128,7 @@
           <tbody>
             @for (appointment of filteredAppointments(); track appointment.id) {
             <tr class="table-row" [class]="getStatusClass(appointment)">
+              <td>{{ appointment.appointmentCode }}</td>
               <td>{{ appointment.customer }}</td>
               <td>{{ appointment.date | date: 'mediumDate' }}</td>
               <td>{{ appointment.time }}</td>

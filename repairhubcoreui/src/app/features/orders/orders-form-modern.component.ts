@@ -146,7 +146,7 @@ export class OrdersFormModernComponent implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
-        this.formState.update(s => ({ ...s, error: 'Error al cargar la orden' }));
+        this.formState.update(s => ({ ...s, error: 'Error loading order' }));
       }
     });
   }
@@ -192,7 +192,7 @@ export class OrdersFormModernComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     if (!this.orderForm.valid) {
-      this.formState.update(s => ({ ...s, error: 'Por favor completa todos los campos requeridos' }));
+      this.formState.update(s => ({ ...s, error: 'Please complete all required fields' }));
       return;
     }
 
@@ -222,7 +222,7 @@ export class OrdersFormModernComponent implements OnInit, OnDestroy {
   }
 
   onCancel() {
-    if (this.orderForm.dirty && !confirm('¿Descartar cambios?')) {
+    if (this.orderForm.dirty && !confirm('Discard changes?')) {
       return;
     }
     this.router.navigate(['/orders']);
@@ -235,7 +235,7 @@ export class OrdersFormModernComponent implements OnInit, OnDestroy {
     }
 
     if (field.errors['required']) {
-      return `${fieldName} es requerido`;
+      return `${fieldName} is required`;
     }
     if (field.errors['min']) {
       return `${fieldName} no puede ser menor a ${field.errors['min'].min}`;

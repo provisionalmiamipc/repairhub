@@ -42,19 +42,23 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class CentersListPageComponent implements OnInit, OnDestroy {
-  items$ = this.service.data$;
-  loading$ = this.service.loading$;
-  error$ = this.service.error$;
+  items$: any;
+  loading$: any;
+  error$: any;
   private destroy$ = new Subject<void>();
 
-  constructor(private service: CentersService, private router: Router) {}
+  constructor(private service: CentersService, private router: Router) {
+    this.items$ = this.service.data$;
+    this.loading$ = this.service.loading$;
+    this.error$ = this.service.error$;
+  }
 
   ngOnInit(): void { this.service.getAll(); }
   onCreate(): void { this.router.navigate(['/centers', 'new']); }
   onSelect(item: Centers): void { this.router.navigate(['/centers', item.id]); }
   onEdit(item: Centers): void { this.router.navigate(['/centers', item.id, 'edit']); }
   onDelete(item: Centers): void {
-    if (confirm('¿Eliminar?')) {
+    if (confirm('Delete this center?')) {
       this.service.delete(item.id).pipe(takeUntil(this.destroy$)).subscribe(() => this.service.getAll());
     }
   }

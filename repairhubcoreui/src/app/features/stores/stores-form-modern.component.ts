@@ -74,7 +74,7 @@ export class StoresFormModernComponent implements OnInit {
     },
     {
       id: 1,
-      title: 'Información Básica',
+      title: 'Basic Information',
       description: 'Nombre y ubicación de la tienda'
     },
     {
@@ -165,7 +165,7 @@ export class StoresFormModernComponent implements OnInit {
         this.formState.update(s => ({
           ...s,
           isLoading: false,
-          error: err?.error?.message || 'Error cargando la tienda'
+          error: err?.error?.message || 'Error loading store'
         }));
       }
     });
@@ -273,14 +273,14 @@ export class StoresFormModernComponent implements OnInit {
         this.formState.update(s => ({
           ...s,
           isSaving: false,
-          error: err?.error?.message || 'Error al guardar la tienda'
+          error: err?.error?.message || 'Error saving store'
         }));
       }
     });
   }
 
   onCancel(): void {
-    if (confirm('¿Descartar cambios?')) {
+    if (confirm('Discard changes?')) {
       this.router.navigate(['/stores']);
     }
   }

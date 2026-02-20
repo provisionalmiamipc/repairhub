@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, ItemTypesFormComponent],
   template: `
-    <h1 *ngIf="!isNew">Editar Tipo</h1>
-    <h1 *ngIf="isNew">Nuevo Tipo</h1>
+    <h1 *ngIf="!isNew">Edit Type</h1>
+    <h1 *ngIf="isNew">New Type</h1>
     <app-item-types-form
       [itemType]="itemType"
       (save)="onSave($event)"

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { InventoryMovementsService } from '../../shared/services/inventory-movements.service';
 import { InventoryMovements } from '../../shared/models/InventoryMovements';
 import { InventoryMovementsListComponent } from './inventory-movements-list.component';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -19,7 +19,7 @@ import { takeUntil } from 'rxjs/operators';
         </div>
         <div class="col-md-4 text-end">
           <button class="btn btn-primary" (click)="onCreate()">
-            <i class="cil-plus me-2"></i> Nuevo Movimiento
+            <i class="cil-plus me-2"></i> New Movement
           </button>
         </div>
       </div>
@@ -32,7 +32,7 @@ import { takeUntil } from 'rxjs/operators';
       <div *ngIf="loading$ | async">
         <div class="text-center py-5">
           <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       </div>
@@ -48,16 +48,20 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class InventoryMovementsListPageComponent implements OnInit, OnDestroy {
-  movements$ = this.inventoryMovementsService.data$;
-  loading$ = this.inventoryMovementsService.loading$;
-  error$ = this.inventoryMovementsService.error$;
+  movements$: Observable<InventoryMovements[]>;
+  loading$: Observable<boolean>;
+  error$: Observable<string | null>;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private inventoryMovementsService: InventoryMovementsService,
     private router: Router
-  ) {}
+  ) {
+    this.movements$ = this.inventoryMovementsService.data$;
+    this.loading$ = this.inventoryMovementsService.loading$;
+    this.error$ = this.inventoryMovementsService.error$;
+  }
 
   ngOnInit(): void {
     this.inventoryMovementsService.getAll();
@@ -76,7 +80,7 @@ export class InventoryMovementsListPageComponent implements OnInit, OnDestroy {
   }
 
   onDelete(movement: InventoryMovements): void {
-    if (confirm(`¿Eliminar movimiento ${movement.id}?`)) {
+    if (confirm(`Delete movement ${movement.id}?`)) {
       this.inventoryMovementsService
         .delete(movement.id)
         .pipe(takeUntil(this.destroy$))

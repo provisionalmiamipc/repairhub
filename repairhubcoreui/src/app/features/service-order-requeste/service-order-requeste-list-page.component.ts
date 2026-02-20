@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, ServiceOrderRequesteListComponent],
   template: `
-    <h1>Solicitudes de Orden de Servicio</h1>
-    <button (click)="onCreate()">Nueva Solicitud</button>
+    <h1>Service Order Requests</h1>
+    <button (click)="onCreate()">New Request</button>
     <app-service-order-requeste-list
       [requests]="requests"
       (select)="onSelect($event)"
@@ -44,7 +44,7 @@ export class ServiceOrderRequesteListPageComponent {
   }
 
   onDelete(request: ServiceOrderRequeste) {
-    if (confirm('¿Eliminar esta solicitud?')) {
+    if (confirm('Delete this request?')) {
       this.service.delete(request.id).subscribe(() => this.load());
     }
   }

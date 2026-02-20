@@ -42,9 +42,9 @@ import { takeUntil } from 'rxjs/operators';
   `,
 })
 export class StoresListPageComponent implements OnInit, OnDestroy {
-  items$ = this.service.data$;
-  loading$ = this.service.loading$;
-  error$ = this.service.error$;
+  get items$() { return this.service.data$; }
+  get loading$() { return this.service.loading$; }
+  get error$() { return this.service.error$; }
   private destroy$ = new Subject<void>();
 
   constructor(private service: StoresService, private router: Router) {}
@@ -54,7 +54,7 @@ export class StoresListPageComponent implements OnInit, OnDestroy {
   onSelect(item: Stores): void { this.router.navigate(['/stores', item.id]); }
   onEdit(item: Stores): void { this.router.navigate(['/stores', item.id, 'edit']); }
   onDelete(item: Stores): void {
-    if (confirm('¿Eliminar?')) {
+    if (confirm('Delete?')) {
       this.service.delete(item.id).pipe(takeUntil(this.destroy$)).subscribe(() => this.service.getAll());
     }
   }
