@@ -53,6 +53,8 @@ async function bootstrap() {
         return callback(null, true);
       }
 
+      if (originNormalized && originNormalized.includes('oceanspt.com')) return callback(null, true);
+
       // Permitir orígenes explícitos (comparación con lista normalizada)
       const allowed = allowedOrigins.map(o => o.replace(/\/$/, ''));
       if (allowed.indexOf(originNormalized) !== -1) {

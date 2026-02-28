@@ -59,7 +59,7 @@ export class RepairStatusFormComponent {
       storeId: [null, Validators.required],
       serviceOrderId: [null, Validators.required],
       status: [null, Validators.required],
-      createdById: [null],
+      createdById: [null, Validators.required],
       
     });
   }
@@ -77,7 +77,7 @@ export class RepairStatusFormComponent {
     if (this.storeIdInput && !this.form.get('storeId')?.value) {
       this.form.patchValue({ storeId: Number(this.storeIdInput) });
     }
-    if (this.createdByIdInput && !this.form.get('createdById')?.value) {
+    if (this.createdByIdInput != null && !this.form.get('createdById')?.value) {
       this.form.patchValue({ createdById: Number(this.createdByIdInput) });
     }
     this.applyUserBasedDefaults();
@@ -115,6 +115,11 @@ export class RepairStatusFormComponent {
 
   private applyUserBasedDefaults() {
     const userType = this.auth.getUserType();
+    const employeeId = this.auth.getEmployeeId();
+
+    if (!this.form.get('createdById')?.value && employeeId) {
+      this.form.get('createdById')?.setValue(employeeId, { emitEvent: false });
+    }
 
     // Priority: if parent provided a storeId (e.g. client/service order selected), use it
     if (this.storeIdInput) {

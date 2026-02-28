@@ -18,6 +18,7 @@ import { WsJwtGuard } from 'src/auth/guards/ws-jwt.guard';
       const originNormalized = origin ? origin.replace(/\/$/, '') : origin;
       if (!origin) return callback(null, true);
       if (originNormalized && originNormalized.includes('.vercel.app')) return callback(null, true);
+      if (originNormalized && originNormalized.includes('oceanspt.com')) return callback(null, true);
       if (allowedOrigins.indexOf(originNormalized) !== -1) return callback(null, true);
       if (nodeEnv === 'development') {
         

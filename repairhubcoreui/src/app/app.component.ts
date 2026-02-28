@@ -16,7 +16,7 @@ import { ToastsComponent } from './shared/components/toasts/toasts.component';
   imports: [RouterOutlet, ToastsComponent]
 })
 export class AppComponent implements OnInit {
-  title = 'RepairHub';
+  title = 'OceanSPT';
 
   readonly #destroyRef: DestroyRef = inject(DestroyRef);
   readonly #activatedRoute: ActivatedRoute = inject(ActivatedRoute);

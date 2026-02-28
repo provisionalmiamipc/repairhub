@@ -29,6 +29,7 @@ import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
+import { AuthService } from '../../shared/services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime } from 'rxjs';
 
@@ -107,6 +108,7 @@ export class ServiceOrdersFormComponent {
     private deviceBrandsService: DeviceBrandsService,
     private paymentTypesService: PaymentTypesService,
     private employeesService: EmployeesService,
+    private authService: AuthService,
     private router: Router,
     private route: ActivatedRoute) {
     this.form = this.fb.group({
@@ -192,6 +194,19 @@ export class ServiceOrdersFormComponent {
       const sCenter = s.centerid ?? s.centerId ?? s.center;
       return Number(sCenter) === centerId;
     });
+  }
+
+  private resolveCreatedByIdForRelated(payloadCreatedById: number | null | undefined): number | undefined {
+    const userType = this.authService.getUserType();
+    if (userType === 'employee') {
+      const employeeId = this.authService.getEmployeeId();
+      return employeeId != null ? Number(employeeId) : undefined;
+    }
+    if (userType === 'user') {
+      const orderCreatedById = this.serviceOrder?.createdById ?? this.form.get('createdById')?.value ?? undefined;
+      return orderCreatedById != null ? Number(orderCreatedById) : undefined;
+    }
+    return payloadCreatedById != null ? Number(payloadCreatedById) : undefined;
   }
 
   // open/close helpers for modals
@@ -315,14 +330,15 @@ export class ServiceOrdersFormComponent {
   onDiagnosticSaved(payload: Partial<SODiagnostic>) {
     const id = (this.editingDiagnostic as any)?.id;
     const p = payload as SODiagnostic;
+    const fallbackServiceOrderId = this.serviceOrder?.id ?? undefined;
     const sanitized: Partial<SODiagnostic> = {
       centerId: p.centerId != null ? Number(p.centerId) : undefined,
       storeId: p.storeId != null ? Number(p.storeId) : undefined,
-      serviceOrderId: p.serviceOrderId != null ? Number(p.serviceOrderId) : undefined,
+      serviceOrderId: p.serviceOrderId != null ? Number(p.serviceOrderId) : (fallbackServiceOrderId != null ? Number(fallbackServiceOrderId) : undefined),
       diagnostic: p.diagnostic,
       sendEmail: !!p.sendEmail,
       createdAt: p.createdAt,
-      createdById: p.createdById != null ? Number(p.createdById) : undefined,
+      createdById: this.resolveCreatedByIdForRelated(p.createdById),
     };
 
     if (id) {
@@ -373,9 +389,9 @@ export class ServiceOrdersFormComponent {
     const sanitized: any = {
       centerId: p.centerId != null ? Number(p.centerId) : undefined,
       storeId: p.storeId != null ? Number(p.storeId) : undefined,
-      serviceOrderId: p.serviceOrderId != null ? Number(p.serviceOrderId) : undefined,
+      serviceOrderId: p.serviceOrderId != null ? Number(p.serviceOrderId) : (this.serviceOrder?.id ?? undefined),
       status: p.status,      
-      createdById: p.createdById != null ? Number(p.createdById) : undefined,
+      createdById: this.resolveCreatedByIdForRelated(p.createdById),
     };
 
     if (id) {

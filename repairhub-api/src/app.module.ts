@@ -70,7 +70,7 @@ const DebugModuleOptional = (() => {
         }
 
         const fromName = configService.get<string>('FROM_NAME');
-        const fromEmail = configService.get<string>('FROM_EMAIL') || `no-reply@${configService.get<string>('SMTP_HOST') || 'repairhub'}`;
+        const fromEmail = configService.get<string>('FROM_EMAIL') || `no-reply@${configService.get<string>('SMTP_HOST') }`;
         const defaultFrom = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
 
         const transport: any = {

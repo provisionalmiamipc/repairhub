@@ -902,6 +902,19 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     this.showStatusModal = false;
   }
 
+  private resolveCreatedByIdForRelated(payloadCreatedById: number | null | undefined): number | undefined {
+    const userType = this.authService.getUserType();
+    if (userType === 'employee') {
+      const employeeId = this.authService.getEmployeeId();
+      return employeeId != null ? Number(employeeId) : undefined;
+    }
+    if (userType === 'user') {
+      const orderCreatedById = this.serviceOrder()?.createdById ?? this.serviceOrderForm.get('createdById')?.value ?? undefined;
+      return orderCreatedById != null ? Number(orderCreatedById) : undefined;
+    }
+    return payloadCreatedById != null ? Number(payloadCreatedById) : undefined;
+  }
+
   onNoteSaved(payload: Partial<SONotes>): void {
     const id = (this.editingNote as SONotes)?.id;
     const p = payload as SONotes;
@@ -936,7 +949,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       diagnostic: p.diagnostic,
       sendEmail: !!p.sendEmail,
       createdAt: p.createdAt,
-      createdById: p.createdById != null ? Number(p.createdById) : undefined
+      createdById: this.resolveCreatedByIdForRelated(p.createdById)
     };
 
     if (id) {
@@ -992,7 +1005,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       storeId: p.storeId != null ? Number(p.storeId) : undefined,
       serviceOrderId: p.serviceOrderId != null ? Number(p.serviceOrderId) : this.currentServiceOrderId() ?? undefined,
       status: p.status,
-      createdById: p.createdById != null ? Number(p.createdById) : undefined
+      createdById: this.resolveCreatedByIdForRelated(p.createdById)
     };
 
     if (id) {

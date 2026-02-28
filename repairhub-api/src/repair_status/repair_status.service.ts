@@ -28,29 +28,34 @@ export class RepairStatusService {
 
     const saved = await this.repairStatusRepository.save(repairStatus);
 
-    // If this is not the first status (existingCount > 0) then notify customer
+    // Non-blocking email dispatch to avoid delaying API response.
     if (existingCount > 0) {
-      try {
-        const order = await this.serviceOrderRepository.findOne({ where: { id: serviceOrderId }, relations: ['customer'] });
-        const customer = (order && (order as any).customer) || null;
-        const to = customer?.email || (order as any).customerEmail || null;
-        const customerName = customer ? `${customer.firstName} ${customer.lastName}` : (order as any).customerName || '';
-        if (to) {
-          await this.emailService.sendRepairStatusUpdate({
-            to,
-            customerName,
-            orderCode: (order as any).orderCode || String(serviceOrderId),
-            status: saved.status,
-            date: saved.createdAt || new Date(),
-          });
-        }
-      } catch (err) {
-        // don't block creation on email errors
+      void this.dispatchRepairStatusEmail(saved, serviceOrderId).catch((err) => {
         console.error('RepairStatusService: failed to send status update email', err);
-      }
+      });
     }
 
     return saved;
+  }
+
+  private async dispatchRepairStatusEmail(saved: RepairStatus, serviceOrderId: number): Promise<void> {
+    const order = await this.serviceOrderRepository.findOne({
+      where: { id: serviceOrderId },
+      relations: ['customer'],
+    });
+    const customer = (order && (order as any).customer) || null;
+    const to = customer?.email || (order as any).customerEmail || null;
+    const customerName = customer ? `${customer.firstName} ${customer.lastName}` : (order as any).customerName || '';
+
+    if (!to) return;
+
+    await this.emailService.sendRepairStatusUpdate({
+      to,
+      customerName,
+      orderCode: (order as any).orderCode || String(serviceOrderId),
+      status: saved.status,
+      date: saved.createdAt || new Date(),
+    });
   }
 
   async findAll() {

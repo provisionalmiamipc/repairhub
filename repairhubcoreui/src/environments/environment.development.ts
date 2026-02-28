@@ -101,7 +101,7 @@ export const environment = {
    * Configuración de la aplicación
    */
   app: {
-    name: 'RepairHub',
+    name: 'OceanSPT',
     version: '1.0.0-dev',
     supportEmail: 'support@repairhub.com',
   },

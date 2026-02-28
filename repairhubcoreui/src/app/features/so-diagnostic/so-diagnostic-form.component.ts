@@ -43,7 +43,7 @@ export class SODiagnosticFormComponent {
       serviceOrderId: [null, Validators.required],
       diagnostic: [null, Validators.required],
       sendEmail: [false, Validators.required],      
-      createdById: [null],
+      createdById: [null, Validators.required],
     });
   }
 
@@ -61,7 +61,7 @@ export class SODiagnosticFormComponent {
     if (this.storeId && !this.form.get('storeId')?.value) {
       this.form.patchValue({ storeId: Number(this.storeId) });
     }
-    if (this.createdById && !this.form.get('createdById')?.value) {
+    if (this.createdById != null && !this.form.get('createdById')?.value) {
       this.form.patchValue({ createdById: Number(this.createdById) });
     }
     this.applyUserBasedDefaults();
@@ -91,6 +91,11 @@ export class SODiagnosticFormComponent {
 
   private applyUserBasedDefaults() {
     const userType = this.auth.getUserType();
+    const employeeId = this.auth.getEmployeeId();
+
+    if (!this.form.get('createdById')?.value && employeeId) {
+      this.form.get('createdById')?.setValue(employeeId, { emitEvent: false });
+    }
 
     // Priority: if parent provided a storeId (e.g. client/service order selected), use it
     if (this.storeId) {

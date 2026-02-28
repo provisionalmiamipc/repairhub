@@ -30,37 +30,57 @@ export class SODiagnosticService {
     });
     const saved = await this.sODiagnosticRepository.save(sODiagnostic);
 
-    // After save, send notification depending on sendEmail flag
-    try {
-      const order = await this.serviceOrderRepository.findOne({ where: { id: saved.serviceOrderId }, relations: ['customer'] });
-      const customer = order?.customer || null;
-      const customerName = customer ? `${customer.firstName} ${customer.lastName}` : (order as any).customerName || '';
-      const orderCode = (order as any).orderCode || String(saved.serviceOrderId);
-      const date = saved.createdAt || new Date();
-
-      if (saved.sendEmail) {
-        const to = customer?.email || (order as any).customerEmail || null;
-        if (to) {
-          await this.emailService.sendDiagnosticNotification({ to, customerName, orderCode, diagnostic: saved.diagnostic, date, forCenter: false });
-        } else {
-          console.warn('SODiagnosticService: sendEmail requested but no customer email found', { serviceOrderId: saved.serviceOrderId });
-        }
-      } else {
-        // notify center admins
-        const centerId = saved.centerId;
-        const admins = await this.employeeRepository.find({ where: { centerId, isCenterAdmin: true, isActive: true } });
-        const emails = admins.map(a => a.email).filter(Boolean);
-        if (emails.length > 0) {
-          await this.emailService.sendDiagnosticNotification({ to: emails, customerName, orderCode, diagnostic: saved.diagnostic, date, forCenter: true });
-        } else {
-          console.warn('SODiagnosticService: no center admins found to notify', { centerId });
-        }
-      }
-    } catch (err) {
+    // Non-blocking email/notification dispatch to avoid delaying API response.
+    void this.dispatchDiagnosticNotifications(saved).catch((err) => {
       console.error('SODiagnosticService: failed to send diagnostic notification', err);
-    }
+    });
 
     return saved;
+  }
+
+  private async dispatchDiagnosticNotifications(saved: SODiagnostic): Promise<void> {
+    const order = await this.serviceOrderRepository.findOne({
+      where: { id: saved.serviceOrderId },
+      relations: ['customer'],
+    });
+    const customer = order?.customer || null;
+    const customerName = customer ? `${customer.firstName} ${customer.lastName}` : (order as any).customerName || '';
+    const orderCode = (order as any).orderCode || String(saved.serviceOrderId);
+    const date = saved.createdAt || new Date();
+
+    if (saved.sendEmail) {
+      const to = customer?.email || (order as any).customerEmail || null;
+      if (to) {
+        await this.emailService.sendDiagnosticNotification({
+          to,
+          customerName,
+          orderCode,
+          diagnostic: saved.diagnostic,
+          date,
+          forCenter: false,
+        });
+      } else {
+        console.warn('SODiagnosticService: sendEmail requested but no customer email found', { serviceOrderId: saved.serviceOrderId });
+      }
+      return;
+    }
+
+    // If sendEmail=false, notify active center admins.
+    const centerId = saved.centerId;
+    const admins = await this.employeeRepository.find({ where: { centerId, isCenterAdmin: true, isActive: true } });
+    const emails = admins.map(a => a.email).filter(Boolean);
+    if (emails.length > 0) {
+      await this.emailService.sendDiagnosticNotification({
+        to: emails,
+        customerName,
+        orderCode,
+        diagnostic: saved.diagnostic,
+        date,
+        forCenter: true,
+      });
+    } else {
+      console.warn('SODiagnosticService: no center admins found to notify', { centerId });
+    }
   }
 
   async findAll() {

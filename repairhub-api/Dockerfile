@@ -3,8 +3,8 @@
 # ============================================================================
 FROM node:18-alpine AS builder
 
-LABEL maintainer="RepairHub <soporte@repairhub.com>"
-LABEL description="RepairHub API - Sistema de Gestión de Reparaciones"
+LABEL maintainer="OceanSPT <soporte@repairhub.com>"
+LABEL description="OceanSPT API - Sistema de Gestión de Reparaciones"
 
 WORKDIR /build
 
