@@ -126,9 +126,10 @@
         <table class="table table-hover align-middle">
           <thead class="table small text-muted">
             <tr>
-              <th scope="col">Order</th>
+              <th scope="col">Code</th>
               <th scope="col">Customer</th>
               <th scope="col">Device</th>
+              <th scope="col">Brand</th>
               <th scope="col">Store</th>
               <th scope="col">Status</th>
               @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
@@ -156,7 +157,8 @@
                     <div class="small text-muted">{{ order.customer?.phone || '' }}</div>
                   </div>
                 </td>
-                <td>{{ order.device?.name || '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
+                <td>{{ order.device?.name || '-' }}</td>
+                <td>{{ order.deviceBrand?.name|| '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
                 <td>{{ order.store?.storeName || 'N/A' }}</td>                
                 <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span></td>
                 @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
