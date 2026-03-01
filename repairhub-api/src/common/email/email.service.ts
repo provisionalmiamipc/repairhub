@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export interface EmailOptions {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   attachments?: any[];
@@ -43,9 +43,14 @@ export class EmailService {
     const fromHeader = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
     const resendKey = this.configService.get('RESEND_API_KEY') || process.env.RESEND_API_KEY;
 
+    const recipients = this.normalizeRecipients(options.to);
+    if (recipients.length === 0) {
+      throw new Error('No valid recipient email addresses');
+    }
+
     const mailOptions: nodemailer.SendMailOptions = {
       from: fromHeader,
-      to: options.to,
+      to: recipients,
       subject: options.subject,
       html: options.html,
       attachments: options.attachments,
@@ -56,7 +61,7 @@ export class EmailService {
         const resendAttachments = this.toResendAttachments(options.attachments || []);
         const payload: any = {
           from: fromHeader,
-          to: options.to,
+          to: recipients,
           subject: options.subject,
           html: options.html,
         };
@@ -75,12 +80,12 @@ export class EmailService {
           const msg = text || `status=${res.status}`;
           throw new Error(`Resend API error: ${msg}`);
         }
-        this.logger.log(`Email sent via Resend to ${options.to} subject=${options.subject}`);
+        this.logger.log(`Email sent via Resend to ${recipients.join(',')} subject=${options.subject}`);
         return;
       }
 
       await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Email sent to ${options.to} subject=${options.subject}`);
+      this.logger.log(`Email sent to ${recipients.join(',')} subject=${options.subject}`);
     } catch (err) {
       this.logger.error('Failed to send email', err && err.message ? err.message : err);
       throw err;
@@ -124,6 +129,23 @@ export class EmailService {
         return out;
       })
       .filter(Boolean);
+  }
+
+  private normalizeRecipients(to: string | string[]): string[] {
+    const list = Array.isArray(to) ? to : [to];
+    const cleaned = list
+      .flatMap((value) => String(value || '').split(','))
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .filter((value) => this.isValidEmailAddress(value));
+    return Array.from(new Set(cleaned));
+  }
+
+  private isValidEmailAddress(value: string): boolean {
+    // Accepts plain email or "Name <email@domain.com>".
+    const simple = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const named = /^.+<\s*[^\s@]+@[^\s@]+\.[^\s@]+\s*>$/;
+    return simple.test(value) || named.test(value);
   }
 
   async sendRepairStatusUpdate(options: { to: string; customerName: string; orderCode: string; status: string; date: string | Date; }) {
@@ -199,7 +221,7 @@ export class EmailService {
         this.logger.debug('No logo attachment for diagnostic email');
       }
 
-      await this.sendEmail({ to: Array.isArray(opts.to) ? opts.to.join(',') : opts.to, subject, html, attachments });
+      await this.sendEmail({ to: opts.to, subject, html, attachments });
     } catch (error) {
       this.logger.error('EmailService.sendDiagnosticNotification failed', error && error.message ? error.message : error);
       throw error;
