@@ -41,6 +41,7 @@ export class EmailService {
     const fromEmail = this.configService.get('FROM_EMAIL') || this.configService.get('EMAIL_FROM') || 'system@localhost';
     const fromName = this.configService.get('FROM_NAME') || this.configService.get('EMAIL_FROM_NAME') || '';
     const fromHeader = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+    const resendKey = this.configService.get('RESEND_API_KEY') || process.env.RESEND_API_KEY;
 
     const mailOptions: nodemailer.SendMailOptions = {
       from: fromHeader,
@@ -51,12 +52,78 @@ export class EmailService {
     };
 
     try {
+      if (resendKey) {
+        const resendAttachments = this.toResendAttachments(options.attachments || []);
+        const payload: any = {
+          from: fromHeader,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+        };
+        if (resendAttachments.length > 0) payload.attachments = resendAttachments;
+
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${resendKey}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        const text = await res.text().catch(() => '');
+        if (!res.ok) {
+          const msg = text || `status=${res.status}`;
+          throw new Error(`Resend API error: ${msg}`);
+        }
+        this.logger.log(`Email sent via Resend to ${options.to} subject=${options.subject}`);
+        return;
+      }
+
       await this.transporter.sendMail(mailOptions);
       this.logger.log(`Email sent to ${options.to} subject=${options.subject}`);
     } catch (err) {
       this.logger.error('Failed to send email', err && err.message ? err.message : err);
       throw err;
     }
+  }
+
+  private toResendAttachments(attachments: any[]): any[] {
+    return attachments
+      .map((att) => {
+        if (!att) return null;
+
+        const filename = att.filename || 'attachment';
+        const contentType = att.contentType || att.content_type;
+        const disposition = att.contentDisposition || att.disposition;
+        const contentId = att.cid || att.content_id;
+
+        let contentBase64: string | null = null;
+        try {
+          if (att.content) {
+            if (Buffer.isBuffer(att.content)) {
+              contentBase64 = att.content.toString('base64');
+            } else if (typeof att.content === 'string') {
+              contentBase64 = att.content;
+            }
+          } else if (att.path && fs.existsSync(att.path)) {
+            contentBase64 = fs.readFileSync(att.path).toString('base64');
+          }
+        } catch (_e) {
+          contentBase64 = null;
+        }
+
+        if (!contentBase64) return null;
+
+        const out: any = {
+          filename,
+          content: contentBase64,
+        };
+        if (contentType) out.content_type = contentType;
+        if (disposition) out.disposition = disposition;
+        if (contentId) out.content_id = contentId;
+        return out;
+      })
+      .filter(Boolean);
   }
 
   async sendRepairStatusUpdate(options: { to: string; customerName: string; orderCode: string; status: string; date: string | Date; }) {

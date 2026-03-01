@@ -173,7 +173,10 @@ export class ServiceOrderMailService {
             contentType: 'application/pdf',
           },
           // Attach logo if present
-          ...(logoPath ? [{ filename: path.basename(logoPath), path: logoPath, cid: 'logo@repairhub', contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg' }] : []),
+          ...(logoPath ? [{ filename: path.basename(logoPath), 
+            path: logoPath, 
+            cid: 'logo@repairhub', 
+            contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg' }] : []),
         ],
       });
       // sent via SMTP fallback
