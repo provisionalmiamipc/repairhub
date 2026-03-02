@@ -18,6 +18,14 @@ export class AppointmentsService {
     private readonly emailService: EmailService,
   ) {}
 
+  formatDateToMMDDYYYY(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses van de 0-11
+  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${month}/${day}/${year}`;
+}
+
   async create(createAppointmentDto: CreateAppointmentDto) {
     // Obtener el último appointmentCode
     const lastAppointment = await this.appointmentRepository.createQueryBuilder('ap')
@@ -42,7 +50,7 @@ export class AppointmentsService {
       if (saved.assignedTechId) {
         await this.notificationsService.createAndEmit({
           title: `New assigned appointment: ${saved.appointmentCode}`,
-          message: `You have a new appointment scheduled for ${new Date(saved.date).toLocaleString()}`,
+          message: `You have a new appointment scheduled for ${this.formatDateToMMDDYYYY(new Date(saved.date))} at ${saved.time}`,
           employeeId: saved.assignedTechId,
           centerId: saved.centerId,
           storeId: saved.storeId,
@@ -62,7 +70,7 @@ export class AppointmentsService {
         runAt.setDate(runAt.getDate() - 1);
         const payload = {
           title: `Reminder: appointment ${saved.appointmentCode}`,
-          message: `You have an appointment on ${new Date(saved.date).toLocaleString()}`,
+          message: `You have an appointment on ${this.formatDateToMMDDYYYY(new Date(saved.date))} at ${saved.time}`,
           appointmentCode: saved.appointmentCode,
           date: saved.date,
           actionUrl: `/appointments/${saved.id}`,

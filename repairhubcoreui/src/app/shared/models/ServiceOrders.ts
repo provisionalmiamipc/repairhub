@@ -12,6 +12,12 @@ import { SONotes } from "./SONotes";
 import { Stores } from "./Stores";
 import { ReceivedPart } from './ReceivedPart';
 
+export interface LastRepairStatus {
+  id: number;
+  status: string;
+  date: Date;
+}
+
 export interface ServiceOrders {
   id: number;
   orderCode: string;
@@ -39,6 +45,8 @@ export interface ServiceOrders {
   canceled: boolean;
   createdAt: Date;
   updatedAt: Date;
+  lastRepairStatus?: LastRepairStatus | null;
+  repairStatus?: RepairStatus[];
   repairStatuses?: RepairStatus[];
   sODiagnostics?: SODiagnostic[];
   sOItems?: SOItems[];

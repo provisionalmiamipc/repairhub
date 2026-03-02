@@ -107,19 +107,34 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe(({ orders, appointments, customers, employees, items }) => {
-        const totalOrders = orders.length;
-        const activeOrders = orders.filter(order => !order.cloused && !order.canceled);
-        const closedOrders = orders.filter(order => order.cloused && !order.canceled);
-        const canceledOrders = orders.filter(order => order.canceled);
+        const currentEmployee = this.authService.getCurrentEmployee();
+        const isExpertNonCenterAdmin = !!(
+          currentEmployee &&
+          currentEmployee.employee_type === 'Expert' &&
+          !currentEmployee.isCenterAdmin
+        );
 
-        const pendingAppointments = appointments.filter(appointment => !appointment.cloused && !appointment.canceled);
+        // For Expert non-center-admin KPIs, only consider records assigned to the current tech.
+        const scopedOrders = isExpertNonCenterAdmin && currentEmployee?.id
+          ? orders.filter(order => order.assignedTechId === currentEmployee.id)
+          : orders;
+        const scopedAppointments = isExpertNonCenterAdmin && currentEmployee?.id
+          ? appointments.filter(appointment => appointment.assignedTechId === currentEmployee.id)
+          : appointments;
+
+        const totalOrders = scopedOrders.length;
+        const activeOrders = scopedOrders.filter(order => !order.cloused && !order.canceled);
+        const closedOrders = scopedOrders.filter(order => order.cloused && !order.canceled);
+        const canceledOrders = scopedOrders.filter(order => order.canceled);
+
+        const pendingAppointments = scopedAppointments.filter(appointment => !appointment.cloused && !appointment.canceled);
         const activeCustomers = customers.length;
         const activeEmployees = employees.filter(emp => !emp.isLocked).length || employees.length;
 
         const lowStockItems = items.filter(item => item.stock <= item.minimunStock);
 
-        const { current: orders24, previous: ordersPrev24 } = this.countByLastHours(orders, 24);
-        const { current: appts24, previous: apptsPrev24 } = this.countByLastHours(appointments, 24, 'createdAt');
+        const { current: orders24, previous: ordersPrev24 } = this.countByLastHours(scopedOrders, 24);
+        const { current: appts24, previous: apptsPrev24 } = this.countByLastHours(scopedAppointments, 24, 'createdAt');
         const { current: customers30, previous: customersPrev30 } = this.countByLastDays(customers, 30);
         const { current: employees30, previous: employeesPrev30 } = this.countByLastDays(employees, 30);
 
@@ -129,7 +144,7 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
         const canceledPct = totalOrders ? Math.max(0, 100 - completedPct - inProgressPct) : 0;
 
         const avgRepairHours = this.averageRepairHours(orders);
-        const revenueData = this.calculateRevenue(orders);
+        const revenueData = this.calculateRevenue(scopedOrders);
 
         this.kpis = [
           {
@@ -157,7 +172,7 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
             trendLabel: 'last 24h',
             icon: 'bi-calendar2-event',
             color: 'info',
-            progress: Math.round((pendingAppointments.length / (appointments.length || 1)) * 100)
+            progress: Math.round((pendingAppointments.length / (scopedAppointments.length || 1)) * 100)
           },
           {
             title: 'Active customers',
@@ -262,7 +277,7 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
         'Active orders',
         'Closed orders',
         'Pending appointments',
-        'Average time'
+        //'Average time'
       ]);
       return this.kpis.filter(k => allowed.has(k.title));
     }

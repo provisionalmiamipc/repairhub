@@ -83,7 +83,7 @@ export class RepairPdfService {
         this.drawStatusHistorySection(doc, data);
         this.drawProductSummarySection(doc, data);
 
-        doc.addPage();
+        //doc.addPage();
         this.drawTermsAndConditions(doc);
 
         doc.end();
@@ -317,12 +317,13 @@ export class RepairPdfService {
     // Table header
     const tableTop = yPos;
     const colWidths = [
-      contentWidth * 0.40,
+      contentWidth * 0.20,
+      contentWidth * 0.20,
       contentWidth * 0.20,
       contentWidth * 0.20,
       contentWidth * 0.20,
     ];
-    const headers = ['DEVICE', 'MODEL', 'SERIAL', 'ESTIMATED COST'];
+    const headers = ['DEVICE', 'BRAND', 'MODEL', 'SERIAL', 'ESTIMATED COST'];
 
     // Header background
     doc
@@ -369,12 +370,19 @@ export class RepairPdfService {
       .lineTo(xPos, yPos + rowHeight)
       .stroke();*/
 
+      doc
+      .fontSize(9)
+      .font('Helvetica')
+      .text(data.brand, xPos + 5, yPos + 8, {
+        width: colWidths[1] - 10,
+      });
+
     // Defective part
     doc
       .fontSize(9)
       .font('Helvetica')
       .text(data.model, xPos + 5, yPos + 8, {
-        width: colWidths[1] - 10,
+        width: colWidths[2] - 10,
       });
 
     // Vertical line
@@ -390,7 +398,7 @@ export class RepairPdfService {
       .fontSize(9)
       .font('Helvetica')
       .text(data.serial, xPos + 5, yPos + 8, {
-        width: colWidths[2] - 10,
+        width: colWidths[3] - 10,
       });
 
     // Vertical line
@@ -405,7 +413,7 @@ export class RepairPdfService {
       .fontSize(9)
       .font('Helvetica')
       .text(`$ ${data.price}`, xPos + 5, yPos + 8, {
-        width: colWidths[3] - 10,
+        width: colWidths[4] - 10,
       });
   }
 
@@ -1127,7 +1135,7 @@ export class RepairPdfService {
     
 
     // Signature line
-    yPos += 200;
+    /*yPos += 200;
     doc
       .strokeColor('#000000')
       .lineWidth(1)
@@ -1139,6 +1147,7 @@ export class RepairPdfService {
       .fontSize(8)
       .font('Helvetica')
       .text('Authorized Signature', marginLeft, yPos + 5);
+      */
   }
 
   /**

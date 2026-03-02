@@ -271,6 +271,10 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     return 'bg-primary text-white';
   }
 
+  getLatestRepairStatus(order: ServiceOrders): string {
+    return order.lastRepairStatus?.status || 'No status';
+  }
+
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',

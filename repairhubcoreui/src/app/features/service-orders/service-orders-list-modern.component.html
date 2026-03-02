@@ -132,6 +132,7 @@
               <th scope="col">Brand</th>
               <th scope="col">Store</th>
               <th scope="col">Status</th>
+              
               @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
               <th scope="col" class="text-end">Total</th>
               }
@@ -160,7 +161,10 @@
                 <td>{{ order.device?.name || '-' }}</td>
                 <td>{{ order.deviceBrand?.name|| '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
                 <td>{{ order.store?.storeName || 'N/A' }}</td>                
-                <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span></td>
+                <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span>
+                  <div class="small text-muted">{{ getLatestRepairStatus(order) }}</div>
+                </td>
+                
                 @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
                 <td class="text-end fw-semibold">{{ formatCurrency(order.price) }}</td>
                 }
@@ -168,7 +172,7 @@
                 <td>
                   <div class="btn-group" role="group">
                     <button type="button" class="btn btn-sm btn-outline-primary" (click)="goToDetail(order); $event.stopPropagation()"><i class="bi bi-eye"></i></button>
-                    <button type="button" *ngIf="!(order.cloused || order.canceled)" class="btn btn-sm btn-outline-secondary" (click)="goToEdit(order); $event.stopPropagation()"><i class="bi bi-pencil"></i></button>
+                    <button type="button" *ngIf="!(order.cloused || order.canceled) || authService.getCurrentEmployee()?.isCenterAdmin || authService.getUserType() === 'user'" class="btn btn-sm btn-outline-secondary" (click)="goToEdit(order); $event.stopPropagation()"><i class="bi bi-pencil"></i></button>
                     @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
                     <button type="button" class="btn btn-sm btn-outline-success" (click)="resendOrderEmail(order); $event.stopPropagation()" [disabled]="!order.id || order.canceled" title="Resend email"><i class="bi bi-envelope"></i></button>
                     }
@@ -233,6 +237,10 @@
               <div class="info-row">
                 <span class="label">Defective Part</span>
                 <span class="value">{{ order.defectivePart || '-' }}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Last Repair Status</span>
+                <span class="value">{{ getLatestRepairStatus(order) }}</span>
               </div>
             </div>
 

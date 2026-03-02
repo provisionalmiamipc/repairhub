@@ -100,6 +100,7 @@ export class EmailService {
         const filename = att.filename || 'attachment';
         const contentType = att.contentType || att.content_type;
         const disposition = att.contentDisposition || att.disposition;
+        const cid = att.cid || att.content_id;
         const contentId = att.cid || att.content_id;
 
         let contentBase64: string | null = null;
@@ -125,6 +126,7 @@ export class EmailService {
         };
         if (contentType) out.content_type = contentType;
         if (disposition) out.disposition = disposition;
+        if (cid) out.cid = cid;
         if (contentId) out.content_id = contentId;
         return out;
       })

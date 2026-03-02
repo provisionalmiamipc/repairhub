@@ -131,6 +131,7 @@ export class EmailService {
             filename: att.filename,
             content,
             content_type: att.contentType,
+            cid: att.cid,
             content_id: att.cid,
             disposition: 'inline',
           };

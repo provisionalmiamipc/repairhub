@@ -41,6 +41,30 @@ formatDateToMMDDYYYY(date: Date): string {
   return `${month}/${day}/${year}`;
 }
 
+  private pickLastRepairStatus(order: ServiceOrder): { id: number; status: string; date: Date } | null {
+    const statuses = Array.isArray((order as any).repairStatus) ? (order as any).repairStatus : [];
+    if (!statuses.length) return null;
+
+    const sorted = [...statuses].sort((a: any, b: any) =>
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+    const last = sorted[sorted.length - 1];
+    if (!last) return null;
+
+    return {
+      id: last.id,
+      status: last.status || '',
+      date: last.createdAt,
+    };
+  }
+
+  private attachLastRepairStatus(orders: ServiceOrder[]): any[] {
+    return (orders || []).map((order) => ({
+      ...order,
+      lastRepairStatus: this.pickLastRepairStatus(order),
+    }));
+  }
+
   async create(createDto: CreateServiceOrderDto) {
     // Obtener el último orderCode
     const lastOrder = await this.serviceOrderRepository.createQueryBuilder('so')
@@ -132,6 +156,7 @@ formatDateToMMDDYYYY(date: Date): string {
         customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '---',
         date: this.formatDateToMMDDYYYY(fullOrder.createdAt || new Date()),
         device: fullOrder.device?.name || '',
+        brand: fullOrder.deviceBrand?.name || '',
         model: fullOrder.model || '-',
         serial: fullOrder.serial || '-',
         defectivePart: fullOrder.defectivePart || '---',
@@ -225,19 +250,21 @@ formatDateToMMDDYYYY(date: Date): string {
       const isCenterAdmin = !!user?.isCenterAdmin;
 
       if (empType === 'Expert' && !isCenterAdmin && empId) {
-        return this.serviceOrderRepository.find({
+        const orders = await this.serviceOrderRepository.find({
           where: [
             { createdById: empId },
             { assignedTechId: empId }
           ],
           relations,
         });
+        return this.attachLastRepairStatus(orders);
       }
     } catch (err) {
       // fallback to full list if any error inspecting user
     }
 
-    return this.serviceOrderRepository.find({ relations });
+    const orders = await this.serviceOrderRepository.find({ relations });
+    return this.attachLastRepairStatus(orders);
   }
 
   async findOne(id: number) {
