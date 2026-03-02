@@ -127,7 +127,9 @@
           <thead class="table small text-muted">
             <tr>
               <th scope="col">Code</th>
+              @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
               <th scope="col">Customer</th>
+              }
               <th scope="col">Device</th>
               <th scope="col">Brand</th>
               <th scope="col">Store</th>
@@ -148,17 +150,21 @@
                     <i class="bi bi-credit-card-2-front fs-5 text-secondary"></i>
                     <div>
                       <div class="fw-semibold">{{ order.orderCode }}</div>
-                      <div class="small text-muted">{{ order.serial || '-' }}</div>
+                      
                     </div>
                   </div>
                 </td>
+                @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
                 <td>
                   <div class="d-flex flex-column">
                     <div class="fw-medium">{{ order.customer?.firstName }} {{ order.customer?.lastName }}</div>
                     <div class="small text-muted">{{ order.customer?.phone || '' }}</div>
                   </div>
                 </td>
-                <td>{{ order.device?.name || '-' }}</td>
+              }
+                <td>{{ order.device?.name || '-' }}
+                  <div class="small text-muted">{{ order.serial || '-' }}</div>
+                </td>
                 <td>{{ order.deviceBrand?.name|| '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
                 <td>{{ order.store?.storeName || 'N/A' }}</td>                
                 <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span>
