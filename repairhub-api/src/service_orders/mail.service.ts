@@ -19,7 +19,7 @@ export class ServiceOrderMailService {
       let logoPath: string | null = null;
       let logoAttachment: any = null;
       try {
-        const p = resolveUpload(['sopdf1.jpg']);
+        const p = resolveUpload(['sopdf.jpg']);
         if (p) {
           logoPath = p;
           const logo = fs.readFileSync(p);

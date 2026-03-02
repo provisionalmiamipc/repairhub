@@ -17,7 +17,7 @@ export class ServiceOrderPdfService {
 
             // Logo
             try {
-                                const logo = require('../common/asset-utils').resolveUpload(['logo.png','logo.jpg','sopdf.jpg','sopdf.png']);
+                                const logo = require('../common/asset-utils').resolveUpload(['sopdf.jpg', 'logo.png','logo.jpg', 'sopdf.png']);
                                 if (logo) {
                                     try { doc.image(logo, 40, 20, { width: 120 }); } catch(e) { /* ignore */ }
                                 }

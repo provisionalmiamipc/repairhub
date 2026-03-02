@@ -169,7 +169,7 @@ export class EmailService {
 
       const attachments: any[] = [];
       try {
-        const logoPath = resolveUpload(['sopdf1.jpg', 'logo.png', 'logo.jpg']);
+        const logoPath = resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
         if (logoPath) {
           const content = fs.readFileSync(logoPath);
           attachments.push({
@@ -214,7 +214,7 @@ export class EmailService {
 
       const attachments: any[] = [];
       try {
-        const logoPath = resolveUpload(['sopdf1.jpg', 'logo.png', 'logo.jpg']);
+        const logoPath = resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
         if (logoPath) {
           const content = fs.readFileSync(logoPath);
           attachments.push({ filename: path.basename(logoPath), content, cid: 'logo@repairhub', content_id: 'logo@repairhub', contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg', contentDisposition: 'inline', disposition: 'inline' });
