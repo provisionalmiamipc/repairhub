@@ -95,61 +95,105 @@ export class AppointmentsService {
       Logger.warn(`Failed dispatching appointment scheduled email: ${e}`);
     }
 
-    // Schedule reminder 1 day before
+    // Schedule day-before reminders for technician/customer
     try {
-      if (saved.assignedTechId && saved.date) {
-        const runAt = this.buildReminderRunAt(saved.date, saved.time);
-        const payload = {
-          kind: 'tech_appointment_reminder',
-          title: `Reminder: appointment ${saved.appointmentCode}`,
-          message: `You have an appointment on ${this.formatDateToMMDDYYYY(new Date(saved.date))} at ${saved.time}. Task: ${taskSummary}`,
-          appointmentCode: saved.appointmentCode,
-          date: saved.date,
-          time: saved.time,
-          actionUrl: `/appointments/${saved.id}`,
-          email: techEmail,
-          techName,
-        };
-        await this.scheduledNotificationsService.scheduleForAppointment(saved.id, runAt, payload, saved.assignedTechId, saved.centerId, saved.storeId);
-      }
+      await this.rescheduleAppointmentReminders(saved);
     } catch (e) {
-      Logger.warn(`Failed scheduling reminder: ${e}`);
-    }
-
-    // Schedule customer reminder email for day before appointment
-    try {
-      if (saved.date && customerEmail) {
-        const runAtCustomer = this.buildReminderRunAt(saved.date, saved.time);
-        const payloadCustomer = {
-          kind: 'customer_appointment_reminder',
-          appointmentCode: saved.appointmentCode,
-          date: saved.date,
-          time: saved.time,
-          email: customerEmail,
-          customerName,
-        };
-        await this.scheduledNotificationsService.scheduleForAppointment(
-          saved.id,
-          runAtCustomer,
-          payloadCustomer,
-          undefined,
-          saved.centerId,
-          saved.storeId
-        );
-      }
-    } catch (e) {
-      Logger.warn(`Failed scheduling customer reminder: ${e}`);
+      Logger.warn(`Failed scheduling appointment reminders: ${e}`);
     }
 
     return saved;
   }
 
   private buildReminderRunAt(dateValue: string, timeValue?: string | null): Date {
-    const time = (timeValue && String(timeValue).trim()) ? String(timeValue).trim() : '09:00';
-    const parsed = new Date(`${dateValue}T${time}:00`);
-    const runAt = isNaN(parsed.getTime()) ? new Date(dateValue) : parsed;
+    const dateOnly = String(dateValue || '').split('T')[0];
+    const appointmentDate = new Date(`${dateOnly}T00:00:00`);
+    const runAt = isNaN(appointmentDate.getTime()) ? new Date() : appointmentDate;
     runAt.setDate(runAt.getDate() - 1);
+    // Day-before reminder at fixed hour avoids depending on exact appointment hour.
+    runAt.setHours(9, 0, 0, 0);
+
+    // If reminder time is already in the past but appointment is still upcoming,
+    // run it shortly after creation/update so it is not silently skipped.
+    const appointmentTime = (timeValue && String(timeValue).trim()) ? String(timeValue).trim() : '09:00';
+    const appointmentDateTime = new Date(`${dateOnly}T${appointmentTime}:00`);
+    const now = new Date();
+    if (runAt <= now && !isNaN(appointmentDateTime.getTime()) && appointmentDateTime > now) {
+      return new Date(now.getTime() + 60 * 1000);
+    }
+
     return runAt;
+  }
+
+  private async rescheduleAppointmentReminders(appointment: Appointment): Promise<void> {
+    await this.scheduledNotificationsService.deletePendingForAppointment(appointment.id, [
+      'tech_appointment_reminder',
+      'customer_appointment_reminder',
+    ]);
+
+    if (!appointment.date || appointment.cloused || appointment.canceled) return;
+
+    const [customer, assignedTech] = await Promise.all([
+      appointment.ecustomerId
+        ? this.customerRepository.findOne({ where: { id: appointment.ecustomerId } })
+        : Promise.resolve(null),
+      appointment.assignedTechId
+        ? this.employeeRepository.findOne({ where: { id: appointment.assignedTechId } })
+        : Promise.resolve(null),
+    ]);
+
+    const runAt = this.buildReminderRunAt(appointment.date, appointment.time);
+    const timeLabel = appointment.time || '09:00';
+    const customerEmail = customer?.email || null;
+    const customerName = customer
+      ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim()
+      : (appointment.customer || 'Customer');
+    const techEmail = assignedTech?.email || null;
+    const techName = assignedTech
+      ? `${assignedTech.firstName || ''} ${assignedTech.lastName || ''}`.trim()
+      : 'Technician';
+    const taskSummary = appointment.notes || 'Scheduled technical service';
+
+    if (appointment.assignedTechId) {
+      const techPayload = {
+        kind: 'tech_appointment_reminder',
+        title: `Reminder: appointment ${appointment.appointmentCode}`,
+        message: `You have an appointment on ${this.formatDateToMMDDYYYY(new Date(appointment.date))} at ${timeLabel}. Task: ${taskSummary}`,
+        appointmentCode: appointment.appointmentCode,
+        date: appointment.date,
+        time: appointment.time,
+        actionUrl: `/appointments/${appointment.id}`,
+        email: techEmail,
+        techName,
+      };
+      await this.scheduledNotificationsService.scheduleForAppointment(
+        appointment.id,
+        runAt,
+        techPayload,
+        appointment.assignedTechId,
+        appointment.centerId,
+        appointment.storeId,
+      );
+    }
+
+    if (customerEmail) {
+      const customerPayload = {
+        kind: 'customer_appointment_reminder',
+        appointmentCode: appointment.appointmentCode,
+        date: appointment.date,
+        time: appointment.time,
+        email: customerEmail,
+        customerName,
+      };
+      await this.scheduledNotificationsService.scheduleForAppointment(
+        appointment.id,
+        runAt,
+        customerPayload,
+        undefined,
+        appointment.centerId,
+        appointment.storeId,
+      );
+    }
   }
 
   async findAll() {
@@ -162,7 +206,15 @@ export class AppointmentsService {
 
   async update(id: number, updateAppointmentDto: UpdateAppointmentDto) {
     await this.appointmentRepository.update(id, updateAppointmentDto);
-    return this.findOne(id);
+    const updated = await this.findOne(id);
+    if (updated) {
+      try {
+        await this.rescheduleAppointmentReminders(updated);
+      } catch (e) {
+        Logger.warn(`Failed rescheduling reminders for appointment ${id}: ${e}`);
+      }
+    }
+    return updated;
   }
 
   async remove(id: number) {

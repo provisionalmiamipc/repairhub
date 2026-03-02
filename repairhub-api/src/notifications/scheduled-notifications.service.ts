@@ -19,11 +19,45 @@ export class ScheduledNotificationsService {
 
   async findDue(limit = 50) {
     return this.scheduledRepo.createQueryBuilder('s')
-      .where('s.status = :st', { st: ScheduledNotificationStatus.PENDING })
+      .where('LOWER(s.status) = :st', { st: ScheduledNotificationStatus.PENDING })
       .andWhere('s.runAt <= :now', { now: new Date() })
       .orderBy('s.runAt', 'ASC')
       .limit(limit)
       .getMany();
+  }
+
+  async deletePendingForAppointment(appointmentId: number, kinds?: string[]) {
+    const pending = await this.scheduledRepo.createQueryBuilder('s')
+      .where('s.appointmentId = :appointmentId', { appointmentId })
+      .andWhere('LOWER(s.status) = :st', { st: ScheduledNotificationStatus.PENDING })
+      .getMany();
+    if (!pending.length) return;
+
+    if (!kinds || kinds.length === 0) {
+      await this.scheduledRepo.createQueryBuilder()
+        .delete()
+        .from(ScheduledNotification)
+        .where('"appointmentId" = :appointmentId', { appointmentId })
+        .andWhere('LOWER(status) = :st', { st: ScheduledNotificationStatus.PENDING })
+        .execute();
+      return;
+    }
+
+    const targetKinds = new Set(kinds);
+    const idsToDelete = pending
+      .filter((row) => {
+        try {
+          const payload = row.payload ? JSON.parse(row.payload) : {};
+          return targetKinds.has(payload?.kind);
+        } catch (_e) {
+          return true;
+        }
+      })
+      .map((row) => row.id);
+
+    if (idsToDelete.length > 0) {
+      await this.scheduledRepo.delete(idsToDelete);
+    }
   }
 
   async markSent(id: number) {

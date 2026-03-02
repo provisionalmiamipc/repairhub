@@ -191,6 +191,7 @@ export class EmailService {
       this.logger.log(`Appointment reminder sent to ${options.to}`);
     } catch (error) {
       this.logger.error('Error sending appointment reminder email', error as any);
+      throw error;
     }
   }
 

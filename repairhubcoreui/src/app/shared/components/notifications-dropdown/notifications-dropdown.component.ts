@@ -45,7 +45,10 @@ export class NotificationsDropdownComponent implements OnInit, OnDestroy {
     return this.svc ? this.svc.notifications().filter(n => n.status === 'unread') : [];
   }
 
-  async open(n: Notifications): Promise<void> {
+  async open(n: Notifications, event?: Event): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+
     if (n.status === 'unread') {
       // Do not block navigation on markRead request.
       void this.notificationsSvc.markRead(n.id).catch(() => {
@@ -69,13 +72,28 @@ export class NotificationsDropdownComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Internal route normalization
+    // Internal route normalization (+ query/hash support)
     const normalized = raw.startsWith('/') ? raw : `/${raw}`;
-    this.router.navigateByUrl(normalized).catch(() => {
-      const segments = normalized.split('/').filter(Boolean);
-      if (segments.length > 0) {
-        this.router.navigate(segments).catch(() => {});
-      }
+    const [pathAndQuery, fragment = ''] = normalized.split('#');
+    const [path, query = ''] = pathAndQuery.split('?');
+    const segments = path.split('/').filter(Boolean);
+
+    const queryParams: Record<string, string> = {};
+    if (query) {
+      const params = new URLSearchParams(query);
+      params.forEach((value, key) => {
+        queryParams[key] = value;
+      });
+    }
+
+    this.router.navigate(['/', ...segments], {
+      queryParams,
+      fragment: fragment || undefined,
+    }).catch(() => {
+      this.router.navigateByUrl(normalized).catch(() => {
+        // hard fallback for stubborn router state
+        window.location.assign(normalized);
+      });
     });
   }
 

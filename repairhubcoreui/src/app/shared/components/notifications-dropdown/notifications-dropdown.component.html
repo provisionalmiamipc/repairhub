@@ -10,7 +10,7 @@
   </button>
   <ul class="dropdown-menu dropdown-menu-end" [class.show]="menuOpen" [attr.data-bs-popper]="menuOpen ? 'none' : null">
     <li *ngFor="let n of unreadNotifications; trackBy: trackById">
-      <a class="dropdown-item d-flex justify-content-between align-items-start" (click)="open(n)">
+      <a class="dropdown-item d-flex justify-content-between align-items-start" href="" (click)="open(n, $event)">
         <div>
           <div class="fw-bold">{{ n.title }}</div>
           <div class="small text-muted">{{ n.message }}</div>
