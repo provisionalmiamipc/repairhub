@@ -57,11 +57,11 @@
               </h5>
             </div>
             <div class="col-md-3 mb-2">
-              <strong>Device ID:</strong>
+              <strong>Device:</strong>
               <div class="mb-0">{{ serviceOrder.device?.name }}</div>
             </div>
             <div class="col-md-3 mb-2">
-              <strong>Brand ID:</strong>
+              <strong>Brand:</strong>
               <div class="mb-0">{{ serviceOrder.deviceBrand?.name }}</div>
             </div>
             <div class="col-md-3 mb-2">
@@ -152,7 +152,7 @@
             </div>
           </div>
 
-          <div class="row mb-4" *ngIf="serviceOrder.estimated">
+          <div class="row mb-4" *ngIf="serviceOrder.estimated && (authService.getCurrentEmployee()?.isCenterAdmin || authService.getUserType() === 'user')">
             <div class="col-12">
               <h5 class="text-primary mb-3">
                 <i class="bi bi-chat-text"></i> Estimated Notes

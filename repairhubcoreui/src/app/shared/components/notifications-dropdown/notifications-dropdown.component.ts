@@ -47,17 +47,36 @@ export class NotificationsDropdownComponent implements OnInit, OnDestroy {
 
   async open(n: Notifications): Promise<void> {
     if (n.status === 'unread') {
-      try {
-        await this.notificationsSvc.markRead(n.id);
-      } catch {
+      // Do not block navigation on markRead request.
+      void this.notificationsSvc.markRead(n.id).catch(() => {
         // ignore errors
-      }
+      });
     }
     if (n.actionUrl) {
-      this.router.navigateByUrl(n.actionUrl).catch(() => {});
+      this.navigateFromActionUrl(n.actionUrl);
     }
     // close menu after opening/handling
     this.menuOpen = false;
+  }
+
+  private navigateFromActionUrl(actionUrl: string): void {
+    const raw = String(actionUrl || '').trim();
+    if (!raw) return;
+
+    // External URL
+    if (/^https?:\/\//i.test(raw)) {
+      window.location.href = raw;
+      return;
+    }
+
+    // Internal route normalization
+    const normalized = raw.startsWith('/') ? raw : `/${raw}`;
+    this.router.navigateByUrl(normalized).catch(() => {
+      const segments = normalized.split('/').filter(Boolean);
+      if (segments.length > 0) {
+        this.router.navigate(segments).catch(() => {});
+      }
+    });
   }
 
   toggleMenu(event: Event) {

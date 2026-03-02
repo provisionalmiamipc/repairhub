@@ -281,7 +281,19 @@ export class AppointmentsFormModernComponent implements OnInit {
 
   private updateFieldsEnabledState(): void {
     const isClosed = this.appointmentForm.get('cloused')?.value || this.appointmentForm.get('canceled')?.value;
-    const fieldsToToggle = ['customer', 'date', 'time', 'deviceId', 'serviceTypeId', 'duration', 'notes', 'assignedTechId', 'ecustomerId'];
+    const fieldsToToggle = [
+      'centerId',
+      'storeId',
+      'customer',
+      'date',
+      'time',
+      'deviceId',
+      'serviceTypeId',
+      'duration',
+      'notes',
+      'assignedTechId',
+      'ecustomerId'
+    ];
     // If the current user is an Expert (and not a center admin) and we're in edit mode,
     // keep the form read-only regardless of closed/canceled state.
     if (this.isFormReadOnly()) {

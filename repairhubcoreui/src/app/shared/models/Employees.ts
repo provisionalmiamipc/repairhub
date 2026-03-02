@@ -12,7 +12,7 @@ import { SOItems } from "./SOItems";
 import { SONotes } from "./SONotes";
 import { Stores } from "./Stores";
 
-export type Gender = "Male" | "Female";
+export type Gender = "Male" | "Female" | "Other";
 //export type EmployeeType = "Employee" | "Accountant" | "AdminStore";
 
 export interface Employees {

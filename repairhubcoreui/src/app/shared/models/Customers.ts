@@ -5,7 +5,7 @@ import { Sales } from "./Sales";
 import { ServiceOrders } from "./ServiceOrders";
 import { Stores } from "./Stores";
 
-export type Gender = "Male" | "Female";
+export type Gender = "Male" | "Female" | "Other";
 
 export interface Customers {
   id: number;

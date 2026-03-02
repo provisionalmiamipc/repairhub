@@ -260,7 +260,7 @@
                 </div>
 
                 <!-- Estimated -->
-                <div class="col-12">
+                <div class="col-12" *ngIf="!isExpertNonCenterAdmin()">
                   <label for="estimated" class="form-label">Estimated</label>
                   <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
                     placeholder="Estimated repair..." rows="3"></textarea>

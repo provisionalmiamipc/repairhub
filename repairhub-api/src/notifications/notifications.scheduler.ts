@@ -22,27 +22,48 @@ export class NotificationsScheduler {
     for (const job of due) {
       try {
         const payload = job.payload ? JSON.parse(job.payload) : {};
+        const kind = payload.kind || 'tech_appointment_reminder';
 
-        // create notification
-        await this.notificationsService.createAndEmit({
-          title: payload.title || 'Appointment reminder',
-          message: payload.message || 'You have an upcoming appointment',
-          employeeId: job.employeeId,
-          centerId: job.centerId,
-          storeId: job.storeId,
-          actionUrl: payload.actionUrl || undefined,
-          isBroadcast: false,
-        } as any);
+        if (kind === 'customer_appointment_reminder') {
+          if (payload.email) {
+            try {
+              await this.emailService.sendCustomerAppointmentReminder({
+                to: payload.email,
+                customerName: payload.customerName || 'Customer',
+                appointmentCode: payload.appointmentCode || 'N/A',
+                date: payload.date || new Date().toISOString(),
+                time: payload.time || undefined,
+              });
+            } catch (e) {
+              this.logger.warn(`Failed sending customer reminder email for scheduled job ${job.id}: ${e}`);
+            }
+          }
+          await this.scheduledService.markSent(job.id);
+          continue;
+        }
+
+        // create internal notification for employee reminders
+        if (job.employeeId) {
+          await this.notificationsService.createAndEmit({
+            title: payload.title || 'Appointment reminder',
+            message: payload.message || 'You have an upcoming appointment',
+            employeeId: job.employeeId,
+            centerId: job.centerId,
+            storeId: job.storeId,
+            actionUrl: payload.actionUrl || undefined,
+            isBroadcast: false,
+          } as any);
+        }
 
         // send email if recipient provided
         if (payload.email) {
           try {
-            await this.emailService.sendRepairStatusUpdate({
+            await this.emailService.sendAppointmentReminder({
               to: payload.email,
-              customerName: payload.techName || 'Technician',
-              orderCode: payload.appointmentCode || 'N/A',
-              status: 'Appointment reminder',
+              techName: payload.techName || 'Technician',
+              appointmentCode: payload.appointmentCode || 'N/A',
               date: payload.date || new Date().toISOString(),
+              message: payload.message || 'You have an upcoming appointment',
             });
           } catch (e) {
             this.logger.warn(`Failed sending reminder email for scheduled job ${job.id}: ${e}`);

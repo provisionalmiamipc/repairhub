@@ -61,7 +61,7 @@
                 <!-- Center -->
                 <div class="col-12 col-md-6">
                   <label for="centerId" class="form-label">Center *</label>
-                  <select autocomplete="off" class="form-select" formControlName="centerId" [disabled]="isOrderFinalized() || isFormReadOnly()">
+                  <select autocomplete="off" class="form-select" formControlName="centerId">
                     <option value="">Select center</option>
                     <option *ngFor="let center of centers()" [ngValue]="center.id">
                       {{ center.centerName || ('Center #' + center.id) }}
@@ -76,7 +76,7 @@
                 <!-- Store -->
                 <div class="col-12 col-md-6">
                   <label for="storeId" class="form-label">Store *</label>
-                  <select autocomplete="off" class="form-select" formControlName="storeId" [disabled]="isOrderFinalized() || isFormReadOnly()">
+                  <select autocomplete="off" class="form-select" formControlName="storeId">
                     <option value="">Select store</option>
                     <option *ngFor="let store of stores()" [ngValue]="store.id"
                       [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
@@ -94,7 +94,7 @@
                 <!-- Store (Admin Center) -->
                 <div class="col-12 col-md-6">
                   <label for="storeId" class="form-label">Store *</label>
-                  <select autocomplete="off" class="form-select" formControlName="storeId" [disabled]="isOrderFinalized() || isFormReadOnly()">
+                  <select autocomplete="off" class="form-select" formControlName="storeId">
                     <option value="">Select store</option>
                     <option *ngFor="let store of stores()" [ngValue]="store.id"
                       [hidden]="selectedCenterId() && store.centerId !== selectedCenterId()">
@@ -128,7 +128,7 @@
 
                   @if (!useExistingCustomer) {
                   <input type="text" id="customer" class="form-control" [class.is-invalid]="isFieldInvalid('customer')"
-                    formControlName="customer" placeholder="Customer name" autocomplete="off" [disabled]="isOrderFinalized() || isFormReadOnly()" />
+                    formControlName="customer" placeholder="Customer name" autocomplete="off" />
                   @if (isFieldInvalid('customer')) {
                   <span class="error-message">{{ getFieldError('customer') }}</span>
                   }
@@ -138,7 +138,7 @@
                   
                   <div class="input-group">
                       <select id="ecustomerId" class="form-select" [class.is-invalid]="isFieldInvalid('ecustomerId')"
-                      formControlName="ecustomerId" [disabled]="isOrderFinalized() || isFormReadOnly()">
+                      formControlName="ecustomerId">
                       <option [ngValue]="null" disabled>Select customer</option>
                       @for (customer of ecustomers(); track customer.id) {
                       <option [value]="customer.id">{{ customer.firstName }} {{ customer.lastName }}</option>
@@ -163,7 +163,7 @@
                 <div class="col-12 col-md-6">
                   <label for="date" class="form-label">Date *</label>
                   <input type="date" id="date" class="form-control" [class.is-invalid]="isFieldInvalid('date')"
-                    formControlName="date" [attr.min]="minDate()" [disabled]="isOrderFinalized() || isFormReadOnly()" />
+                    formControlName="date" [attr.min]="minDate()" />
                   @if (isFieldInvalid('date')) {
                   <span class="error-message">{{ getFieldError('date') }}</span>
                   }
@@ -173,7 +173,7 @@
                 <div class="col-12 col-md-6">
                   <label for="time" class="form-label">Time *</label>
                   <input type="time" id="time" class="form-control" [class.is-invalid]="isFieldInvalid('time')"
-                    formControlName="time" [disabled]="isOrderFinalized() || isFormReadOnly()" />
+                    formControlName="time" />
                   @if (isFieldInvalid('time')) {
                   <span class="error-message">{{ getFieldError('time') }}</span>
                   }
@@ -193,7 +193,7 @@
                 <div class="col-12 col-md-4">
                   <label for="deviceId" class="form-label">Device *</label>
                   <div class="input-group">
-                    <select autocomplete="off" class="form-select" formControlName="deviceId" [disabled]="isOrderFinalized() || isFormReadOnly()">
+                    <select autocomplete="off" class="form-select" formControlName="deviceId">
                       <option value="">Select device</option>
                       <option *ngFor="let device of devices()" [ngValue]="device.id">
                         {{ device.name }}
@@ -214,7 +214,7 @@
                 <div class="col-12 col-md-4">
                   <label for="serviceTypeId" class="form-label">Service Type *</label>
                   <div class="input-group">
-                    <select autocomplete="off" class="form-select" formControlName="serviceTypeId" [disabled]="isOrderFinalized() || isFormReadOnly()">
+                    <select autocomplete="off" class="form-select" formControlName="serviceTypeId">
                       <option value="">Select service</option>
                       <option *ngFor="let service of serviceTypes()" [ngValue]="service.id">
                         {{ service.name }}
@@ -235,7 +235,7 @@
                 <!-- Assigned Technician -->
                 <div class="col-12 col-md-4">
                   <label for="assignedTechId" class="form-label">Assigned Technician *</label>
-                  <select autocomplete="off" class="form-select" formControlName="assignedTechId" [disabled]="isOrderFinalized() || isFormReadOnly()">
+                  <select autocomplete="off" class="form-select" formControlName="assignedTechId">
                     <option [ngValue]="null">Select technician</option>
                     <option *ngFor="let emp of employees()" [ngValue]="emp.id">
                       {{ emp.firstName }} {{ emp.lastName }}
@@ -253,7 +253,7 @@
                   <label for="duration" class="form-label">Duration (minutes) *</label>
                   <input autocomplete="off" type="number" id="duration" class="form-control"
                     [class.is-invalid]="isFieldInvalid('duration')" formControlName="duration" min="15" max="480"
-                    placeholder="30" [disabled]="isOrderFinalized() || isFormReadOnly()" />
+                    placeholder="30" />
                   @if (isFieldInvalid('duration')) {
                   <span class="error-message">{{ getFieldError('duration') }}</span>
                   }
@@ -273,7 +273,7 @@
                 <div class="col-12">
                   <label for="notes" class="form-label">Additional Notes</label>
                   <textarea id="notes" class="form-control textarea" formControlName="notes"
-                    placeholder="Additional information about the appointment..." rows="4" [disabled]="isOrderFinalized() || isFormReadOnly()"></textarea>
+                    placeholder="Additional information about the appointment..." rows="4"></textarea>
                 </div>
 
                 <!-- Status Info -->

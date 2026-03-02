@@ -212,4 +212,191 @@ export class EmailService {
       this.logger.error('Error sending appointment reminder email', error as any);
     }
   }
+
+  async sendCustomerAppointmentScheduled(options: {
+    to: string;
+    customerName?: string;
+    appointmentCode: string;
+    date: string | Date;
+    time?: string;
+    storeName?: string;
+    centerName?: string;
+    deviceName?: string;
+  }) {
+    const dateLabel = this.formatDateTimeLabel(options.date, options.time);
+    const logoAttachments = this.getLogoCidAttachments();
+    const logoHtml = logoAttachments.length ? `<img src="cid:logo@repairhub" alt="Logo" style="height:56px;" />` : '';
+    const subject = `Appointment scheduled #${options.appointmentCode}`;
+    const customerName = options.customerName || 'Customer';
+    const location = [options.storeName, options.centerName].filter(Boolean).join(' - ');
+    const locationHtml = location ? `<p><strong>Location:</strong> ${location}</p>` : '';
+    const deviceHtml = options.deviceName ? `<p><strong>Device:</strong> ${options.deviceName}</p>` : '';
+
+    const html = `<!doctype html>
+<html>
+  <body style="font-family: Arial, sans-serif; color: #1f2937; background:#f8fafc; padding: 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff; border-radius:8px; overflow:hidden;">
+            <tr>
+              <td style="padding:20px 24px; border-bottom:1px solid #e5e7eb;">
+                ${logoHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px;">
+                <p style="margin:0 0 12px 0;">Hello <strong>${customerName}</strong>,</p>
+                <p style="margin:0 0 12px 0;">Your appointment has been scheduled successfully.</p>
+                <p style="margin:0 0 12px 0;"><strong>Appointment:</strong> #${options.appointmentCode}</p>
+                <p style="margin:0 0 12px 0;"><strong>Date & time:</strong> ${dateLabel}</p>
+                ${locationHtml}
+                ${deviceHtml}
+                <p style="margin:20px 0 0 0;">If you need to reschedule, please contact us.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 24px; font-size:12px; color:#6b7280; background:#f9fafb;">
+                This is an automated message, please do not reply directly.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+    await this.sendHtmlWithResendFallback(options.to, subject, html, logoAttachments);
+  }
+
+  async sendCustomerAppointmentReminder(options: {
+    to: string;
+    customerName?: string;
+    appointmentCode: string;
+    date: string | Date;
+    time?: string;
+    storeName?: string;
+    centerName?: string;
+    deviceName?: string;
+  }) {
+    const dateLabel = this.formatDateTimeLabel(options.date, options.time);
+    const logoAttachments = this.getLogoCidAttachments();
+    const logoHtml = logoAttachments.length ? `<img src="cid:logo@repairhub" alt="Logo" style="height:56px;" />` : '';
+    const subject = `Reminder: appointment #${options.appointmentCode}`;
+    const customerName = options.customerName || 'Customer';
+    const location = [options.storeName, options.centerName].filter(Boolean).join(' - ');
+    const locationHtml = location ? `<p><strong>Location:</strong> ${location}</p>` : '';
+    const deviceHtml = options.deviceName ? `<p><strong>Device:</strong> ${options.deviceName}</p>` : '';
+
+    const html = `<!doctype html>
+<html>
+  <body style="font-family: Arial, sans-serif; color: #1f2937; background:#f8fafc; padding: 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff; border-radius:8px; overflow:hidden;">
+            <tr>
+              <td style="padding:20px 24px; border-bottom:1px solid #e5e7eb;">
+                ${logoHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px;">
+                <p style="margin:0 0 12px 0;">Hello <strong>${customerName}</strong>,</p>
+                <p style="margin:0 0 12px 0;">This is a reminder for your upcoming appointment.</p>
+                <p style="margin:0 0 12px 0;"><strong>Appointment:</strong> #${options.appointmentCode}</p>
+                <p style="margin:0 0 12px 0;"><strong>Date & time:</strong> ${dateLabel}</p>
+                ${locationHtml}
+                ${deviceHtml}
+                <p style="margin:20px 0 0 0;">We look forward to assisting you.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 24px; font-size:12px; color:#6b7280; background:#f9fafb;">
+                This is an automated message, please do not reply directly.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+    await this.sendHtmlWithResendFallback(options.to, subject, html, logoAttachments);
+  }
+
+  private async sendHtmlWithResendFallback(to: string, subject: string, html: string, attachments: any[] = []): Promise<void> {
+    const recipient = String(to || '').trim();
+    if (!recipient) throw new Error('Invalid recipient email');
+
+    const resendKey = process.env.RESEND_API_KEY || this.config.get<string>('RESEND_API_KEY');
+    const fromEmail = this.config.get('FROM_EMAIL') || `no-reply@${this.config.get('SMTP_HOST') || 'repairhub'}`;
+    const fromName = this.config.get('FROM_NAME') || '';
+    const fromHeader = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+
+    if (resendKey) {
+      const resendAttachments = attachments
+        .map((att) => {
+          let contentBase64: string | null = null;
+          if (att?.path && fs.existsSync(att.path)) {
+            contentBase64 = fs.readFileSync(att.path).toString('base64');
+          } else if (att?.content && Buffer.isBuffer(att.content)) {
+            contentBase64 = att.content.toString('base64');
+          }
+          if (!contentBase64) return null;
+          return {
+            filename: att.filename || 'logo.png',
+            content: contentBase64,
+            content_type: att.contentType || att.content_type || 'image/png',
+            content_id: att.cid || att.content_id || 'logo@repairhub',
+            disposition: att.disposition || 'inline',
+          };
+        })
+        .filter(Boolean);
+
+      const payload: any = { from: fromHeader, to: recipient, subject, html };
+      if (resendAttachments.length > 0) payload.attachments = resendAttachments;
+
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Resend API error: ${res.status} ${text}`);
+      }
+      this.logger.log(`Appointment email sent via Resend to ${recipient}`);
+      return;
+    }
+
+    await this.mailerService.sendMail({ to: recipient, subject, html, attachments });
+    this.logger.log(`Appointment email sent via SMTP to ${recipient}`);
+  }
+
+  private getLogoCidAttachments(): any[] {
+    try {
+      const logoPath = resolveUpload(['logo.png', 'logo.jpg', 'sopdf1.jpg']);
+      if (!logoPath || !fs.existsSync(logoPath)) return [];
+      return [{
+        filename: path.basename(logoPath),
+        path: logoPath,
+        cid: 'logo@repairhub',
+        contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg',
+        disposition: 'inline',
+      }];
+    } catch (_e) {
+      return [];
+    }
+  }
+
+  private formatDateTimeLabel(date: string | Date, time?: string): string {
+    if (typeof date === 'string') {
+      return time ? `${date} ${time}` : date;
+    }
+    const formatted = date.toLocaleDateString();
+    return time ? `${formatted} ${time}` : formatted;
+  }
 }
