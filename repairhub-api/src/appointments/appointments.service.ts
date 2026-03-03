@@ -71,7 +71,7 @@ export class AppointmentsService {
           employeeId: saved.assignedTechId,
           centerId: saved.centerId,
           storeId: saved.storeId,
-          actionUrl: `/appointments/${saved.id}`,
+          actionUrl: `appointments/${saved.id}`,
           isBroadcast: false,
         } as any);
       }
@@ -162,7 +162,7 @@ export class AppointmentsService {
         appointmentCode: appointment.appointmentCode,
         date: appointment.date,
         time: appointment.time,
-        actionUrl: `/appointments/${appointment.id}`,
+        actionUrl: `appointments/${appointment.id}`,
         email: techEmail,
         techName,
       };

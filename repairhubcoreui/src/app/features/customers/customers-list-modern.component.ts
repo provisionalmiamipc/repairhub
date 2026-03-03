@@ -64,15 +64,17 @@ export class CustomersListModernComponent implements OnInit, OnDestroy {
     const items = this.customers();
     const query = this.searchQuery().toLowerCase();
     const type = this.filterType();
+    const norm = (value: unknown) => String(value ?? '').toLowerCase();
+    const safe = (value: unknown) => String(value ?? '');
 
     let filtered = items.filter(item => {
       const matchesSearch =
-        item.firstName.toLowerCase().includes(query) ||
-        item.lastName.toLowerCase().includes(query) ||
-        item.customerCode.toLowerCase().includes(query) ||
-        item.email.toLowerCase().includes(query) ||
-        item.phone.toLowerCase().includes(query) ||
-        item.city.toLowerCase().includes(query);
+        norm(item.firstName).includes(query) ||
+        norm(item.lastName).includes(query) ||
+        norm(item.customerCode).includes(query) ||
+        norm(item.email).includes(query) ||
+        norm(item.phone).includes(query) ||
+        norm(item.city).includes(query);
 
       const matchesType = type === 'all' ||
         (type === 'b2b' && item.b2b) ||
@@ -84,11 +86,11 @@ export class CustomersListModernComponent implements OnInit, OnDestroy {
     // Apply sorting
     const sortKey = this.sortBy();
     if (sortKey === 'name') {
-      filtered.sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
+      filtered.sort((a, b) => `${safe(a.firstName)} ${safe(a.lastName)}`.localeCompare(`${safe(b.firstName)} ${safe(b.lastName)}`));
     } else if (sortKey === 'code') {
-      filtered.sort((a, b) => a.customerCode.localeCompare(b.customerCode));
+      filtered.sort((a, b) => safe(a.customerCode).localeCompare(safe(b.customerCode)));
     } else if (sortKey === 'city') {
-      filtered.sort((a, b) => a.city.localeCompare(b.city));
+      filtered.sort((a, b) => safe(a.city).localeCompare(safe(b.city)));
     }
 
     return filtered;
