@@ -204,7 +204,7 @@ formatDateToMMDDYYYY(date: Date): string {
       };
       // Enqueue PDF generation + email send to background job for faster response
       if (this.pdfJobService) {
-        this.pdfJobService.enqueue({ pdfData });
+       // this.pdfJobService.enqueue({ pdfData });
       } else {
         // Fallback: do it synchronously if job service is missing
         let pdfBuffer: Buffer;
@@ -216,9 +216,9 @@ formatDateToMMDDYYYY(date: Date): string {
         } else {
           pdfBuffer = await this.pdfService.generate(pdfData) as unknown as Buffer;
         }
-        if (pdfData.customerEmail) {
+       /* if (pdfData.customerEmail) {
           await this.mailService.sendOrderCreatedMail(pdfData, pdfBuffer);
-        }
+        }*/
       }
 
     return fullOrder;

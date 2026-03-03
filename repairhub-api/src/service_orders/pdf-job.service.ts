@@ -74,7 +74,7 @@ export class ServiceOrderPdfJobService implements OnModuleDestroy {
 
       if (pdfBuffer && this.mailService && typeof this.mailService.sendOrderCreatedMail === 'function') {
         try {
-          await this.mailService.sendOrderCreatedMail(job.pdfData, pdfBuffer);
+        //  await this.mailService.sendOrderCreatedMail(job.pdfData, pdfBuffer);
         } catch (err) {
           console.error('ServiceOrderPdfJobService: error sending email for order', job.pdfData?.orderCode || job.pdfData?.id || 'unknown', err);
           throw err;

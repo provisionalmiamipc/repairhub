@@ -31,9 +31,9 @@ export class SODiagnosticService {
     const saved = await this.sODiagnosticRepository.save(sODiagnostic);
 
     // Non-blocking email/notification dispatch to avoid delaying API response.
-    void this.dispatchDiagnosticNotifications(saved).catch((err) => {
+    /*void this.dispatchDiagnosticNotifications(saved).catch((err) => {
       console.error('SODiagnosticService: failed to send diagnostic notification', err);
-    });
+    });*/
 
     return saved;
   }
