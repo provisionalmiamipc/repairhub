@@ -19,7 +19,7 @@ export class ScheduledNotificationsService {
 
   async findDue(limit = 50) {
     return this.scheduledRepo.createQueryBuilder('s')
-      .where('LOWER(s.status) = :st', { st: ScheduledNotificationStatus.PENDING })
+      .where('s.status = :st', { st: ScheduledNotificationStatus.PENDING })
       .andWhere('s.runAt <= :now', { now: new Date() })
       .orderBy('s.runAt', 'ASC')
       .limit(limit)
@@ -29,7 +29,7 @@ export class ScheduledNotificationsService {
   async deletePendingForAppointment(appointmentId: number, kinds?: string[]) {
     const pending = await this.scheduledRepo.createQueryBuilder('s')
       .where('s.appointmentId = :appointmentId', { appointmentId })
-      .andWhere('LOWER(s.status) = :st', { st: ScheduledNotificationStatus.PENDING })
+      .andWhere('s.status = :st', { st: ScheduledNotificationStatus.PENDING })
       .getMany();
     if (!pending.length) return;
 
@@ -38,7 +38,7 @@ export class ScheduledNotificationsService {
         .delete()
         .from(ScheduledNotification)
         .where('"appointmentId" = :appointmentId', { appointmentId })
-        .andWhere('LOWER(status) = :st', { st: ScheduledNotificationStatus.PENDING })
+        .andWhere('status = :st', { st: ScheduledNotificationStatus.PENDING })
         .execute();
       return;
     }

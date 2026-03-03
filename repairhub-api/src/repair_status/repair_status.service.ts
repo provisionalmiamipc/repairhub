@@ -29,11 +29,11 @@ export class RepairStatusService {
     const saved = await this.repairStatusRepository.save(repairStatus);
 
     // Non-blocking email dispatch to avoid delaying API response.
-    /*if (existingCount > 0) {
+    if (existingCount > 0) {
       void this.dispatchRepairStatusEmail(saved, serviceOrderId).catch((err) => {
         console.error('RepairStatusService: failed to send status update email', err);
       });
-    }*/
+    }
 
     return saved;
   }
