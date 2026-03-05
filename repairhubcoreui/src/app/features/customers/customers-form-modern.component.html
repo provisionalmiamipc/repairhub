@@ -156,6 +156,7 @@
               placeholder="e.g., John"
               [class.is-invalid]="isFieldInvalid('firstName')"
               autocomplete="off"
+              autocapitalize="words"
             />
             @if (isFieldInvalid('firstName')) {
             <span class="error-text">{{ getFieldError('firstName') }}</span>
@@ -172,6 +173,7 @@
               placeholder="e.g., Doe"
               [class.is-invalid]="isFieldInvalid('lastName')"
               autocomplete="off"
+              autocapitalize="words"
             />
             @if (isFieldInvalid('lastName')) {
             <span class="error-text">{{ getFieldError('lastName') }}</span>
@@ -250,6 +252,7 @@
             }
           </div>
 
+          @if (isEditMode()) {
           <div class="form-group">
             <label for="city" class="form-label">Address</label>
             <input
@@ -257,15 +260,87 @@
               type="text"
               formControlName="city"
               class="form-control"
-              placeholder="e.g., Bogotá"
+              placeholder="e.g., 123 Main St, Miami, Florida, 33101, USA"
               [class.is-invalid]="isFieldInvalid('city')"
               autocomplete="off"
+              autocapitalize="words"
             />
             @if (isFieldInvalid('city')) {
             <span class="error-text">{{ getFieldError('city') }}</span>
             }
           </div>
+          } @else {
+          <div class="form-group">
+            <label for="addressLine" class="form-label">Address</label>
+            <input
+              id="addressLine"
+              type="text"
+              formControlName="addressLine"
+              class="form-control"
+              placeholder="e.g., 123 Main St"
+              autocomplete="off"
+              autocapitalize="words"
+            />
+          </div>
+          }
         </div>
+
+        @if (!isEditMode()) {
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cityTemp" class="form-label">City</label>
+            <input
+              id="cityTemp"
+              type="text"
+              formControlName="cityTemp"
+              class="form-control"
+              placeholder="e.g., Miami"
+              autocomplete="off"
+              autocapitalize="words"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="state" class="form-label">State</label>
+            <input
+              id="state"
+              type="text"
+              formControlName="state"
+              class="form-control"
+              placeholder="e.g., Florida"
+              autocomplete="off"
+              autocapitalize="words"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="zipCode" class="form-label">ZIP Code</label>
+            <input
+              id="zipCode"
+              type="text"
+              formControlName="zipCode"
+              class="form-control"
+              placeholder="e.g., 33101"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="country" class="form-label">Country</label>
+            <input
+              id="country"
+              type="text"
+              formControlName="country"
+              class="form-control"
+              placeholder="e.g., USA"
+              autocomplete="off"
+              autocapitalize="words"
+            />
+          </div>
+        </div>
+        }
       </div>
       }
 
@@ -299,6 +374,7 @@
             class="form-control form-textarea"
             placeholder="Additional customer information..."
             rows="3"
+            autocapitalize="sentences"
           ></textarea>
         </div>
       </div>

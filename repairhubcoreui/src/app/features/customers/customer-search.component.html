@@ -23,8 +23,7 @@
               <table class="table table-hover">
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Code</th>
+                    
                     <th>Name</th>
                     <th>Phone</th>
                     <th>Email</th>
@@ -33,8 +32,7 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let c of filtered" (dblclick)="onSelect(c)">
-                    <td>{{ c.id }}</td>
-                    <td>{{ c.customerCode }}</td>
+                    
                     <td>{{ c.firstName }} {{ c.lastName }}</td>
                     <td>{{ c.phone }}</td>
                     <td>{{ c.email }}</td>

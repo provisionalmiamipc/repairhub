@@ -207,6 +207,21 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
   // Collected received parts before saving the order
   receivedParts: ReceivedPart[] = [];
+  readonly predefinedReceivedPartAccessories: string[] = [
+    'Memory',
+    'Battery',
+    'Body Cap',
+    'Rear Lens Cap',
+    'Front Lens Cap',
+    'EyeCup',
+    'Strap',
+    'Bag',
+    'Filter',
+    'Tripod Mount',
+    'Lens Hood',
+    'Special Cover',
+  ];
+  selectedReceivedPartSwitches: Record<string, boolean> = {};
 
   serviceOrderForm!: FormGroup;
   private costChangeSubject = new Subject<void>();
@@ -241,6 +256,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   currentStep = signal(0);
 
   ngOnInit(): void {
+    this.predefinedReceivedPartAccessories.forEach((accessory) => {
+      this.selectedReceivedPartSwitches[accessory] = false;
+    });
     this.initForm();
     this.initializeUserType();
     this.applyUserTypeRules();
@@ -345,8 +363,10 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
                 createdById: rp.createdById ?? undefined,
                 createdAt: rp.createdAt ?? new Date().toISOString()
               })) : [];
+              this.syncAccessorySwitchesFromReceivedParts();
             } catch (e) {
               this.receivedParts = [];
+              this.syncAccessorySwitchesFromReceivedParts();
             }
           this.lockFormIfFinalized();
           // Initialize selectedCenterId signal after patching form
@@ -610,6 +630,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         }
       });
   }
+  
 
   onCancel(): void {
     this.router.navigate(['/service-orders']);
@@ -685,7 +706,14 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       })(),
       createdAt: new Date().toISOString()
     } as any;
-    this.receivedParts.push(p);
+    const key = this.normalizeAccessory(p.accessory);
+    const existingIndex = this.receivedParts.findIndex((rp) => this.normalizeAccessory(rp.accessory) === key);
+    if (existingIndex >= 0) {
+      this.receivedParts[existingIndex] = { ...this.receivedParts[existingIndex], ...p };
+    } else {
+      this.receivedParts.push(p);
+    }
+    this.syncAccessorySwitchesFromReceivedParts();
     this.toastService.success('Accessory added');
     this.closeReceivedPartModal();
   }
@@ -693,6 +721,57 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   removeReceivedPart(index: number): void {
     if (index < 0 || index >= this.receivedParts.length) return;
     this.receivedParts.splice(index, 1);
+    this.syncAccessorySwitchesFromReceivedParts();
+  }
+
+  isAccessorySwitchChecked(accessory: string): boolean {
+    return !!this.selectedReceivedPartSwitches[accessory];
+  }
+
+  accessorySwitchId(accessory: string): string {
+    return `received-switch-${String(accessory || '').toLowerCase().replace(/\s+/g, '-')}`;
+  }
+
+  onAccessorySwitchChange(accessory: string, checked: boolean): void {
+    this.selectedReceivedPartSwitches[accessory] = checked;
+    const normalized = this.normalizeAccessory(accessory);
+    const existingIndex = this.receivedParts.findIndex((rp) => this.normalizeAccessory(rp.accessory) === normalized);
+
+    if (checked && existingIndex < 0) {
+      this.receivedParts.push(this.buildReceivedPartFromAccessory(accessory));
+      return;
+    }
+
+    if (!checked && existingIndex >= 0) {
+      this.receivedParts.splice(existingIndex, 1);
+    }
+  }
+
+  private buildReceivedPartFromAccessory(accessory: string): ReceivedPart {
+    return {
+      id: undefined as any,
+      accessory,
+      observations: '',
+      centerId: this.serviceOrderForm.get('centerId')?.value ?? undefined,
+      storeId: this.serviceOrderForm.get('storeId')?.value ?? undefined,
+      serviceOrderId: undefined,
+      createdById: (() => {
+        const val = this.serviceOrderForm.get('createdById')?.value ?? undefined;
+        return (val === 0 || val === '0' || val === '') ? undefined : val;
+      })(),
+      createdAt: new Date().toISOString(),
+    } as any;
+  }
+
+  private syncAccessorySwitchesFromReceivedParts(): void {
+    this.predefinedReceivedPartAccessories.forEach((accessory) => {
+      const exists = this.receivedParts.some((rp) => this.normalizeAccessory(rp.accessory) === this.normalizeAccessory(accessory));
+      this.selectedReceivedPartSwitches[accessory] = exists;
+    });
+  }
+
+  private normalizeAccessory(value: unknown): string {
+    return String(value ?? '').trim().toLowerCase();
   }
 
   openAddDevice(): void {

@@ -168,6 +168,11 @@ export class CustomersFormModernComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [this.phoneValidator()]],
       city: [''],
+      addressLine: [''],
+      cityTemp: [''],
+      state: [''],
+      zipCode: [''],
+      country: [''],
       discount: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
       extraInfo: ['']
     });
@@ -221,6 +226,14 @@ export class CustomersFormModernComponent implements OnInit {
     this.customersService.getById(id).subscribe({
       next: (customer) => {
         this.customerForm.patchValue(customer);
+        const cityParts = this.parseCityField(customer.city);
+        this.customerForm.patchValue({
+          addressLine: cityParts.addressLine,
+          cityTemp: cityParts.cityTemp,
+          state: cityParts.state,
+          zipCode: cityParts.zipCode,
+          country: cityParts.country,
+        }, { emitEvent: false });
         this.customerCode.set(customer.customerCode || '');
         if (customer.centerId) {
           const normalized = this.normalizeId(customer.centerId);
@@ -351,11 +364,16 @@ export class CustomersFormModernComponent implements OnInit {
     
     // Normalizar campos opcionales
     const phoneValue = typeof customerData.phone === 'string' ? customerData.phone.trim() : '';
-    const cityValue = typeof customerData.city === 'string' ? customerData.city.trim() : '';
+    const cityValue = this.composeCityField(customerData);
 
     const phoneDigits = phoneValue ? phoneValue.replace(/\D/g, '') : '';
     customerData.phone = phoneDigits ? phoneDigits : null;
     customerData.city = cityValue ? cityValue : null;
+    delete (customerData as any).addressLine;
+    delete (customerData as any).cityTemp;
+    delete (customerData as any).state;
+    delete (customerData as any).zipCode;
+    delete (customerData as any).country;
 
     if (!customerData.storeId) {
       delete (customerData as any).storeId;
@@ -413,5 +431,48 @@ export class CustomersFormModernComponent implements OnInit {
   isFieldInvalid(fieldName: string): boolean {
     const field = this.customerForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
+  }
+
+  private composeCityField(customerData: any): string {
+    if (this.isEditMode()) {
+      return typeof customerData?.city === 'string' ? customerData.city.trim() : '';
+    }
+
+    const segments = [
+      customerData?.addressLine,
+      customerData?.cityTemp,
+      customerData?.state,
+      customerData?.zipCode,
+      customerData?.country,
+    ]
+      .map((v) => (typeof v === 'string' ? v.trim() : String(v ?? '').trim()))
+      .filter(Boolean);
+
+    if (segments.length > 0) {
+      return segments.join(', ');
+    }
+
+    return typeof customerData?.city === 'string' ? customerData.city.trim() : '';
+  }
+
+  private parseCityField(value: unknown): {
+    addressLine: string;
+    cityTemp: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  } {
+    const parts = String(value ?? '')
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    return {
+      addressLine: parts[0] || '',
+      cityTemp: parts[1] || '',
+      state: parts[2] || '',
+      zipCode: parts[3] || '',
+      country: parts[4] || '',
+    };
   }
 }

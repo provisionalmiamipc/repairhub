@@ -128,7 +128,9 @@
                     [class.is-valid]="firstName?.valid && firstName?.touched"
                     [class.is-invalid]="firstName?.invalid && firstName?.touched"
                     placeholder="Enter first name"
-                    autocomplete="off">
+                    autocomplete="off"
+                    autocapitalize="words"
+                    >
                   @if (firstName?.invalid && firstName?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (firstName?.errors?.['required']) {
@@ -157,7 +159,8 @@
                     [class.is-valid]="lastName?.valid && lastName?.touched"
                     [class.is-invalid]="lastName?.invalid && lastName?.touched"
                     placeholder="Enter last name"
-                    autocomplete="off">
+                    autocomplete="off"
+                    autocapitalize="words">
                   @if (lastName?.invalid && lastName?.touched) {
                     <div class="invalid-feedback d-block">
                       @if (lastName?.errors?.['required']) {
@@ -223,9 +226,9 @@
                 
               </div>
 
-              <!-- City -->
+              <!-- Address/City -->
+              @if (customer) {
               <div class="col-md-6">
-                
                   <label class="form-label" for="city">Address</label>
                   <input
                     class="form-control"
@@ -234,20 +237,73 @@
                     formControlName="city"
                     [class.is-valid]="city?.valid && city?.touched"
                     [class.is-invalid]="city?.invalid && city?.touched"
-                    placeholder="Enter city"
-                    autocomplete="off">
+                    placeholder="Enter address"
+                    autocomplete="off"
+                    autocapitalize="words">
                   @if (city?.invalid && city?.touched) {
                     <div class="invalid-feedback d-block">
-                      @if (city?.errors?.['required']) {
-                        <span>Address is required</span>
-                      }
                       @if (city?.errors?.['minlength']) {
                         <span>Address must be at least 2 characters</span>
                       }
                     </div>
                   }
-                
               </div>
+              } @else {
+              <div class="col-md-6">
+                  <label class="form-label" for="addressLine">Address</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    id="addressLine"
+                    formControlName="addressLine"
+                    placeholder="Enter address"
+                    autocomplete="off"
+                    autocapitalize="words">
+              </div>
+              <div class="col-md-6">
+                  <label class="form-label" for="cityTemp">City</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    id="cityTemp"
+                    formControlName="cityTemp"
+                    placeholder="Enter city"
+                    autocomplete="off"
+                    autocapitalize="words">
+              </div>
+              <div class="col-md-6">
+                  <label class="form-label" for="state">State</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    id="state"
+                    formControlName="state"
+                    placeholder="Enter state"
+                    autocomplete="off"
+                    autocapitalize="words">
+              </div>
+              <div class="col-md-6">
+                  <label class="form-label" for="zipCode">ZIP Code</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    id="zipCode"
+                    formControlName="zipCode"
+                    placeholder="Enter ZIP code"
+                    autocomplete="off">
+              </div>
+              <div class="col-md-6">
+                  <label class="form-label" for="country">Country</label>
+                  <input
+                    class="form-control"
+                    type="text"
+                    id="country"
+                    formControlName="country"
+                    placeholder="Enter country"
+                    autocomplete="off"
+                    autocapitalize="words">
+              </div>
+              }
 
               <!-- Gender -->
               <div class="col-md-6">

@@ -270,8 +270,8 @@
                 @if (showCenterAndStoreFields()) {
                 <div class="col-12">
                   <div class="form-check">
-                    <input id="lock" type="checkbox" formControlName="lock" class="form-check-input"
-                      autocomplete="off" hidden />
+                    <input id="lock" type="checkbox" formControlName="lock" class="form-check-input" autocomplete="off"
+                      hidden />
                     <!--label class="form-check-label" for="lock">Lock order</label-->
                   </div>
                 </div>
@@ -500,7 +500,7 @@
                 </ul>
               </div>
             </div>
-             }
+            }
             <!-- Received Parts (local) -->
             <div class="card mt-3">
               <div class="card-header d-flex justify-content-between align-items-center">
@@ -514,7 +514,8 @@
                 }
                 <div class="d-flex flex-column gap-2">
                   @for (rp of receivedParts; track rp.id) {
-                  <div class="d-inline-flex align-items-center justify-content-between mb-0 p-2 border rounded bg-transparent">
+                  <div
+                    class="d-inline-flex align-items-center justify-content-between mb-0 p-2 border rounded bg-transparent">
                     <div class="d-flex flex-column">
                       <strong>{{ rp.accessory }}</strong>
                       <div class="small text-muted">{{ rp.observations }}</div>
@@ -522,14 +523,14 @@
                     <!--button type="button" class="btn-close ms-2" aria-label="Close"
                       (click)="removeReceivedPart(receivedParts.indexOf(rp))"></button-->
                   </div>
-                  
+
                   }
-                  
-                  
+
+
                 </div>
               </div>
             </div>
-           
+
           </div>
         </div>
       </div>
@@ -675,36 +676,57 @@
                   <button *ngIf="!isFormReadOnly()" class="btn btn-sm btn-outline-primary" type="button"
                     (click)="openReceivedPartModal()">+</button>
                 </div>
-                <div class="card-body">                  
+                <div class="card-body">
                   @if (!receivedParts.length) {
                   <div class="text-muted">No accessories added</div>
                   }
                   <div class="d-flex flex-row flex-wrap gap-2 align-items-start">
-                  @for (rp of receivedParts; track rp.accessory) {
-                  <div class="d-inline-flex align-items-center justify-content-between mb-0 p-2 border rounded bg-transparent">
-                    <div class="d-flex flex-column">
-                      <strong>{{ rp.accessory }}</strong>
-                      <div class="small text-muted">{{ rp.observations }}</div>
+                    @for (rp of receivedParts; track rp.accessory) {
+                    <div
+                      class="d-inline-flex align-items-center justify-content-between mb-0 p-2 border rounded bg-transparent">
+                      <div class="d-flex flex-column">
+                        <strong>{{ rp.accessory }}</strong>
+                        <div class="small text-muted">{{ rp.observations }}</div>
+                      </div>
+                      <button type="button" class="btn-close ms-2" aria-label="Close"
+                        (click)="removeReceivedPart(receivedParts.indexOf(rp))"></button>
                     </div>
-                    <button type="button" class="btn-close ms-2" aria-label="Close"
-                      (click)="removeReceivedPart(receivedParts.indexOf(rp))"></button>
+
+                    }
+
                   </div>
-                    
-                    }                   
-                  
-                  </div>                
-                  
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center bg-transparent ">
+                  <div class="w-100 d-flex flex-wrap gap-3 align-items-start">
+                    @for (accessory of predefinedReceivedPartAccessories; track accessory) {
+                    <div class="form-check form-switch me-1">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [id]="accessorySwitchId(accessory)"
+                        [checked]="isAccessorySwitchChecked(accessory)"
+                        [disabled]="isFormReadOnly()"
+                        (change)="onAccessorySwitchChange(accessory, $any($event.target).checked)"
+                      />
+                      <label
+                        class="form-check-label"
+                        [for]="accessorySwitchId(accessory)">
+                        {{ accessory }}
+                      </label>
+                    </div>
+                    }
+                  </div>
                 </div>
               </div>
             </div>
 
-            
+
 
             <!-- Reception Note -->
             <div class="col-12">
               <label for="noteReception" class="form-label">Reception Notes</label>
               <textarea id="noteReception" autocomplete="off" class="form-control" formControlName="noteReception"
-                placeholder="Additional notes..." rows="3"></textarea>
+                placeholder="Additional notes..." rows="4" autocapitalize="sentences"></textarea>
             </div>
           </div>
         </div>
@@ -721,7 +743,7 @@
             <div class="col-md-6 col-xl-4">
               <label for="model" class="form-label">Model *</label>
               <input type="text" id="model" autocomplete="off" class="form-control"
-                [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model" />
+                [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model" autocapitalize="characters" />
               @if (isFieldInvalid('model')) {
               <span class="error-message">{{ getFieldError('model') }}</span>
               }
@@ -731,7 +753,7 @@
             <div class="col-md-6 col-xl-4">
               <label for="serial" class="form-label">Serial</label>
               <input type="text" id="serial" autocomplete="off" class="form-control" formControlName="serial"
-                placeholder="Serial number" />
+                placeholder="Serial number" autocapitalize="characters" />
             </div>
 
             <!-- Assigned Tech -->
@@ -770,14 +792,14 @@
             <div class="col-12">
               <label for="defectivePart" class="form-label">Defective Part</label>
               <input type="text" id="defectivePart" autocomplete="off" class="form-control"
-                formControlName="defectivePart" placeholder="Describe the defective part" />
+                formControlName="defectivePart" placeholder="Describe the defective part" autocapitalize="sentences" />
             </div>
 
             <!-- Estimated -->
             <div class="col-12">
               <label for="estimated" class="form-label">Estimated</label>
               <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
-                placeholder="Estimated repair..." rows="3"></textarea>
+                placeholder="Estimated repair..." rows="4" autocapitalize="sentences"></textarea>
             </div>
 
           </div>
@@ -1032,11 +1054,11 @@
         <div class="modal-body">
           <div class="mb-2">
             <label class="form-label">Accessory</label>
-            <input class="form-control" [(ngModel)]="editingReceivedPart!.accessory" />
+            <input class="form-control" [(ngModel)]="editingReceivedPart!.accessory" autocapitalize="words" />
           </div>
           <div class="mb-2">
             <label class="form-label">Observations</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="editingReceivedPart!.observations"></textarea>
+            <textarea class="form-control" rows="3" [(ngModel)]="editingReceivedPart!.observations" autocapitalize="words"></textarea>
           </div>
         </div>
         <div class="modal-footer">

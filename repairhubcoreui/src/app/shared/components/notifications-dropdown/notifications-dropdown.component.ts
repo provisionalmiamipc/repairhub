@@ -56,7 +56,11 @@ export class NotificationsDropdownComponent implements OnInit, OnDestroy {
       });
     }
     if (n.actionUrl) {
-      this.navigateFromActionUrl(n.actionUrl);
+      //this.navigateFromActionUrl(n.actionUrl);
+      this.router.navigate([n.actionUrl]).catch(() => {
+        // fallback to raw URL if router fails
+        this.navigateFromActionUrl(n.actionUrl!);
+      });
     }
     // close menu after opening/handling
     this.menuOpen = false;

@@ -32,7 +32,7 @@ export class CustomersFormComponent implements OnInit, OnChanges {
   // Filtered stores based on selected center
   filteredStores: any[] = [];
 
-  genders: Gender[] = ['Male', 'Female'];
+  genders: Gender[] = ['Male', 'Female', 'Other'];
 
   constructor(private fb: FormBuilder) {}
 
@@ -81,6 +81,11 @@ export class CustomersFormComponent implements OnInit, OnChanges {
       phone: ['', [Validators.pattern(/^[0-9+\-\s()]{10,15}$/)]],
       email: ['', [Validators.required, Validators.email]],
       city: ['', [Validators.minLength(2), Validators.maxLength(50)]],
+      addressLine: [''],
+      cityTemp: [''],
+      state: [''],
+      zipCode: [''],
+      country: [''],
       gender: ['', Validators.required],
       extraInfo: [null, [Validators.maxLength(500)]],
       b2b: [null],
@@ -111,6 +116,7 @@ export class CustomersFormComponent implements OnInit, OnChanges {
   }
 
   private loadCustomerData(customer: Customers): void {
+    const cityParts = this.parseCityField(customer.city);
     this.customerForm.patchValue({
       centerId: customer.centerId || null,
       storeId: customer.storeId || null,
@@ -119,6 +125,11 @@ export class CustomersFormComponent implements OnInit, OnChanges {
       phone: customer.phone,
       email: customer.email,
       city: customer.city,
+      addressLine: cityParts.addressLine,
+      cityTemp: cityParts.cityTemp,
+      state: cityParts.state,
+      zipCode: cityParts.zipCode,
+      country: cityParts.country,
       gender: customer.gender || null,
       extraInfo: customer.extraInfo,
       b2b: customer.b2b,
@@ -144,11 +155,18 @@ export class CustomersFormComponent implements OnInit, OnChanges {
       // Limpiar phone si es string vacío
       let phoneValue = formData.phone;
       if (typeof phoneValue === 'string' && phoneValue.trim() === '') phoneValue = undefined;
+      const cityValue = this.composeCityField(formData);
       const customerData: Customers = {
         ...formData,
         b2b: b2bValue,
-        phone: phoneValue
+        phone: phoneValue,
+        city: cityValue ? cityValue : null as any,
       };
+      delete (customerData as any).addressLine;
+      delete (customerData as any).cityTemp;
+      delete (customerData as any).state;
+      delete (customerData as any).zipCode;
+      delete (customerData as any).country;
       // Emitir el objeto y esperar que el padre maneje el error
       try {
         this.save.emit(customerData);
@@ -194,5 +212,46 @@ export class CustomersFormComponent implements OnInit, OnChanges {
   get extraInfo() { return this.customerForm.get('extraInfo'); }
   get b2b() { return this.customerForm.get('b2b'); }
   get discount() { return this.customerForm.get('discount'); }
+
+  private composeCityField(formData: any): string {
+    // In edit mode keep single city field manual value.
+    if (this.customer) {
+      return typeof formData?.city === 'string' ? formData.city.trim() : '';
+    }
+
+    const parts = [
+      formData?.addressLine,
+      formData?.cityTemp,
+      formData?.state,
+      formData?.zipCode,
+      formData?.country,
+    ]
+      .map((v: unknown) => String(v ?? '').trim())
+      .filter(Boolean);
+
+    if (parts.length > 0) return parts.join(', ');
+    return typeof formData?.city === 'string' ? formData.city.trim() : '';
+  }
+
+  private parseCityField(value: unknown): {
+    addressLine: string;
+    cityTemp: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  } {
+    const parts = String(value ?? '')
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    return {
+      addressLine: parts[0] || '',
+      cityTemp: parts[1] || '',
+      state: parts[2] || '',
+      zipCode: parts[3] || '',
+      country: parts[4] || '',
+    };
+  }
   
 }
