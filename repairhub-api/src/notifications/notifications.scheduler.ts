@@ -79,6 +79,7 @@ export class NotificationsScheduler {
               techName: payload.techName || 'Technician',
               appointmentCode: payload.appointmentCode || 'N/A',
               date: payload.date || new Date().toISOString(),
+              time: payload.time || undefined,
               message: payload.message || 'You have an upcoming appointment',
             });
           } catch (e) {

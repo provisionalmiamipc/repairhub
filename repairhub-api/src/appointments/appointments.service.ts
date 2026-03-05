@@ -158,7 +158,7 @@ export class AppointmentsService {
       const techPayload = {
         kind: 'tech_appointment_reminder',
         title: `Reminder: appointment ${appointment.appointmentCode}`,
-        message: `You have an appointment on ${this.formatDateToMMDDYYYY(new Date(appointment.date))} at ${timeLabel}. Task: ${taskSummary}`,
+        message: `You have an appointment on ${appointment.date} at ${timeLabel}. Task: ${taskSummary}`,
         appointmentCode: appointment.appointmentCode,
         date: appointment.date,
         time: appointment.time,

@@ -145,13 +145,20 @@ export class EmailService {
     }
   }
 
-  async sendAppointmentReminder(options: { to: string; techName?: string; appointmentCode?: string; date?: string | Date; message?: string }) {
+  async sendAppointmentReminder(options: { 
+    to: string;
+     techName?: string; 
+     appointmentCode?: string; 
+     date?: string | Date; 
+     time?: string;
+     message?: string }) {
     const subject = `Appointment reminder ${options.appointmentCode || ''}`;
     try {
       const context = {
         techName: options.techName || 'Technician',
         appointmentCode: options.appointmentCode || '',
         date: typeof options.date === 'string' ? options.date : (options.date ? new Date(options.date).toLocaleString() : ''),
+        time: options.time || '',
         message: options.message || 'You have an appointment scheduled for tomorrow.',
       };
       const logoAttachments = this.getLogoCidAttachments();
@@ -173,7 +180,7 @@ export class EmailService {
                 <p style="margin:0 0 12px 0;">Hello <strong>${context.techName}</strong>,</p>
                 <p style="margin:0 0 12px 0;">${context.message}</p>
                 <p style="margin:0 0 12px 0;"><strong>Appointment:</strong> #${context.appointmentCode}</p>
-                <p style="margin:0 0 12px 0;"><strong>Date & time:</strong> ${context.date}</p>
+                <p style="margin:0 0 12px 0;"><strong>Date & time:</strong> ${context.date} at ${context.time}</p>
               </td>
             </tr>
             <tr>
