@@ -15,7 +15,7 @@ export class DocumentsService {
     const document = this.documentRepository.create({
       serviceOrderId: serviceOrderId ?? null,
       filename: file.originalname,
-      storagePath: file.path,
+      storagePath: `memory://${Date.now()}-${file.originalname}`,
       mimeType: file.mimetype,
       sizeBytes: file.size,
     });
@@ -28,7 +28,7 @@ export class DocumentsService {
       files.map((file) => ({
         serviceOrderId: serviceOrderId ?? null,
         filename: file.originalname,
-        storagePath: file.path,
+        storagePath: `memory://${Date.now()}-${file.originalname}`,
         mimeType: file.mimetype,
         sizeBytes: file.size,
       })),
@@ -66,10 +66,12 @@ export class DocumentsService {
     const document = await this.findOne(id);
     await this.documentRepository.delete(id);
 
-    try {
-      await unlink(document.storagePath);
-    } catch {
-      // Ignore filesystem delete errors in MVP.
+    if (document.storagePath && !document.storagePath.startsWith('memory://')) {
+      try {
+        await unlink(document.storagePath);
+      } catch {
+        // Ignore filesystem delete errors in MVP.
+      }
     }
 
     return { deleted: true };

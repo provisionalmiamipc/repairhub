@@ -11,14 +11,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { memoryStorage } from 'multer';
 import { DocumentsService } from './documents.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-
-const DOC_UPLOAD_DIR = join(process.cwd(), 'uploads', 'pdfs');
-mkdirSync(DOC_UPLOAD_DIR, { recursive: true });
 
 @ApiTags('Documents')
 @Controller('documents')
@@ -41,17 +36,7 @@ export class DocumentsController {
   @ApiResponse({ status: 201, description: 'Document created' })
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (_req, _file, cb) => cb(null, DOC_UPLOAD_DIR),
-        filename: (_req, file, cb) => {
-          const safeName = file.originalname
-            .replace(/\s+/g, '_')
-            .replace(/[^a-zA-Z0-9._-]/g, '');
-          const extension = extname(safeName).toLowerCase();
-          const baseName = safeName.replace(new RegExp(`${extension}$`), '');
-          cb(null, `${Date.now()}-${baseName}${extension}`);
-        },
-      }),
+      storage: memoryStorage(),
       limits: {
         fileSize: 20 * 1024 * 1024,
       },
@@ -90,17 +75,7 @@ export class DocumentsController {
   @ApiResponse({ status: 201, description: 'Documents created' })
   @UseInterceptors(
     FilesInterceptor('files', 20, {
-      storage: diskStorage({
-        destination: (_req, _file, cb) => cb(null, DOC_UPLOAD_DIR),
-        filename: (_req, file, cb) => {
-          const safeName = file.originalname
-            .replace(/\s+/g, '_')
-            .replace(/[^a-zA-Z0-9._-]/g, '');
-          const extension = extname(safeName).toLowerCase();
-          const baseName = safeName.replace(new RegExp(`${extension}$`), '');
-          cb(null, `${Date.now()}-${baseName}${extension}`);
-        },
-      }),
+      storage: memoryStorage(),
       limits: {
         fileSize: 20 * 1024 * 1024,
       },
