@@ -1,0 +1,242 @@
+<div class="repair-copilot-launcher" *ngIf="!isOpen">
+  <button
+    type="button"
+    class="btn btn-primary rounded-circle shadow-lg launcher-btn"
+    aria-label="Open technical assistant"
+    title="Open assistant"
+    (click)="toggleOpen()"
+  >
+    <i class="bi bi-chat-dots-fill"></i>
+  </button>
+</div>
+
+<div class="repair-copilot-panel card shadow-lg" *ngIf="isOpen" [class.disabled-state]="isDisabled">
+  <div class="card-header d-flex align-items-start justify-content-between gap-2 flex-nowrap">
+    <div class="d-flex flex-column w-100 min-w-0">
+      <div class="d-flex align-items-center justify-content-between">
+        <span class="fw-semibold">Technical Assistant</span>
+      </div>
+      <div class="context-line mt-1">
+        <small class="text-secondary">
+          Engine:
+          <span class="badge text-bg-secondary" *ngIf="engineUsed === 'unknown'">-</span>
+          <span class="badge text-bg-success" *ngIf="engineUsed === 'llm'">LLM</span>
+        </small>
+      </div>
+      <div class="context-line mt-1">
+        <small>{{ contextDevice }} | {{ contextBrand }} | {{ contextModel }}</small>
+      </div>
+
+      <!--div class="btn-group btn-group-sm mt-2 mode-switch" role="group" aria-label="Assistant mode">
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="mode === 'recommendation'"
+          [class.btn-outline-light]="mode !== 'recommendation'"
+          title="Generate a repair recommendation plan"
+          (click)="setMode('recommendation')"
+        >
+          Recommendation
+        </button>
+        <button
+          type="button"
+          class="btn"
+          [class.btn-primary]="mode === 'diagnostic'"
+          [class.btn-outline-light]="mode !== 'diagnostic'"
+          title="Run interactive diagnosis questions"
+          (click)="setMode('diagnostic')"
+        >
+          Diagnostic
+        </button>
+      </div-->
+    </div>
+
+    <div class="header-actions d-flex align-items-center gap-2 flex-shrink-0">
+      <button
+        class="btn btn-sm btn-outline-light"
+        type="button"
+        title="Clear local chat"
+        (click)="clearLocalChat()"
+        aria-label="Clear local chat"
+      >
+        <i class="bi bi-eraser"></i>
+      </button>
+      <button
+        class="btn btn-sm btn-outline-light"
+        type="button"
+        title="Minimize"
+        (click)="minimize()"
+        aria-label="Minimize"
+      >
+        <i class="bi bi-dash-lg"></i>
+      </button>
+      <button
+        class="btn btn-sm btn-outline-light"
+        type="button"
+        title="Close"
+        (click)="closePanel()"
+        aria-label="Close"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="alert alert-warning m-2 py-2" *ngIf="isDisabled">Save the service order to enable the assistant.</div>
+
+  <div class="alert alert-danger m-2 py-2" *ngIf="streamErrorMessage">
+    <div class="d-flex justify-content-between align-items-center gap-2">
+      <span>{{ streamErrorMessage }}</span>
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-light"
+        title="Retry last recommendation request"
+        (click)="retryLastRequest()"
+        [disabled]="!canRetry || mode !== 'recommendation'"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <div class="alert alert-info m-2 py-2" *ngIf="isUploadingPdf">
+    Processing request...
+  </div>
+
+  <div class="alert alert-success m-2 py-2" *ngIf="uploadInfoMessage && !isUploadingPdf">
+    {{ uploadInfoMessage }}
+  </div>
+
+  <div
+    #messagesContainer
+    class="card-body messages-container"
+    (scroll)="onMessagesScroll()"
+    role="log"
+    aria-live="polite"
+    aria-relevant="additions text"
+  >
+    <div class="empty-state text-center text-secondary" *ngIf="!messages.length">
+      <p class="mb-1" *ngIf="mode === 'recommendation'">Describe the issue to ask the assistant.</p>
+      <p class="mb-1" *ngIf="mode === 'diagnostic'">Start interactive diagnosis to get the next troubleshooting question.</p>
+      <small>Context from service order and optional PDF.</small>
+    </div>
+
+    <div class="text-center text-secondary mb-2" *ngIf="isLoadingHistory">
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      <small>Loading chat history...</small>
+    </div>
+
+    <div class="message-list" *ngIf="messages.length">
+      <div
+        class="message-row"
+        *ngFor="let message of messages"
+        [class.user-row]="message.role === 'serviceOrder'"
+        [class.assistant-row]="message.role === 'assistant'"
+      >
+        <div
+          class="message-bubble"
+          [class.user-bubble]="message.role === 'serviceOrder'"
+          [class.assistant-bubble]="message.role === 'assistant'"
+          [class.error-bubble]="message.status === 'error'"
+        >
+          <div class="small text-secondary mb-1">
+            {{ message.role === 'serviceOrder' ? 'Technician' : 'Assistant' }}
+          </div>
+
+          <div class="message-text" [textContent]="message.text"></div>
+        </div>
+      </div>
+
+      <div class="text-center mt-2" *ngIf="isAnalyzing">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        <small>Analyzing...</small>
+      </div>
+
+    </div>
+  </div>
+
+  <button
+    *ngIf="showScrollToBottom"
+    type="button"
+    class="btn btn-sm btn-outline-light scroll-bottom-btn"
+    title="Jump to latest message"
+    (click)="scrollToBottom(true)"
+  >
+    Jump to bottom
+  </button>
+
+  <div class="card-footer">
+    <div class="mb-2 documents-wrap" *ngIf="selectedPdfFile && mode === 'recommendation'">
+      <span class="badge text-bg-secondary doc-chip">
+        {{ selectedPdfFile.name }} ({{ formatSize(selectedPdfFile.size) }})
+        <button
+          type="button"
+          class="btn btn-sm p-0 ms-2 text-white"
+          title="Remove PDF"
+          (click)="removeSelectedPdf()"
+          aria-label="Remove PDF"
+        >
+          <i class="bi bi-x-circle"></i>
+        </button>
+      </span>
+    </div>
+
+    <div class="mb-2" *ngIf="mode === 'diagnostic' && currentDiagnostic?.expectedAnswerType === 'yesno'">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-success me-2"
+        title="Answer yes"
+        [disabled]="isProcessing"
+        (click)="submitDiagnosticPreset('yes')"
+      >
+        Yes
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-danger"
+        title="Answer no"
+        [disabled]="isProcessing"
+        (click)="submitDiagnosticPreset('no')"
+      >
+        No
+      </button>
+    </div>
+
+    <div class="d-flex align-items-end gap-2">
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        title="Attach PDFs"
+        (click)="openFilePicker()"
+        [disabled]="isDisabled || isProcessing || mode !== 'recommendation'"
+        aria-label="Attach PDFs"
+      >
+        <i class="bi bi-paperclip"></i>
+      </button>
+
+      <input
+        #fileInput
+        type="file"
+        class="d-none"
+        accept="application/pdf,.pdf"
+        (change)="onPdfSelected($event)"
+      />
+
+      <input
+        #messageInput
+        class="form-control"
+        [placeholder]="mode === 'diagnostic' ? 'Type your answer...' : 'Describe the issue...'"
+        
+        [(ngModel)]="draftMessage"
+        (keydown)="onKeyDown($event)"
+        (input)="autoResizeTextarea()"
+        [disabled]="isDisabled || isProcessing"
+        aria-label="Assistant message"
+      >
+
+      <button type="button" class="btn btn-primary" title="Send" (click)="sendMessage()" [disabled]="!canSend">
+        <i class="bi bi-send"></i>
+      </button>
+    </div>
+  </div>
+</div>

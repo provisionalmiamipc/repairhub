@@ -2,12 +2,13 @@ import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../shared/services/auth.service';
+import { RepairCopilotWidgetComponent } from './components/repair-copilot-widget/repair-copilot-widget.component';
 
 
 @Component({
   selector: 'app-service-orders-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RepairCopilotWidgetComponent],
   templateUrl: './service-orders-detail.component.html',
 })
 export class ServiceOrdersDetailComponent {

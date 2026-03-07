@@ -37,6 +37,11 @@ import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { RepairAssistantModule } from './repair_assistant/repair_assistant.module';
+import { ChatMessagesModule } from './chat_messages/chat_messages.module';
+import { DocumentsModule } from './documents/documents.module';
+import { RepairCasesModule } from './repair_cases/repair_cases.module';
+import { DiagnosisModule } from './diagnosis/diagnosis.module';
 
 // Cargar DebugModule de forma condicional (evita errores si no se compila/instala)
 const DebugModuleOptional = (() => {
@@ -161,6 +166,11 @@ const DebugModuleOptional = (() => {
     RepairStatusModule, SONotesModule, SODiagnosticModule, 
     SOItemsModule, ServiceTypeModule, PaymentTypeModule, 
     InventoryMovementsModule, NotificationsModule,
+    RepairAssistantModule,
+    ChatMessagesModule,
+    DocumentsModule,
+    RepairCasesModule,
+    DiagnosisModule,
 
   ],
   controllers: [AppController],

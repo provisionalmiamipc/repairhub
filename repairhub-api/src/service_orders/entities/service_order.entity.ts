@@ -14,6 +14,8 @@ import { SOItem } from '../../s_o_items/entities/s_o_item.entity';
 import { ServiceOrdersRequested } from '../../service_orders_requested/entities/service_orders_requested.entity';
 import { ReceivedPart } from '../../received-parts/entities/received-part.entity';
 import { Exclude } from 'class-transformer';
+import { ChatMessage } from '../../chat_messages/entities/chat_message.entity';
+import { DocumentEntity } from '../../documents/entities/document.entity';
 
 
 
@@ -177,5 +179,11 @@ export class ServiceOrder {
 
     @OneToMany(() => ReceivedPart, (rp) => rp.serviceOrder)
     receivedParts: ReceivedPart[];
+
+    @OneToMany(() => ChatMessage, (chatMessage) => chatMessage.serviceOrder)
+    chatMessages: ChatMessage[];
+
+    @OneToMany(() => DocumentEntity, (documentEntity) => documentEntity.serviceOrder)
+    documents: DocumentEntity[];
 
 }

@@ -38,6 +38,7 @@ import { debounceTime, takeUntil, finalize } from 'rxjs/operators';
 import { ReceivedPartsService } from '../received-parts/received-parts.service';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
+import { RepairCopilotWidgetComponent } from './components/repair-copilot-widget/repair-copilot-widget.component';
 
 interface FormState {
   isLoading: boolean;
@@ -63,6 +64,7 @@ interface FormState {
     SODiagnosticFormComponent,
     SOItemsFormComponent,
     RepairStatusFormComponent,
+    RepairCopilotWidgetComponent,
     // ReceivedPartsFormComponent removed: using inline modal for received parts
   ],
   templateUrl: './service-orders-form-modern.component.html',
@@ -1236,6 +1238,36 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   isFieldInvalid(fieldName: string): boolean {
     const field = this.serviceOrderForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
+  }
+
+  getCopilotDeviceName(): string | undefined {
+    const selectedId = Number(this.serviceOrderForm?.get('deviceId')?.value);
+    if (Number.isFinite(selectedId) && selectedId > 0) {
+      const found = this.devices().find((device) => Number((device as any).id) === selectedId);
+      if (found?.name) return String(found.name);
+    }
+    return this.serviceOrder()?.device?.name || undefined;
+  }
+
+  getCopilotBrandName(): string | undefined {
+    const selectedId = Number(this.serviceOrderForm?.get('deviceBrandId')?.value);
+    if (Number.isFinite(selectedId) && selectedId > 0) {
+      const found = this.deviceBrands().find((brand) => Number((brand as any).id) === selectedId);
+      if (found?.name) return String(found.name);
+    }
+    return this.serviceOrder()?.deviceBrand?.name || undefined;
+  }
+
+  getCopilotModel(): string | undefined {
+    const model = this.serviceOrderForm?.get('model')?.value;
+    if (typeof model === 'string' && model.trim().length) return model.trim();
+    return this.serviceOrder()?.model || undefined;
+  }
+
+  getCopilotDefect(): string | undefined {
+    const defect = this.serviceOrderForm?.get('defectivePart')?.value;
+    if (typeof defect === 'string' && defect.trim().length) return defect.trim();
+    return this.serviceOrder()?.defectivePart || undefined;
   }
 
   clearError(): void {

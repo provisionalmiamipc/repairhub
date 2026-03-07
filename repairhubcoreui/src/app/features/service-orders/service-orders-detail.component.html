@@ -212,3 +212,12 @@
     </div>
   </div>
 </div>
+
+<app-repair-copilot-widget
+  *ngIf="serviceOrder"
+  [serviceOrderId]="serviceOrder.id"
+  [device]="serviceOrder.device?.name"
+  [brand]="serviceOrder.deviceBrand?.name"
+  [model]="serviceOrder.model"
+  [defect]="serviceOrder.defectivePart"
+></app-repair-copilot-widget>

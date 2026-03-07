@@ -1071,4 +1071,12 @@
   </div>
   <div class="modal-backdrop fade show"></div>
   }
+
+  <app-repair-copilot-widget
+    [serviceOrderId]="currentServiceOrderId()"
+    [device]="getCopilotDeviceName()"
+    [brand]="getCopilotBrandName()"
+    [model]="getCopilotModel()"
+    [defect]="getCopilotDefect()"
+  ></app-repair-copilot-widget>
 </div>
