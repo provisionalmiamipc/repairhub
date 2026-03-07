@@ -27,6 +27,16 @@ export class RepairAssistantService {
     };
   }
 
+  async extractTextFromPdfBuffer(buffer: Buffer) {
+    const extracted = await this.pdfTextService.extractFromMemory(buffer);
+
+    return {
+      text: extracted.text,
+      pages: extracted.numPages,
+      lowText: extracted.lowText,
+    };
+  }
+
   async chatWithAssistant(params: {
     serviceOrderId: string;
     question: string;

@@ -9,9 +9,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage, memoryStorage } from 'multer';
-import { extname, join } from 'path';
-import { mkdirSync } from 'fs';
+import { memoryStorage } from 'multer';
+import { extname } from 'path';
 import { RepairAssistantService } from './repair_assistant.service';
 import { AnalyzeManualDto } from './dto/analyze-manual.dto';
 import { ManualAnalyzerService } from './manual-analyzer.service';
@@ -23,10 +22,6 @@ import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestj
 import { LlmService, LlmStreamEvent } from '../llm/llm.service';
 import type { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
-
-const PDF_UPLOAD_DIR = join(process.cwd(), 'uploads', 'pdfs');
-
-mkdirSync(PDF_UPLOAD_DIR, { recursive: true });
 
 @ApiTags('Repair Assistant')
 @Controller(['repair-assistant'])
@@ -58,7 +53,7 @@ export class RepairAssistantController {
   }
 
   @Post('upload-pdf')
-  @ApiOperation({ summary: 'Upload a PDF for local processing' })
+  @ApiOperation({ summary: 'Upload a PDF for in-memory processing' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -72,17 +67,7 @@ export class RepairAssistantController {
   @ApiResponse({ status: 201, description: 'PDF uploaded and text extracted' })
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (_req, _file, cb) => cb(null, PDF_UPLOAD_DIR),
-        filename: (_req, file, cb) => {
-          const safeName = file.originalname
-            .replace(/\s+/g, '_')
-            .replace(/[^a-zA-Z0-9._-]/g, '');
-          const extension = extname(safeName).toLowerCase();
-          const baseName = safeName.replace(new RegExp(`${extension}$`), '');
-          cb(null, `${Date.now()}-${baseName}${extension || '.pdf'}`);
-        },
-      }),
+      storage: memoryStorage(),
       fileFilter: (_req, file, cb) => {
         const isPdfByMime = file.mimetype === 'application/pdf';
         const isPdfByExt = extname(file.originalname).toLowerCase() === '.pdf';
@@ -102,14 +87,12 @@ export class RepairAssistantController {
       throw new BadRequestException('You must send a PDF file in the "file" field');
     }
 
-    const extracted = await this.repairAssistantService.extractTextFromPdf(file.path);
+    const extracted = await this.repairAssistantService.extractTextFromPdfBuffer(file.buffer);
 
     return {
-      message: 'PDF uploaded and processed successfully',
+      message: 'PDF processed in memory successfully',
       file: {
         originalName: file.originalname,
-        filename: file.filename,
-        path: file.path,
         size: file.size,
         mimetype: file.mimetype,
       },
