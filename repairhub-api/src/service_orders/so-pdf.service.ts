@@ -30,7 +30,7 @@ export class RepairPdfService {
         this.drawDeviceSection(doc, data);
         this.drawDefectivePartsSection(doc, data);
         this.drawNotesSection(doc, data);
-        this.drawReceivedPartsSection(doc, data);        
+        this.drawReceivedPartsSection(doc, data);
 
         // Add new page for notes
         doc.addPage();
@@ -75,7 +75,7 @@ export class RepairPdfService {
         this.drawDeviceSection(doc, data);
         this.drawDefectivePartsSection(doc, data);
         this.drawNotesSection(doc, data);
-        this.drawReceivedPartsSection(doc, data); 
+        this.drawReceivedPartsSection(doc, data);
 
         // Add new page for notes and remaining sections
         doc.addPage();
@@ -350,7 +350,7 @@ export class RepairPdfService {
     // Row data
     const rowHeight = 95;
     //doc
-     // .rect(marginLeft, yPos, contentWidth, rowHeight);
+    // .rect(marginLeft, yPos, contentWidth, rowHeight);
     //.stroke();
 
     // Device
@@ -370,12 +370,15 @@ export class RepairPdfService {
       .lineTo(xPos, yPos + rowHeight)
       .stroke();*/
 
-      doc
+    doc
       .fontSize(9)
       .font('Helvetica')
       .text(data.brand, xPos + 5, yPos + 8, {
         width: colWidths[1] - 10,
       });
+
+    // Vertical line
+    xPos += colWidths[1];
 
     // Defective part
     doc
@@ -438,7 +441,7 @@ export class RepairPdfService {
       .fontSize(9)
       .font('Helvetica')
       .fillColor('#000000')
-      .text(data.defectivePart, marginLeft + 5, yPos);      
+      .text(data.defectivePart, marginLeft + 5, yPos);
 
     // Defective parts (with X)
     /*data.defectiveParts.forEach((part) => {
@@ -501,18 +504,18 @@ export class RepairPdfService {
       .fillColor('#000000')
       .text('RECEIVED PARTS', marginLeft, yPos);
 
-    yPos += 20;   
+    yPos += 20;
 
-      // Table header
-      const tableTop = yPos;
-      const colWidths = [contentWidth * 0.5, contentWidth * 0.5];
-      
+    // Table header
+    const tableTop = yPos;
+    const colWidths = [contentWidth * 0.5, contentWidth * 0.5];
 
-      // Header background
-      doc
-        .rect(marginLeft, tableTop, contentWidth, 25)
-        .fill('#E8E8E8')
-        .stroke();
+
+    // Header background
+    doc
+      .rect(marginLeft, tableTop, contentWidth, 25)
+      .fill('#E8E8E8')
+      .stroke();
 
     // Table headers
     doc
@@ -537,9 +540,9 @@ export class RepairPdfService {
         .font('Helvetica')
         .fillColor('#000000')
         .text(part.accessory, marginLeft + 5, yPos + 8, {
-            width: colWidths[0] - 10,
-            align: 'left',
-          })
+          width: colWidths[0] - 10,
+          align: 'left',
+        })
         .text(part.observations || '---', marginLeft + colWidths[0] + 5, yPos + 8, {
           width: colWidths[1] - 10,
           align: 'left',
@@ -663,15 +666,15 @@ export class RepairPdfService {
     yPos += 25;
 
     // Table header
-      const tableTop = yPos;
-      const colWidths = [contentWidth * 0.8, contentWidth * 0.2];
-      
+    const tableTop = yPos;
+    const colWidths = [contentWidth * 0.8, contentWidth * 0.2];
 
-      // Header background
-      doc
-        .rect(marginLeft, tableTop, contentWidth, 25)
-        .fill('#E8E8E8')
-        .stroke();
+
+    // Header background
+    doc
+      .rect(marginLeft, tableTop, contentWidth, 25)
+      .fill('#E8E8E8')
+      .stroke();
 
     // Table headers
     doc
@@ -679,13 +682,13 @@ export class RepairPdfService {
       .fillColor('#000000')
       .font('Helvetica-Bold')
       .text('TITLE', marginLeft + 5, yPos + 8, {
-            width: colWidths[0] - 10,
-            align: 'left',
-          })
+        width: colWidths[0] - 10,
+        align: 'left',
+      })
       .text('DATE', marginLeft + colWidths[0] + 5, yPos + 8, {
-            width: colWidths[1] - 10,
-            align: 'left',
-          });
+        width: colWidths[1] - 10,
+        align: 'left',
+      });
 
     yPos += 25;
 
@@ -696,13 +699,13 @@ export class RepairPdfService {
         .font('Helvetica')
         .fillColor('#000000')
         .text(diagnostic.title, marginLeft + 5, yPos + 8, {
-            width: colWidths[0] - 10,
-            align: 'left',
-          })
+          width: colWidths[0] - 10,
+          align: 'left',
+        })
         .text(diagnostic.date, marginLeft + colWidths[0] + 5, yPos + 8, {
-            width: colWidths[1] - 10,
-            align: 'left',
-          });
+          width: colWidths[1] - 10,
+          align: 'left',
+        });
 
       yPos += 20;
     });
@@ -1086,7 +1089,7 @@ export class RepairPdfService {
     });*/
   }
 
- 
+
 
   /**
    * Draw Terms and Conditions section
@@ -1110,19 +1113,19 @@ export class RepairPdfService {
 
     // Terms text
     const termsText = 'Miami Photography Center Last updated: August 2025 Repairs (in workshop) Scope of Service' +
-            'Technical repair and maintenance of photographic cameras, lenses, flashes, and accessories at our' +   
-            'specialized workshop. Estimates and Diagnosis - Free estimates conducted in our workshop. - If final' +
-            'cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not' +
-            'include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. -' +
-            'Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not' +
-            'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -' +
-            'Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or' +
-            'discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics' + 
-            'performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:' +
-            '$45, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not' +
-            'guaranteed on-site. Warranty and Liability - Same 6-month warranty as workshop repairs. - Immediate' +
-            'on-site resolution not guaranteed if parts are needed. Logistics - Client must provide proper access to' +
-            'the service area. - Rescheduling allowed with at least 24-hour notice.';
+      'Technical repair and maintenance of photographic cameras, lenses, flashes, and accessories at our' +
+      'specialized workshop. Estimates and Diagnosis - Free estimates conducted in our workshop. - If final' +
+      'cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not' +
+      'include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. -' +
+      'Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not' +
+      'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -' +
+      'Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or' +
+      'discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics' +
+      'performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:' +
+      '$45, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not' +
+      'guaranteed on-site. Warranty and Liability - Same 6-month warranty as workshop repairs. - Immediate' +
+      'on-site resolution not guaranteed if parts are needed. Logistics - Client must provide proper access to' +
+      'the service area. - Rescheduling allowed with at least 24-hour notice.';
 
     doc
       .fontSize(7)
@@ -1130,9 +1133,9 @@ export class RepairPdfService {
       .text(termsText, marginLeft, yPos, {
         width: contentWidth,
         align: 'justify',
-      });    
+      });
 
-    
+
 
     // Signature line
     /*yPos += 200;
@@ -1165,5 +1168,5 @@ export class RepairPdfService {
     return heightUsed;
   }
 
-  
+
 }

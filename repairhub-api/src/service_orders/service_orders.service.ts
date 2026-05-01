@@ -348,6 +348,7 @@ formatDateToMMDDYYYY(date: Date): string {
       customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '',
       date: this.formatDateToMMDDYYYY(fullOrder.createdAt) || '',
       device: fullOrder.device?.name || '-',
+      brand: fullOrder.deviceBrand?.name || '',
       model: fullOrder.model || '-',
       serial: fullOrder.serial || '',
       defectivePart: fullOrder.defectivePart || '-',
