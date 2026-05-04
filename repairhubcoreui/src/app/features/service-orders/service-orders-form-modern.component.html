@@ -505,8 +505,8 @@
             <div class="card mt-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Received Parts</span>
-                <!--button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
-                  type="button" (click)="openReceivedPartModal()">+</button-->
+                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                  type="button" (click)="openReceivedPartModal()">+</button>
               </div>
               <div class="card-body">
                 @if (!receivedParts.length) {

@@ -10,7 +10,6 @@ import {
   employeeAdminGuard,
   accountantGuard,
   centerAdminGuard,
-  storeAdminGuard,
   permissionGuard,
   allPermissionsGuard
 } from './shared/rbac';
@@ -111,10 +110,10 @@ export const routes: Routes = [
       { path: 'notifications/:id', loadComponent: () => import('./features/notifications/notifications-detail-page.component').then(m => m.NotificationsDetailPageComponent) },
       { path: 'notifications/:id/edit', loadComponent: () => import('./features/notifications/notifications-edit-page.component').then(m => m.NotificationsEditPageComponent) },
 
-      { path: 'appointments', loadComponent: () => import('./features/appointments/appointments-list-modern.component').then(m => m.AppointmentsListModernComponent) },
-      { path: 'appointments/new', loadComponent: () => import('./features/appointments/appointments-form-modern.component').then(m => m.AppointmentsFormModernComponent) },
-      { path: 'appointments/:id', loadComponent: () => import('./features/appointments/appointments-detail.component').then(m => m.AppointmentsDetailComponent) },
-      { path: 'appointments/:id/edit', loadComponent: () => import('./features/appointments/appointments-form-modern.component').then(m => m.AppointmentsFormModernComponent) },
+      { path: 'appointments', loadComponent: () => import('./features/appointments/appointments-list-modern.component').then(m => m.AppointmentsListModernComponent), canActivate: [centerAdminGuard] },
+      { path: 'appointments/new', loadComponent: () => import('./features/appointments/appointments-form-modern.component').then(m => m.AppointmentsFormModernComponent), canActivate: [centerAdminGuard] },
+      { path: 'appointments/:id', loadComponent: () => import('./features/appointments/appointments-detail.component').then(m => m.AppointmentsDetailComponent), canActivate: [centerAdminGuard] },
+      { path: 'appointments/:id/edit', loadComponent: () => import('./features/appointments/appointments-form-modern.component').then(m => m.AppointmentsFormModernComponent), canActivate: [centerAdminGuard] },
 
       { path: 'centers', loadComponent: () => import('./features/centers/centers-list-modern.component').then(m => m.CentersListModernComponent), data:{title: 'Centers'}, canActivate: [userGuard] },
       { path: 'centers/new', loadComponent: () => import('./features/centers/centers-form-modern.component').then(m => m.CentersFormModernComponent), canActivate: [userGuard] },
@@ -203,7 +202,7 @@ export const routes: Routes = [
 
       // Para service-orders
       { path: 'service-orders', loadComponent: () => import('./features/service-orders/service-orders-list-modern.component').then(m => m.ServiceOrdersListModernComponent), canActivate: [authGuard] },
-      { path: 'service-orders/new', loadComponent: () => import('./features/service-orders/service-orders-form-modern.component').then(m => m.ServiceOrdersFormModernComponent), canActivate: [authGuard] },
+      { path: 'service-orders/new', loadComponent: () => import('./features/service-orders/service-orders-form-modern.component').then(m => m.ServiceOrdersFormModernComponent), canActivate: [authGuard, centerAdminGuard] },
       { path: 'service-orders/:id', loadComponent: () => import('./features/service-orders/service-orders-detail-page.component').then(m => m.ServiceOrdersDetailPageComponent), canActivate: [authGuard] },
       { path: 'service-orders/:id/edit', loadComponent: () => import('./features/service-orders/service-orders-form-modern.component').then(m => m.ServiceOrdersFormModernComponent), canActivate: [authGuard] },
 

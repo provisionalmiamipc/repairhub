@@ -58,7 +58,7 @@ export const navItems: NavItemWithRoles[] = [
     name: 'Appointments',
     url: '/appointments',
     iconComponent: { name: 'cil-cursor' },
-    roles: null // visible para todos
+    roles: [UserType.USER] // super admin y center admin (verificado por isCenterAdmin)
   },
   {
     name: 'Services Order',

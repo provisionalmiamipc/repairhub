@@ -547,11 +547,11 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
     return `${sign}${trend}%`;
   }
 
-  // Verifica si el usuario tiene acceso a funciones de gestión (AdminStore o CenterAdmin)
+  // Verifica si el usuario tiene acceso a funciones de gestión (CenterAdmin)
   canAccessStoreManagement(): boolean {
     const employee = this.authService.getCurrentEmployee();
     if (!employee) return false;
-    return employee.employee_type === 'AdminStore' || employee.isCenterAdmin === true;
+    return employee.isCenterAdmin === true;
   }
 
   // Verifica si el usuario tiene acceso a funciones financieras (Accountant o CenterAdmin)
