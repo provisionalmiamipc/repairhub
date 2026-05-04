@@ -107,7 +107,13 @@ export class DefaultLayoutComponent implements OnInit {
       // EXCEPTO /centers que es solo para USER
       const employee = this.authService.getCurrentEmployee();
         if (employee?.isCenterAdmin && item.url !== '/centers') {
-        if (item.url === '/stores' || item.url === '/employees' || item.url === '/devices' || item.url === '/device-brands' || item.url === '/service-types' || item.url === '/login') {
+        if (item.url === '/stores' ||
+          item.url === '/employees' ||
+          item.url === '/appointments' ||
+          item.url === '/devices' ||
+          item.url === '/device-brands' ||
+          item.url === '/service-types' ||
+          item.url === '/login') {
           return true;
         }
       }
