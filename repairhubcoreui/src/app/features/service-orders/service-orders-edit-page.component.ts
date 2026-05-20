@@ -34,11 +34,15 @@ export class ServiceOrdersEditPageComponent {
     }
   }
 
-  onSave(data: Partial<ServiceOrders>) {
+  onSave(payload: any) {
+    const data = payload?.data ?? payload;
+    const images = payload?.images ?? [];
+    const deleteImageIds = payload?.deleteImageIds ?? [];
+
     if (this.isNew) {
-      this.service.create(data).subscribe(() => this.router.navigate(['../'], { relativeTo: this.route }));
+      this.service.createWithImages(data, images).subscribe(() => this.router.navigate(['../'], { relativeTo: this.route }));
     } else if (this.serviceOrder) {
-      this.service.update(this.serviceOrder.id, data).subscribe(() => this.router.navigate(['../../'], { relativeTo: this.route }));
+      this.service.updateWithImages(this.serviceOrder.id, data, images, deleteImageIds).subscribe(() => this.router.navigate(['../../'], { relativeTo: this.route }));
     }
   }
 }

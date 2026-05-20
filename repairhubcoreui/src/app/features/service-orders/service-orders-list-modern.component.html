@@ -6,6 +6,15 @@
       <p class="list-subtitle">Manage and monitor all repair orders</p>
     </div>
     <div class="d-flex gap-2">
+      <button
+        class="btn btn-outline-secondary"
+        type="button"
+        title="Refresh list"
+        aria-label="Refresh list"
+        [disabled]="isLoading()"
+        (click)="refreshList()">
+        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+      </button>
       <button class="btn btn-outline-secondary" (click)="toggleViewMode()" [class.active]="!isProfessional()">
         <i *ngIf="!isProfessional()" class="bi bi-list-ul" aria-hidden="true"></i>
         <i *ngIf="isProfessional()" class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>
@@ -47,7 +56,7 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Search by code, customer, serial..."
+        placeholder="Search by code, customer, device, brand, model, serial..."
         (keyup)="onSearchChange($any($event).target.value)"
       />
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -174,7 +183,7 @@
                 @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
                 <td class="text-end fw-semibold">{{ formatCurrency(order.price) }}</td>
                 }
-                <td class="small text-muted">{{ order.createdAt | date: 'short' }}</td>
+                <td class="small text-muted">{{ order.createdAt | date: 'short' }}<div class="small text-muted">{{ order.updatedAt | date: 'short'}}</div></td>
                 <td>
                   <div class="btn-group" role="group">
                     <button type="button" class="btn btn-sm btn-outline-primary" (click)="goToDetail(order); $event.stopPropagation()"><i class="bi bi-eye"></i></button>

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Length } from "class-validator";
+import { IsNotEmpty, IsString, MaxLength } from "class-validator";
 import { Center } from "../../centers/entities/center.entity";
 import { Employee } from "../../employees/entities/employee.entity";
 import { ServiceOrder } from "../../service_orders/entities/service_order.entity";
@@ -37,7 +37,7 @@ export class RepairStatus {
     @Column()
     @IsString()
     @IsNotEmpty()
-    @Length(6,20)
+    @MaxLength(30)
     status: string;
 
     @CreateDateColumn({ type: 'timestamp' })

@@ -64,11 +64,14 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     const sortField = this.sortBy();
 
     let filtered = orders.filter(order => {
-      // Search: order code, customer name
+      // Search: order code, customer, serial, device, brand and model
       const matchesSearch = !query || 
         order.orderCode.toLowerCase().includes(query) ||
         `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.toLowerCase().includes(query) ||
-        order.serial?.toLowerCase().includes(query);
+        (order.serial || '').toLowerCase().includes(query) ||
+        (order.device?.name || '').toLowerCase().includes(query) ||
+        (order.deviceBrand?.name || '').toLowerCase().includes(query) ||
+        (order.model || '').toLowerCase().includes(query);
 
       // Status filter
       let matchesStatus = true;
@@ -134,10 +137,10 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private loadServiceOrders(): void {
+  private loadServiceOrders(useCache = true): void {
     this.listState.update(s => ({ ...s, isLoading: true, error: null }));
 
-    this.serviceOrdersService.getAll()
+    this.serviceOrdersService.getAll(useCache)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
@@ -156,6 +159,10 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
 
   onSearchChange(query: string): void {
     this.searchSubject.next(query);
+  }
+
+  refreshList(): void {
+    this.loadServiceOrders(false);
   }
 
   onFilterChange(status: 'all' | 'active' | 'completed' | 'canceled'): void {

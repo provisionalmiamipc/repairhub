@@ -191,6 +191,8 @@ export class DefaultHeaderComponent extends HeaderComponent {
       }, 100);
     } else {
       // Employees use PIN system
+      const currentUrl = this.#router.url;
+      this.#authService.setReturnUrl(currentUrl);
       this.#authService.lockAccount();
       this.#router.navigate(['/verify-pin']);
     }

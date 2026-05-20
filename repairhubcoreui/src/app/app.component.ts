@@ -8,6 +8,7 @@ import { ColorModeService } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { iconSubset } from './icons/icon-subset';
 import { ToastsComponent } from './shared/components/toasts/toasts.component';
+import { NavigationHistoryService } from './shared/services/navigation-history.service';
 
 @Component({
     selector: 'app-root',
@@ -22,6 +23,7 @@ export class AppComponent implements OnInit {
   readonly #activatedRoute: ActivatedRoute = inject(ActivatedRoute);
   readonly #router = inject(Router);
   readonly #titleService = inject(Title);
+  readonly #navigationHistoryService = inject(NavigationHistoryService);
 
   readonly #colorModeService = inject(ColorModeService);
   readonly #iconSetService = inject(IconSetService);
@@ -35,6 +37,8 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.#navigationHistoryService.startTracking();
+
     // Si la app usa HashLocationStrategy y la URL llegó como '/activate?...',
     // redirigir al formato con hash para que Angular Router la reconozca:
     try {

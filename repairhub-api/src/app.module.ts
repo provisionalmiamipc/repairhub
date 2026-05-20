@@ -1,10 +1,11 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -33,15 +34,14 @@ import { ServiceTypeModule } from './service_type/service_type.module';
 import { StoresModule } from './stores/stores.module';
 import { UsersModule } from './user/user.module';
 import { DeviceBrandsModule } from './device_brands/device_brands.module';
-import { DataSource } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { RepairAssistantModule } from './repair_assistant/repair_assistant.module';
 import { ChatMessagesModule } from './chat_messages/chat_messages.module';
 import { DocumentsModule } from './documents/documents.module';
 import { RepairCasesModule } from './repair_cases/repair_cases.module';
 import { DiagnosisModule } from './diagnosis/diagnosis.module';
+import { MediaModule } from './media/media.module';
+import { JwtAnyGuard } from './auth/guards/jwt-any.guard';
 
 // Cargar DebugModule de forma condicional (evita errores si no se compila/instala)
 const DebugModuleOptional = (() => {
@@ -119,7 +119,7 @@ const DebugModuleOptional = (() => {
         const baseOptions: TypeOrmModuleOptions = {
           type: 'postgres',
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
+          synchronize: configService.get('DB_SYNCHRONIZE') === 'false',
           logging: configService.get('DB_LOGGING') === 'true',
           autoLoadEntities: true, // ← Importante para cargar entidades automáticamente
         };
@@ -171,67 +171,16 @@ const DebugModuleOptional = (() => {
     DocumentsModule,
     RepairCasesModule,
     DiagnosisModule,
+    MediaModule,
 
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAnyGuard,
+    },
+  ],
 })
-export class AppModule implements OnModuleInit{
-  constructor(private dataSource: DataSource) {}
-
-  async onModuleInit() {
-    // Crear usuario admin al iniciar la app
-    await this.createAdminUser();
-  }
-
-  private async createAdminUser() {
-    // El mismo código del script anterior aquí
-    const dataSource = new DataSource(
-      process.env.DATABASE_URL
-        ? {
-            type: 'postgres',
-            url: process.env.DATABASE_URL,
-            entities: [User],
-          }
-        : {
-            type: 'postgres',
-            host: process.env.DB_HOST,
-            port: parseInt(process.env.DB_PORT || '5432'),
-            username: process.env.DB_USERNAME,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_DATABASE ?? process.env.DB_NAME,
-            entities: [User],
-          },
-    );
-    
-      await dataSource.initialize();
-    
-      const userRepository = dataSource.getRepository(User);
-    
-      // Verificar si ya existe el admin
-      const existingAdmin = await userRepository.findOne({
-        where: { email: 'admin@system.com' }
-      });
-    
-      if (!existingAdmin) {
-        // Hash la contraseña antes de crear
-        const hashedPassword = await bcrypt.hash('AdminMasterPass.00', 12);
-        
-        const adminUser = userRepository.create({
-          email: 'admin@system.com',
-          password: hashedPassword,
-          firstName: 'System',
-          lastName: 'Administrator',
-          isActive: true,
-        });
-    
-        await userRepository.save(adminUser);
-        console.log('✅ Admin user created: admin@system.com');
-        
-      } else {
-        console.log('ℹ️ Admin user already exists');
-      }
-    
-      await dataSource.destroy();
-  }
-}
+export class AppModule {}

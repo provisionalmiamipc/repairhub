@@ -28,11 +28,16 @@ export const guestGuard: CanActivateFn = (_route, state) => {
       return false;
     }
     
-    // Usuario autenticado y no bloqueado - redirigir al dashboard
+    // Usuario autenticado y no bloqueado - redirigir al destino pendiente o dashboard
     if (userType === 'employee') {
-      router.navigate(['/employee/dashboard']);
+      if (!authService.isPinVerified()) {
+        router.navigate(['/verify-pin']);
+        return false;
+      }
+
+      router.navigateByUrl(authService.getPostAuthUrl('employee'));
     } else {
-      router.navigate(['/dashboard']);
+      router.navigateByUrl(authService.getPostAuthUrl('user'));
     }
     return false;
   }

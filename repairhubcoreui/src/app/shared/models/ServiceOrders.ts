@@ -18,6 +18,22 @@ export interface LastRepairStatus {
   date: Date;
 }
 
+export interface ServiceOrderImage {
+  id: number;
+  ownerType: string;
+  ownerId: number;
+  status: 'pending' | 'processing' | 'ready' | 'failed' | 'deleted';
+  originalName: string;
+  mimeType?: string;
+  displaySize?: number;
+  thumbnailSize?: number;
+  width?: number;
+  height?: number;
+  thumbnailUrl?: string;
+  displayUrl?: string;
+  error?: string | null;
+}
+
 export interface ServiceOrders {
   id: number;
   orderCode: string;
@@ -61,4 +77,5 @@ export interface ServiceOrders {
   employee?: Employees;
   paymentType?: PaymentTypes;
   store?: Stores;
+  images?: ServiceOrderImage[];
 }

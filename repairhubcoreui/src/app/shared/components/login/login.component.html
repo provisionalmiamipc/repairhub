@@ -33,7 +33,7 @@
                     <i class="bi bi-person text-body-secondary"></i>
                   </span>
                   <input
-                    type="text"
+                    type="email"
                     id="username"
                     class="form-control"
                     [(ngModel)]="username"
@@ -41,7 +41,11 @@
                     required
                     [disabled]="isLoading"
                     placeholder="Enter your username"
-                    autocomplete="off"
+                    autocomplete="username"
+                    autocapitalize="none"
+                    autocorrect="off"
+                    spellcheck="false"
+                    inputmode="email"
                     [class.is-invalid]="loginAttempted && !loginForm.controls['username'].valid && !isLoading"
                     aria-label="Username">
                 </div>

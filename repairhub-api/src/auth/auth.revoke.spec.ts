@@ -29,6 +29,8 @@ describe('AuthController revoke', () => {
       mockAuthService as AuthService,
       mockRefreshService as RefreshTokenService,
       mockConfigService as ConfigService,
+      null as any,
+      null as any,
     );
   });
 

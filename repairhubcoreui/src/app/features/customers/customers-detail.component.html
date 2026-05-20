@@ -88,6 +88,60 @@
               <p class="text-muted">{{ customer?.updatedAt | date:'medium' }}</p>
             </div>
           </div>
+
+          <!-- Service Order History -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                <div>
+                  <h6 class="section-title text-primary mb-1">Service Orders</h6>
+                  <div class="small text-muted">{{ serviceOrders.length }} order{{ serviceOrders.length === 1 ? '' : 's' }}</div>
+                </div>
+                <a class="btn btn-sm btn-outline-primary" routerLink="/service-orders/new">
+                  <i class="bi bi-plus-circle me-1"></i>
+                  New Order
+                </a>
+              </div>
+
+              @if (isLoadingOrders) {
+                <div class="border rounded p-4 text-center text-muted">
+                  <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                  Loading service orders...
+                </div>
+              } @else if (ordersError) {
+                <div class="alert alert-warning mb-0">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  {{ ordersError }}
+                </div>
+              } @else if (!serviceOrders.length) {
+                <div class="border rounded p-4 text-center">
+                  <i class="bi bi-clipboard2 text-muted fs-3 d-block mb-2"></i>
+                  <p class="mb-0 text-muted">No service orders found for this customer.</p>
+                </div>
+              } @else {
+                <div class="service-order-history">
+                  @for (order of serviceOrders; track order.id) {
+                    <a class="service-order-history-item" [routerLink]="['/service-orders', order.id]">
+                      <div>
+                        <div class="fw-semibold">{{ order.orderCode }}</div>
+                        <div class="small text-muted">{{ order.createdAt | date:'mediumDate' }}</div>
+                      </div>
+
+                      <div class="order-device">
+                        <div class="text-truncate">{{ getDeviceSummary(order) }}</div>
+                        <div class="small text-muted text-truncate">Serial: {{ order.serial || 'N/A' }}</div>
+                      </div>
+
+                      <div class="text-end">
+                        <span class="badge" [ngClass]="getOrderStatusClass(order)">{{ getOrderStatus(order) }}</span>
+                        <div class="small text-muted mt-1">{{ formatCurrency(order.price) }}</div>
+                      </div>
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+          </div>
         </div>
 
         <!-- Card Footer with Buttons -->

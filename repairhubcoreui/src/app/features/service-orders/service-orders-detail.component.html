@@ -152,6 +152,39 @@
             </div>
           </div>
 
+          <div class="row mb-4" *ngIf="visibleImages.length">
+            <div class="col-12">
+              <h5 class="text-primary mb-3">
+                <i class="bi bi-images"></i> Images
+              </h5>
+              <div class="row g-2">
+                <div class="col-4 col-md-3 col-lg-2" *ngFor="let image of visibleImages; trackBy: trackById">
+                  <button
+                    type="button"
+                    class="btn p-0 border rounded overflow-hidden w-100 bg-light position-relative"
+                    (click)="openImage(image)"
+                  >
+                    <img
+                      class="w-100"
+                      style="height: 96px; object-fit: cover;"
+                      [src]="getImageThumbUrl(image)"
+                      [alt]="image.originalName || 'Service order image'"
+                      loading="lazy"
+                      decoding="async"
+                      (error)="useFallbackImage($event)"
+                    />
+                    <span class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-1" *ngIf="image.status === 'pending' || image.status === 'processing'">
+                      Processing
+                    </span>
+                    <span class="badge bg-danger position-absolute bottom-0 start-0 m-1" *ngIf="image.status === 'failed'">
+                      Failed
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="row mb-4" *ngIf="serviceOrder.estimated && (authService.getCurrentEmployee()?.isCenterAdmin || authService.getUserType() === 'user')">
             <div class="col-12">
               <h5 class="text-primary mb-3">
@@ -208,6 +241,32 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal d-block" tabindex="-1" *ngIf="selectedImage" style="background: rgba(0,0,0,.55);">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Image</h5>
+        <button type="button" class="btn-close" aria-label="Close" (click)="closeImage()"></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="text-muted py-4" *ngIf="isLoadingDisplayImage">
+          <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+          Loading image
+        </div>
+        <img
+          *ngIf="!isLoadingDisplayImage"
+          class="img-fluid rounded"
+          style="max-height: 70vh; object-fit: contain;"
+          [src]="getImageDisplayUrl(selectedImage)"
+          [alt]="selectedImage.originalName || 'Service order image'"
+          decoding="async"
+          (error)="useFallbackImage($event)"
+        />
       </div>
     </div>
   </div>

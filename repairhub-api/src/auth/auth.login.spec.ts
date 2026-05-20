@@ -20,7 +20,13 @@ describe('AuthController login cookie', () => {
       return undefined;
     }) } as any;
 
-    controller = new AuthController(mockAuthService as AuthService, mockRefreshService as RefreshTokenService, mockConfig as ConfigService);
+    controller = new AuthController(
+      mockAuthService as AuthService,
+      mockRefreshService as RefreshTokenService,
+      mockConfig as ConfigService,
+      null as any,
+      null as any,
+    );
   });
 
   it('sets httpOnly cookie and removes refresh_token from body', async () => {

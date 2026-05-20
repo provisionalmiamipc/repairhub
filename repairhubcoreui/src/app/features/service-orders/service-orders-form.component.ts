@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ServiceOrders } from '../../shared/models/ServiceOrders';
+import { ServiceOrderImage, ServiceOrders } from '../../shared/models/ServiceOrders';
 import { CommonModule } from '@angular/common';
 import { SONotes } from '../../shared/models/SONotes';
 import { SODiagnostic } from '../../shared/models/SODiagnostic';
@@ -75,6 +75,11 @@ export class ServiceOrdersFormComponent {
   deviceBrands: any[] = [];
   paymentTypes: any[] = [];
   employees: any[] = [];
+  readonly imageFallbackUrl = 'assets/images/no-image-icon-23483.png';
+  readonly maxImages = 5;
+  selectedImageFiles: File[] = [];
+  selectedImagePreviews: string[] = [];
+  deletedImageIds: number[] = [];
 
   // editing models for modals
   editingNote: Partial<SONotes> | null = null;
@@ -441,6 +446,7 @@ export class ServiceOrdersFormComponent {
       });
       // load related collections (either from serviceOrder or from API)
       this.loadRelatedCollections();
+      this.deletedImageIds = [];
     }
   }
 
@@ -579,8 +585,96 @@ export class ServiceOrdersFormComponent {
       canceled: !!fv.canceled,
     };
 
-    // Emit sanitized payload only (do not include nested objects like customer, device, createdAt, etc.)
-    this.save.emit(payload);
+    this.save.emit({
+      data: payload,
+      images: this.selectedImageFiles,
+      deleteImageIds: this.deletedImageIds,
+    });
+  }
+
+  get activeExistingImages(): ServiceOrderImage[] {
+    return (this.serviceOrder?.images ?? []).filter(
+      image => image.status !== 'deleted' && !this.deletedImageIds.includes(image.id)
+    );
+  }
+
+  get totalImageCount(): number {
+    return this.activeExistingImages.length + this.selectedImageFiles.length;
+  }
+
+  onImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    if (!files.length) return;
+
+    const remainingSlots = this.maxImages - this.totalImageCount;
+    if (remainingSlots <= 0) {
+      this.toastService.error(`Maximum ${this.maxImages} images allowed`);
+      input.value = '';
+      return;
+    }
+
+    const acceptedFiles = files
+      .filter(file => this.isAcceptedImage(file))
+      .slice(0, remainingSlots);
+
+    if (acceptedFiles.length < files.length) {
+      this.toastService.error(`Only ${remainingSlots} more image(s) can be added`);
+    }
+
+    acceptedFiles.forEach(file => {
+      this.selectedImageFiles.push(file);
+      this.selectedImagePreviews.push(URL.createObjectURL(file));
+    });
+
+    input.value = '';
+  }
+
+  removeSelectedImage(index: number): void {
+    const previewUrl = this.selectedImagePreviews[index];
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    this.selectedImageFiles.splice(index, 1);
+    this.selectedImagePreviews.splice(index, 1);
+  }
+
+  markExistingImageForDeletion(image: ServiceOrderImage): void {
+    if (!this.deletedImageIds.includes(image.id)) {
+      this.deletedImageIds.push(image.id);
+    }
+  }
+
+  restoreExistingImage(imageId: number): void {
+    this.deletedImageIds = this.deletedImageIds.filter(id => id !== imageId);
+  }
+
+  getImageThumbUrl(image: ServiceOrderImage): string {
+    return image.status === 'ready' && image.thumbnailUrl
+      ? image.thumbnailUrl
+      : this.imageFallbackUrl;
+  }
+
+  useFallbackImage(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (!image.src.endsWith(this.imageFallbackUrl)) {
+      image.src = this.imageFallbackUrl;
+    }
+  }
+
+  private isAcceptedImage(file: File): boolean {
+    const maxInputBytes = 5 * 1024 * 1024;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.toastService.error(`${file.name} is not a supported image type`);
+      return false;
+    }
+
+    if (file.size > maxInputBytes) {
+      this.toastService.error(`${file.name} exceeds the 5MB limit`);
+      return false;
+    }
+
+    return true;
   }
 
   // Form control getters

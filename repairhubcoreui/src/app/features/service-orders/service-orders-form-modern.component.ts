@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { ServiceOrders } from '../../shared/models/ServiceOrders';
+import { ServiceOrderImage, ServiceOrders } from '../../shared/models/ServiceOrders';
 import { SONotes } from '../../shared/models/SONotes';
 import { SODiagnostic } from '../../shared/models/SODiagnostic';
 import { SOItems } from '../../shared/models/SOItems';
@@ -39,6 +39,8 @@ import { ReceivedPartsService } from '../received-parts/received-parts.service';
 import { Centers } from '../../shared/models/Centers';
 import { Stores } from '../../shared/models/Stores';
 import { RepairCopilotWidgetComponent } from './components/repair-copilot-widget/repair-copilot-widget.component';
+import { MediaService } from '../../shared/services/media.service';
+import { NavigationHistoryService } from '../../shared/services/navigation-history.service';
 
 interface FormState {
   isLoading: boolean;
@@ -103,6 +105,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private receivedPartsService = inject(ReceivedPartsService);
+  private mediaService = inject(MediaService);
+  private navigationHistory = inject(NavigationHistoryService);
   private destroy$ = new Subject<void>();
 
   // Lógica de visibilidad y valores por tipo de usuario
@@ -175,6 +179,17 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   readonly employees = signal<any[]>([]);
   readonly selectedCenterId = signal<number | null>(null);
   readonly serviceOrder = signal<ServiceOrders | null>(null);
+  readonly imageFallbackUrl = 'assets/images/no-image-icon-23483.png';
+  readonly maxImages = 5;
+  readonly canUseCameraCapture =
+    typeof navigator !== 'undefined' &&
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  selectedImageFiles: File[] = [];
+  selectedImagePreviews: string[] = [];
+  deletedImageIds: number[] = [];
+  selectedImage: ServiceOrderImage | null = null;
+  selectedImageDisplayUrl = this.imageFallbackUrl;
+  isLoadingDisplayImage = false;
 
   // Related lists (edit mode)
   soNotes: SONotes[] = [];
@@ -276,6 +291,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.selectedImagePreviews.forEach(url => URL.revokeObjectURL(url));
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -353,6 +369,10 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         next: (order) => {
             this.serviceOrderForm.patchValue(order);
             this.serviceOrder.set(order);
+            this.selectedImageFiles = [];
+            this.selectedImagePreviews.forEach(url => URL.revokeObjectURL(url));
+            this.selectedImagePreviews = [];
+            this.deletedImageIds = [];
             // Load received parts from server into local array so template shows them in edit mode
             try {
               this.receivedParts = Array.isArray((order as any).receivedParts) ? (order as any).receivedParts.map((rp: any) => ({
@@ -600,8 +620,13 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     }
 
     const request = this.isEditMode()
-      ? this.serviceOrdersService.update(this.currentServiceOrderId()!, orderData)
-      : this.serviceOrdersService.create(orderData);
+      ? this.serviceOrdersService.updateWithImages(
+          this.currentServiceOrderId()!,
+          orderData,
+          this.selectedImageFiles,
+          this.deletedImageIds,
+        )
+      : this.serviceOrdersService.createWithImages(orderData, this.selectedImageFiles);
 
     request.pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -617,6 +642,10 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
             if (!this.isEditMode()) {
               this.receivedParts = [];
             }
+            this.selectedImagePreviews.forEach(url => URL.revokeObjectURL(url));
+            this.selectedImageFiles = [];
+            this.selectedImagePreviews = [];
+            this.deletedImageIds = [];
             setTimeout(() => this.router.navigate(['/service-orders']), 1200);
           };
 
@@ -635,7 +664,127 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   
 
   onCancel(): void {
-    this.router.navigate(['/service-orders']);
+    this.navigationHistory.goBackOrDefault('/service-orders');
+  }
+
+  get activeExistingImages(): ServiceOrderImage[] {
+    return (this.serviceOrder()?.images ?? []).filter(
+      image => image.status !== 'deleted' && !this.deletedImageIds.includes(image.id),
+    );
+  }
+
+  get totalImageCount(): number {
+    return this.activeExistingImages.length + this.selectedImageFiles.length;
+  }
+
+  onImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    if (!files.length) return;
+
+    const remainingSlots = this.maxImages - this.totalImageCount;
+    if (remainingSlots <= 0) {
+      this.toastService.error(`Maximum ${this.maxImages} images allowed`);
+      input.value = '';
+      return;
+    }
+
+    const acceptedFiles = files
+      .filter(file => this.isAcceptedImage(file))
+      .slice(0, remainingSlots);
+
+    if (acceptedFiles.length < files.length) {
+      this.toastService.error(`Only ${remainingSlots} more image(s) can be added`);
+    }
+
+    acceptedFiles.forEach(file => {
+      this.selectedImageFiles.push(file);
+      this.selectedImagePreviews.push(URL.createObjectURL(file));
+    });
+
+    input.value = '';
+  }
+
+  removeSelectedImage(index: number): void {
+    const previewUrl = this.selectedImagePreviews[index];
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    this.selectedImageFiles.splice(index, 1);
+    this.selectedImagePreviews.splice(index, 1);
+  }
+
+  markExistingImageForDeletion(image: ServiceOrderImage): void {
+    if (!this.deletedImageIds.includes(image.id)) {
+      this.deletedImageIds.push(image.id);
+    }
+  }
+
+  openExistingImage(image: ServiceOrderImage): void {
+    this.selectedImage = image;
+    this.selectedImageDisplayUrl = this.imageFallbackUrl;
+
+    if (image.status !== 'ready') return;
+
+    this.isLoadingDisplayImage = true;
+    this.mediaService.getVariantUrl(image.id, 'display').pipe(
+      finalize(() => {
+        this.isLoadingDisplayImage = false;
+      })
+    ).subscribe({
+      next: response => {
+        this.selectedImageDisplayUrl = response.url || this.imageFallbackUrl;
+      },
+      error: () => {
+        this.selectedImageDisplayUrl = this.imageFallbackUrl;
+      },
+    });
+  }
+
+  openSelectedPreview(index: number): void {
+    this.selectedImage = {
+      id: 0,
+      ownerType: 'local',
+      ownerId: 0,
+      status: 'ready',
+      originalName: this.selectedImageFiles[index]?.name ?? 'New image',
+      displayUrl: this.selectedImagePreviews[index],
+    };
+    this.selectedImageDisplayUrl = this.selectedImagePreviews[index] || this.imageFallbackUrl;
+  }
+
+  closeImageModal(): void {
+    this.selectedImage = null;
+    this.selectedImageDisplayUrl = this.imageFallbackUrl;
+    this.isLoadingDisplayImage = false;
+  }
+
+  getImageThumbUrl(image: ServiceOrderImage): string {
+    return image.status === 'ready' && image.thumbnailUrl
+      ? image.thumbnailUrl
+      : this.imageFallbackUrl;
+  }
+
+  useFallbackImage(event: Event): void {
+    const image = event.target as HTMLImageElement;
+    if (!image.src.endsWith(this.imageFallbackUrl)) {
+      image.src = this.imageFallbackUrl;
+    }
+  }
+
+  private isAcceptedImage(file: File): boolean {
+    const maxInputBytes = 5 * 1024 * 1024;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+    if (!allowedTypes.includes(file.type)) {
+      this.toastService.error(`${file.name} is not a supported image type`);
+      return false;
+    }
+
+    if (file.size > maxInputBytes) {
+      this.toastService.error(`${file.name} exceeds the 5MB limit`);
+      return false;
+    }
+
+    return true;
   }
 
   openCustomerSearch(): void {

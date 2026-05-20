@@ -10,10 +10,13 @@ import { RepairStatus } from '../repair_status/entities/repair_status.entity';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
 import { ReceivedPart } from '../received-parts/entities/received-part.entity';
+import { MediaService } from '../media/media.service';
 
 
 @Injectable()
 export class ServiceOrdersService {
+  private readonly mediaOwnerType = 'service_order';
+
   constructor(
     @InjectRepository(ServiceOrder)
     private readonly serviceOrderRepository: Repository<ServiceOrder>,
@@ -23,6 +26,7 @@ export class ServiceOrdersService {
     private readonly mailService: ServiceOrderMailService,
     @Optional() private readonly puppeteerPdfService?: ServiceOrderPuppeteerPdfService,
     private readonly pdfJobService?: ServiceOrderPdfJobService,
+    private readonly mediaService?: MediaService,
   ) {}
 
   formatDateToDDMMYYYY(date: Date): string {
@@ -224,7 +228,31 @@ formatDateToMMDDYYYY(date: Date): string {
     return fullOrder;
   }
 
-  async findAll(user?: any) {
+  async createWithImages(
+    createDto: CreateServiceOrderDto,
+    images: Express.Multer.File[] = [],
+  ) {
+    if (this.mediaService) {
+      await this.mediaService.validateImageChange({
+        ownerType: this.mediaOwnerType,
+        files: images,
+      });
+    }
+
+    const order = await this.create(createDto);
+
+    if (images.length && this.mediaService) {
+      await this.mediaService.createImageAssets({
+        ownerType: this.mediaOwnerType,
+        ownerId: order.id,
+        files: images,
+      });
+    }
+
+    return this.findOne(order.id);
+  }
+
+  async findAll(user?: any, customerId?: number) {
     const relations = [
       'center',
       'store',
@@ -241,6 +269,7 @@ formatDateToMMDDYYYY(date: Date): string {
       'repairStatus',
       'receivedParts'
     ];
+    const customerWhere = customerId ? { customerId } : {};
 
     // If caller provides an authenticated user who is an Expert and NOT a center admin,
     // return only service orders created by them or assigned to them.
@@ -252,19 +281,28 @@ formatDateToMMDDYYYY(date: Date): string {
       if (empType === 'Expert' && !isCenterAdmin && empId) {
         const orders = await this.serviceOrderRepository.find({
           where: [
-            { createdById: empId },
-            { assignedTechId: empId }
+            { ...customerWhere, createdById: empId },
+            { ...customerWhere, assignedTechId: empId },
           ],
           relations,
         });
-        return this.attachLastRepairStatus(orders);
+        const withStatus = this.attachLastRepairStatus(orders);
+        return this.mediaService
+          ? this.mediaService.attachImages(this.mediaOwnerType, withStatus)
+          : withStatus;
       }
     } catch (err) {
       // fallback to full list if any error inspecting user
     }
 
-    const orders = await this.serviceOrderRepository.find({ relations });
-    return this.attachLastRepairStatus(orders);
+    const orders = await this.serviceOrderRepository.find({
+      where: customerWhere,
+      relations,
+    });
+    const withStatus = this.attachLastRepairStatus(orders);
+    return this.mediaService
+      ? this.mediaService.attachImages(this.mediaOwnerType, withStatus)
+      : withStatus;
   }
 
   async findOne(id: number) {
@@ -288,7 +326,9 @@ formatDateToMMDDYYYY(date: Date): string {
       ],
     });
     if (!entity) throw new NotFoundException(`ServiceOrder #${id} not found`);
-    return entity;
+    return this.mediaService
+      ? this.mediaService.attachImages(this.mediaOwnerType, entity)
+      : entity;
   }
 
   async update(id: number, updateDto: UpdateServiceOrderDto) {
@@ -306,6 +346,42 @@ formatDateToMMDDYYYY(date: Date): string {
     delete updateData.deviceId;
     delete updateData.deviceBrandId;
     await this.serviceOrderRepository.update(id, updateData);
+    return this.findOne(id);
+  }
+
+  async updateWithImages(
+    id: number,
+    updateDto: UpdateServiceOrderDto,
+    images: Express.Multer.File[] = [],
+    deleteImageIds: number[] = [],
+  ) {
+    if (this.mediaService) {
+      await this.mediaService.validateImageChange({
+        ownerType: this.mediaOwnerType,
+        ownerId: id,
+        files: images,
+        deleteImageIds,
+      });
+    }
+
+    await this.update(id, updateDto);
+
+    if (this.mediaService) {
+      await this.mediaService.deleteByIds(
+        this.mediaOwnerType,
+        id,
+        deleteImageIds,
+      );
+
+      if (images.length) {
+        await this.mediaService.createImageAssets({
+          ownerType: this.mediaOwnerType,
+          ownerId: id,
+          files: images,
+        });
+      }
+    }
+
     return this.findOne(id);
   }
 

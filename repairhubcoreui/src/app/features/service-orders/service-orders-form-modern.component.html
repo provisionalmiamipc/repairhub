@@ -1,9 +1,12 @@
 <div class="form-container container-xxl py-4" @fadeInUp>
   <!-- Header Section -->
-  <div class="form-header text-center mb-4">
+  <div class="form-header mb-4">
     <div class="header-content">
       <h1 class="form-title display-6 fw-bold mb-1">
         {{ isEditMode() ? 'Edit Service Order' : 'New Service Order' }}
+        @if (isEditMode() && serviceOrder()?.orderCode) {
+        <span class="text-primary">#{{ serviceOrder()?.orderCode }}</span>
+        }
       </h1>
       <p class="form-subtitle text-muted">
         {{ isEditMode() ? 'Update the required fields' : 'Complete the steps to create a service order' }}
@@ -277,6 +280,117 @@
                 </div>
                 }
               </div>
+            </div>
+
+            <div class="section-group mb-4">
+              <div class="d-flex justify-content-between align-items-center border-bottom border-2 border-primary pb-2 mb-3">
+                <h2 class="step-title h3 fw-bold text-primary mb-0">Images</h2>
+                <span class="badge bg-secondary">{{ totalImageCount }} / {{ maxImages }}</span>
+              </div>
+
+              <input
+                #editImageInput
+                class="d-none"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                multiple
+                (change)="onImagesSelected($event)"
+              />
+              <input
+                #editCameraInput
+                class="d-none"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                (change)="onImagesSelected($event)"
+              />
+
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <button
+                  *ngIf="canUseCameraCapture"
+                  class="btn btn-sm btn-outline-primary"
+                  type="button"
+                  [disabled]="totalImageCount >= maxImages || isOrderFinalized() || isFormReadOnly()"
+                  (click)="editCameraInput.click()">
+                  <i class="bi bi-camera"></i> Take photo
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  [disabled]="totalImageCount >= maxImages || isOrderFinalized() || isFormReadOnly()"
+                  (click)="editImageInput.click()">
+                  <i class="bi bi-folder2-open"></i> Add from files
+                </button>
+              </div>
+
+              @if (activeExistingImages.length || selectedImagePreviews.length) {
+              <div class="row g-2">
+                @for (image of activeExistingImages; track image.id) {
+                <div class="col-4 col-md-3 col-xl-2">
+                  <div class="position-relative border rounded overflow-hidden bg-light">
+                    <img
+                      class="w-100"
+                      style="height: 92px; object-fit: cover;"
+                      [src]="getImageThumbUrl(image)"
+                      [alt]="image.originalName || 'Service order image'"
+                      loading="lazy"
+                      decoding="async"
+                      role="button"
+                      tabindex="0"
+                      (click)="openExistingImage(image)"
+                      (error)="useFallbackImage($event)"
+                    />
+                    <button
+                      class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 py-0 px-1"
+                      type="button"
+                      title="Remove image"
+                      [disabled]="isOrderFinalized() || isFormReadOnly()"
+                      (click)="markExistingImageForDeletion(image)">
+                      <i class="bi bi-x"></i>
+                    </button>
+                    @if (image.status === 'pending' || image.status === 'processing') {
+                    <span class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-1">Processing</span>
+                    }
+                    @if (image.status === 'failed') {
+                    <span class="badge bg-danger position-absolute bottom-0 start-0 m-1">Failed</span>
+                    }
+                  </div>
+                </div>
+                }
+
+                @for (preview of selectedImagePreviews; track preview; let i = $index) {
+                <div class="col-4 col-md-3 col-xl-2">
+                  <div class="position-relative border rounded overflow-hidden bg-light">
+                    <img
+                      class="w-100"
+                      style="height: 92px; object-fit: cover;"
+                      [src]="preview"
+                      alt="New service order image"
+                      loading="lazy"
+                      decoding="async"
+                      role="button"
+                      tabindex="0"
+                      (click)="openSelectedPreview(i)"
+                      (error)="useFallbackImage($event)"
+                    />
+                    <button
+                      class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 py-0 px-1"
+                      type="button"
+                      title="Remove image"
+                      (click)="removeSelectedImage(i)">
+                      <i class="bi bi-x"></i>
+                    </button>
+                    <span class="badge bg-info text-dark position-absolute bottom-0 start-0 m-1">New</span>
+                  </div>
+                </div>
+                }
+              </div>
+              } @else {
+              <div class="text-muted d-flex align-items-center gap-2">
+                <img [src]="imageFallbackUrl" alt="No images" width="48" height="48" decoding="async" />
+                <span>No images attached</span>
+              </div>
+              }
             </div>
 
             <!-- Step 3: Costs -->
@@ -802,6 +916,86 @@
                 placeholder="Estimated repair..." rows="4" autocapitalize="sentences"></textarea>
             </div>
 
+            <div class="col-12">
+              <div class="card border-0 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+                  <span>Images</span>
+                  <span class="badge bg-secondary">{{ totalImageCount }} / {{ maxImages }}</span>
+                </div>
+                <div class="card-body">
+                  <input
+                    #createImageInput
+                    class="d-none"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                    multiple
+                    (change)="onImagesSelected($event)"
+                  />
+                  <input
+                    #createCameraInput
+                    class="d-none"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    (change)="onImagesSelected($event)"
+                  />
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button
+                      *ngIf="canUseCameraCapture"
+                      class="btn btn-sm btn-outline-primary"
+                      type="button"
+                      [disabled]="totalImageCount >= maxImages || isFormReadOnly()"
+                      (click)="createCameraInput.click()">
+                      <i class="bi bi-camera"></i> Take photo
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      type="button"
+                      [disabled]="totalImageCount >= maxImages || isFormReadOnly()"
+                      (click)="createImageInput.click()">
+                      <i class="bi bi-folder2-open"></i> Add from files
+                    </button>
+                  </div>
+
+                  @if (selectedImagePreviews.length) {
+                  <div class="row g-2">
+                    @for (preview of selectedImagePreviews; track preview; let i = $index) {
+                    <div class="col-4 col-md-3 col-xl-2">
+                      <div class="position-relative border rounded overflow-hidden bg-light">
+                        <img
+                          class="w-100"
+                          style="height: 92px; object-fit: cover;"
+                          [src]="preview"
+                          alt="New service order image"
+                          loading="lazy"
+                          decoding="async"
+                          role="button"
+                          tabindex="0"
+                          (click)="openSelectedPreview(i)"
+                          (error)="useFallbackImage($event)"
+                        />
+                        <button
+                          class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 py-0 px-1"
+                          type="button"
+                          title="Remove image"
+                          (click)="removeSelectedImage(i)">
+                          <i class="bi bi-x"></i>
+                        </button>
+                        <span class="badge bg-info text-dark position-absolute bottom-0 start-0 m-1">New</span>
+                      </div>
+                    </div>
+                    }
+                  </div>
+                  } @else {
+                  <div class="text-muted d-flex align-items-center gap-2">
+                    <img [src]="imageFallbackUrl" alt="No images" width="48" height="48" decoding="async" />
+                    <span>No images attached</span>
+                  </div>
+                  }
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
         }
@@ -967,6 +1161,36 @@
         }
     </div>
   </form>
+  }
+
+  @if (selectedImage) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,.55);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Image</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeImageModal()"></button>
+        </div>
+        <div class="modal-body text-center">
+          @if (isLoadingDisplayImage) {
+          <div class="text-muted py-4">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            Loading image
+          </div>
+          } @else {
+          <img
+            class="img-fluid rounded"
+            style="max-height: 70vh; object-fit: contain;"
+            [src]="selectedImageDisplayUrl"
+            [alt]="selectedImage.originalName || 'Service order image'"
+            decoding="async"
+            (error)="useFallbackImage($event)"
+          />
+          }
+        </div>
+      </div>
+    </div>
+  </div>
   }
 
   @if (showDeviceModal) {

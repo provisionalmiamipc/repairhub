@@ -1,4 +1,4 @@
-import { IsInt, IsString, IsNotEmpty, Length } from 'class-validator';
+import { IsInt, IsString, IsNotEmpty, MaxLength } from 'class-validator';
 
 export class CreateRepairStatusDto {
 	@IsInt()
@@ -12,7 +12,7 @@ export class CreateRepairStatusDto {
 
 	@IsString()
 	@IsNotEmpty()
-	@Length(6, 20)
+	@MaxLength(30)
 	status: string;
 
 	@IsInt()

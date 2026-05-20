@@ -221,6 +221,99 @@
                   </div>
                 </div>
 
+                <div class="card mb-4">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Images</h6>
+                    <span class="badge bg-secondary">{{ totalImageCount }} / {{ maxImages }}</span>
+                  </div>
+                  <div class="card-body">
+                    <input
+                      #imageInput
+                      class="d-none"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                      multiple
+                      (change)="onImagesSelected($event)"
+                    />
+                    <button
+                      class="btn btn-sm btn-outline-primary w-100 mb-3"
+                      type="button"
+                      [disabled]="totalImageCount >= maxImages"
+                      (click)="imageInput.click()"
+                    >
+                      <i class="bi bi-plus-circle"></i> Add images
+                    </button>
+
+                    <div class="row g-2" *ngIf="activeExistingImages.length || selectedImagePreviews.length; else noImagesState">
+                      <div class="col-4" *ngFor="let image of activeExistingImages; trackBy: trackById">
+                        <div class="position-relative border rounded overflow-hidden bg-light">
+                          <img
+                            class="w-100"
+                            style="height: 84px; object-fit: cover;"
+                            [src]="getImageThumbUrl(image)"
+                            [alt]="image.originalName || 'Service order image'"
+                            loading="lazy"
+                            decoding="async"
+                            (error)="useFallbackImage($event)"
+                          />
+                          <button
+                            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 py-0 px-1"
+                            type="button"
+                            title="Remove image"
+                            (click)="markExistingImageForDeletion(image)"
+                          >
+                            <i class="bi bi-x"></i>
+                          </button>
+                          <span class="badge bg-warning text-dark position-absolute bottom-0 start-0 m-1" *ngIf="image.status === 'pending' || image.status === 'processing'">
+                            Processing
+                          </span>
+                          <span class="badge bg-danger position-absolute bottom-0 start-0 m-1" *ngIf="image.status === 'failed'">
+                            Failed
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="col-4" *ngFor="let preview of selectedImagePreviews; let i = index">
+                        <div class="position-relative border rounded overflow-hidden bg-light">
+                          <img
+                            class="w-100"
+                            style="height: 84px; object-fit: cover;"
+                            [src]="preview"
+                            alt="New service order image"
+                            loading="lazy"
+                            decoding="async"
+                            (error)="useFallbackImage($event)"
+                          />
+                          <button
+                            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 py-0 px-1"
+                            type="button"
+                            title="Remove image"
+                            (click)="removeSelectedImage(i)"
+                          >
+                            <i class="bi bi-x"></i>
+                          </button>
+                          <span class="badge bg-info text-dark position-absolute bottom-0 start-0 m-1">
+                            New
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <ng-template #noImagesState>
+                      <div class="text-center text-muted py-3">
+                        <img
+                          [src]="imageFallbackUrl"
+                          alt="No images"
+                          width="72"
+                          height="72"
+                          decoding="async"
+                        />
+                        <div class="small mt-2">No images attached</div>
+                      </div>
+                    </ng-template>
+                  </div>
+                </div>
+
                 <!-- Aquí irían tus 4 listados (Notes, Diagnostics, etc.) -->
                 <!-- (los que ya tienes en tarjetas apiladas) -->
 

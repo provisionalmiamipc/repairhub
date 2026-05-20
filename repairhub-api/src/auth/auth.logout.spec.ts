@@ -28,6 +28,8 @@ describe('AuthController logout', () => {
       mockAuthService as AuthService,
       mockRefreshService as RefreshTokenService,
       mockConfigService as ConfigService,
+      null as any,
+      null as any,
     );
   });
 
@@ -42,7 +44,7 @@ describe('AuthController logout', () => {
 
     expect(mockRefreshService.findByToken).toHaveBeenCalledWith('abc');
     expect(mockRefreshService.revoke).toHaveBeenCalledWith(9);
-    expect(res.clearCookie).toHaveBeenCalledWith('refreshToken');
+    expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.objectContaining({ httpOnly: true }));
     expect(resBody).toEqual({ loggedOut: true });
   });
 
@@ -57,7 +59,7 @@ describe('AuthController logout', () => {
 
     expect(mockRefreshService.findByToken).toHaveBeenCalledWith('bodyToken');
     expect(mockRefreshService.revoke).toHaveBeenCalledWith(10);
-    expect(res.clearCookie).toHaveBeenCalledWith('refreshToken');
+    expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.objectContaining({ httpOnly: true }));
     expect(resBody).toEqual({ loggedOut: true });
   });
 

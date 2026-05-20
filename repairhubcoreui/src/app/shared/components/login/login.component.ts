@@ -54,14 +54,18 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Si el usuario ya está autenticado, redirigir al dashboard
+    // Si el usuario ya está autenticado, redirigir al destino pendiente o dashboard
     // Este es un fallback adicional por si el guard no funciona
     if (this.authService.isLoggedIn()) {
       const userType = this.authService.getUserType();
       if (userType === 'employee') {
-        this.router.navigate(['/employee/dashboard']);
+        if (this.authService.isPinVerified()) {
+          this.router.navigateByUrl(this.authService.getPostAuthUrl('employee'));
+        } else {
+          this.router.navigate(['/verify-pin']);
+        }
       } else {
-        this.router.navigate(['/dashboard']);
+        this.router.navigateByUrl(this.authService.getPostAuthUrl('user'));
       }
     }
   }
@@ -99,7 +103,9 @@ export class LoginComponent implements OnInit {
     try {
       if (response?.userType === 'user') {
         // Super-admin - no PIN required, navigate directly
-        this.router.navigate(['/dashboard']);
+        const returnUrl = this.authService.getPostAuthUrl('user');
+        this.authService.clearReturnUrl();
+        this.router.navigateByUrl(returnUrl);
         // load notifications for admin
         try { this.notificationsService.loadMy(); } catch (e) { /* ignore */ }
         return;
@@ -140,7 +146,9 @@ export class LoginComponent implements OnInit {
           // PIN válido - marcar como verificado y navegar
           this.authService.setPinVerified(true);
           this.showPinModal = false;
-          this.router.navigate(['/employee/dashboard']);
+          const returnUrl = this.authService.getPostAuthUrl('employee');
+          this.authService.clearReturnUrl();
+          this.router.navigateByUrl(returnUrl);
           // cargar notificaciones una vez el token PIN-verified está almacenado
           const employee = this.authService.getCurrentEmployee();
           try { this.notificationsService.loadMy(employee?.id); } catch (e) { /* ignore */ }

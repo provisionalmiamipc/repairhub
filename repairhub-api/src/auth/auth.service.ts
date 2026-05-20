@@ -102,9 +102,24 @@ export class AuthService {
 
         const jwtService = type === 'user' ? this.jwtUserService : this.jwtEmployeeService;
 
+        let employee_type_normalized: string | undefined = undefined;
+        if (type === 'employee' && user.employee_type) {
+            const raw = String(user.employee_type).trim();
+            const allowed = ['Expert', 'Accountant', 'AdminStore'];
+            employee_type_normalized = allowed.includes(raw) ? raw : 'Expert';
+        }
+
         const payload = type === 'user'
             ? { userEmail: user.email, sub: user.id, type: 'user' }
-            : { employeeEmail: user.employeeEmail || user.email, sub: user.id, type: 'employee' };
+            : {
+                employeeEmail: user.employeeEmail || user.email,
+                sub: user.id,
+                type: 'employee',
+                employee_type: employee_type_normalized,
+                centerId: user.centerId,
+                storeId: user.storeId,
+                isCenterAdmin: !!user.isCenterAdmin,
+              };
 
     // access token (short-lived)
     const access_token = jwtService.sign(payload);
@@ -117,14 +132,6 @@ export class AuthService {
 
     // persist hashed refresh token
     await this.refreshTokenService.create(type === 'user' ? 'user' : 'employee', user.id, plainRefresh, expiresAt);
-
-        // normalize employee_type
-    let employee_type_normalized: string | undefined = undefined;
-        if (type === 'employee' && user.employee_type) {
-            const raw = String(user.employee_type).trim();
-            const allowed = ['Expert', 'Accountant', 'AdminStore'];
-            employee_type_normalized = allowed.includes(raw) ? raw : 'Expert';
-        }
 
         return {
             access_token,
@@ -142,7 +149,6 @@ export class AuthService {
                 storeId: type === 'employee' ? user.storeId : undefined,
                 isCenterAdmin: type === 'employee' ? user.isCenterAdmin : undefined,
                 pinTimeout: type === 'employee' ? (user.pinTimeout || 5) : undefined,
-                pin: type === 'employee' ? user.pin : undefined, // ← Agregar PIN para employees
                 expires_in: type === 'user' ? (this.configService.get('JWT_EXPIRES_IN') || '1d') : (this.configService.get('JWT_EMPLOYEE_EXPIRES_IN') || '1d')
             }
         };
@@ -170,7 +176,11 @@ export class AuthService {
             employeeEmail: employee.email,
             sub: employee.id,
             type: 'employee',
-            pinVerified: true
+            pinVerified: true,
+            employee_type: employee.employee_type,
+            centerId: employee.centerId,
+            storeId: employee.storeId,
+            isCenterAdmin: !!employee.isCenterAdmin,
         };
 
         const access_token = this.jwtEmployeeService.sign(payload);
@@ -230,7 +240,15 @@ export class AuthService {
             const e = await this.employeeService.findOne(ownerId);
             if (!e) throw new UnauthorizedException('Employee not found');
             jwtServiceToUse = this.jwtEmployeeService;
-            payload = { employeeEmail: e.email, sub: e.id, type: 'employee' };
+            payload = {
+                employeeEmail: e.email,
+                sub: e.id,
+                type: 'employee',
+                employee_type: e.employee_type,
+                centerId: e.centerId,
+                storeId: e.storeId,
+                isCenterAdmin: !!e.isCenterAdmin,
+            };
         }
 
         const newAccess = jwtServiceToUse.sign({ ...(payload || {}), refreshed: true });

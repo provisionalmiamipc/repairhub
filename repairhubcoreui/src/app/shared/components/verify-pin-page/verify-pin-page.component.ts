@@ -62,18 +62,14 @@ export class VerifyPinPageComponent implements OnInit {
           this.authService.setPinVerified(true);
           
           // Obtener URL de retorno ANTES de limpiar
-          const returnUrl = this.authService.getReturnUrl();
+          const returnUrl = this.authService.getPostAuthUrl('employee');
           
           
           // Navegar a la URL guardada
           // Usar setTimeout para asegurar que se procesa después del PIN verify
           setTimeout(() => {
             this.authService.clearReturnUrl();
-            if (returnUrl && returnUrl !== '/employee/dashboard') {
-              this.router.navigateByUrl(returnUrl);
-            } else {
-              this.router.navigate(['/employee/dashboard']);
-            }
+            this.router.navigateByUrl(returnUrl);
           }, 100);
         } else {
           // PIN inválido

@@ -10,9 +10,10 @@ import { ServiceOrderPuppeteerPdfService } from './puppeteer-pdf.service';
 
 import { ServiceOrderMailService } from './mail.service';
 import { ServiceOrderPdfJobService } from './pdf-job.service';
+import { MediaModule } from '../media/media.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus])],
+  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus]), MediaModule],
   controllers: [ServiceOrdersController],
   providers: [
     ServiceOrdersService,

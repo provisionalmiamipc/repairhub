@@ -10,6 +10,7 @@ import { JwtAnyGuard } from "./guards/jwt-any.guard";
 import { RefreshTokenService } from './refresh-token.service';
 import { ActivationToken } from './entities/activation-token.entity';
 import { Employee } from '../employees/entities/employee.entity';
+import { Public } from './decorators/public.decorator';
 // avoid importing express Response type directly to keep isolatedModules compatibility
 
 @Controller('auth')
@@ -25,6 +26,7 @@ export class AuthController {
   ) {}
 
   @Post('login/user')
+  @Public()
   async loginUser(@Body() loginDto: { userEmail: string; password: string }, @Res({ passthrough: true }) res: any) {
     const result = await this.authService.login(loginDto);
     this.maybeSetRefreshCookie(res, result?.refresh_token);
@@ -33,6 +35,7 @@ export class AuthController {
   }
 
   @Post('login/employee')
+  @Public()
   async loginEmployee(@Body() loginDto: { employeeEmail: string; password: string }, @Res({ passthrough: true }) res: any) {
     const result = await this.authService.login(loginDto);
     this.maybeSetRefreshCookie(res, result?.refresh_token);
@@ -41,6 +44,7 @@ export class AuthController {
   }
 
   @Post('login') // Endpoint universal - acepta { email, password } como forma unificada
+  @Public()
   async login(@Body() loginDto: { email?: string; userEmail?: string; employeeEmail?: string; password: string }, @Res({ passthrough: true }) res: any) {
     const result = await this.authService.login(loginDto);
     this.maybeSetRefreshCookie(res, result?.refresh_token);
@@ -56,10 +60,14 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Req() req: any, @Body() body: { refreshToken?: string }) {
+  @Public()
+  async refresh(@Req() req: any, @Res({ passthrough: true }) res: any, @Body() body: { refreshToken?: string }) {
     // Prefer explicit body token, fall back to cookie
-    const token = body?.refreshToken || req?.cookies?.refreshToken;
-    return this.authService.refresh(token as string);
+    const token = body?.refreshToken || this.getCookie(req, 'refreshToken');
+    const result = await this.authService.refresh(token as string);
+    this.maybeSetRefreshCookie(res, result?.refresh_token);
+    if (result && (result as any).refresh_token) delete (result as any).refresh_token;
+    return result;
   }
 
   private maybeSetRefreshCookie(res: any, token?: string) {
@@ -71,7 +79,7 @@ export class AuthController {
     const cookieOptions: any = {
       httpOnly: true,
       secure: env === 'production',
-      sameSite: 'lax',
+      sameSite: env === 'production' ? 'none' : 'lax',
       path: '/',
     };
     if (typeof maxAge === 'number') cookieOptions.maxAge = maxAge;
@@ -129,9 +137,10 @@ export class AuthController {
 
   // Logout endpoint: revoke refresh token coming from httpOnly cookie (or body) and clear cookie
   @Post('logout')
+  @Public()
   async logout(@Req() req: any, @Res({ passthrough: true }) res: any, @Body() body: { refreshToken?: string }) {
     // Try cookie first
-    const cookieToken = req?.cookies?.refreshToken;
+    const cookieToken = this.getCookie(req, 'refreshToken');
     const token = cookieToken || body.refreshToken;
     if (!token) throw new BadRequestException('No refresh token provided');
 
@@ -142,7 +151,13 @@ export class AuthController {
 
     // Clear cookie if present
     try {
-      res.clearCookie('refreshToken');
+      const env = this.configService.get('NODE_ENV') || process.env.NODE_ENV || 'development';
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: env === 'production',
+        sameSite: env === 'production' ? 'none' : 'lax',
+        path: '/',
+      });
     } catch (e) {
       // ignore
     }
@@ -151,6 +166,7 @@ export class AuthController {
   }
 
   @Post('activate')
+  @Public()
   async activate(@Body() body: { token: string; password: string }) {
     if (!body?.token || !body?.password) throw new BadRequestException('token and password are required');
 
@@ -170,6 +186,19 @@ export class AuthController {
     await this.activationTokenRepository.delete(record.id);
 
     return { success: true };
+  }
+
+  private getCookie(req: any, name: string): string | undefined {
+    const parsedCookie = req?.cookies?.[name];
+    if (parsedCookie) return parsedCookie;
+
+    const rawCookie = req?.headers?.cookie;
+    if (!rawCookie || typeof rawCookie !== 'string') return undefined;
+
+    const cookies = rawCookie.split(';').map((part) => part.trim());
+    const prefix = `${name}=`;
+    const match = cookies.find((part) => part.startsWith(prefix));
+    return match ? decodeURIComponent(match.slice(prefix.length)) : undefined;
   }
 
 }

@@ -22,11 +22,13 @@ export class AuthService {
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_TYPE_KEY = 'user_type';
   private readonly EMPLOYEE_DATA_KEY = 'employee_data';
+  private readonly DEFAULT_EMPLOYEE_URL = '/employee/dashboard';
+  private readonly DEFAULT_USER_URL = '/dashboard';
   
   private employeeSubject = new BehaviorSubject<Employees | null>(null);
   private userSubject = new BehaviorSubject<Users | null>(null);
   private pinVerifiedSubject = new BehaviorSubject<boolean>(false);
-  private returnUrlSubject = new BehaviorSubject<string>('/employee/dashboard');
+  private returnUrlSubject = new BehaviorSubject<string>(this.DEFAULT_EMPLOYEE_URL);
   private inactivityTimer: any;
   private inactivityTimeoutMinutes = 0;
   private activityListenersAttached = false;
@@ -64,24 +66,50 @@ export class AuthService {
 
   // Return URL Management for post-PIN redirect
   setReturnUrl(url: string): void {
+    if (!this.isValidReturnUrl(url)) {
+      return;
+    }
+
     this.returnUrlSubject.next(url);
     localStorage.setItem('return_url', url);
   }
 
   getReturnUrl(): string {
+    const stored = localStorage.getItem('return_url');
+    if (stored && this.isValidReturnUrl(stored)) {
+      return stored;
+    }
+
     return this.returnUrlSubject.value;
+  }
+
+  getDefaultUrlForUserType(userType: 'employee' | 'user' | null): string {
+    return userType === 'employee' ? this.DEFAULT_EMPLOYEE_URL : this.DEFAULT_USER_URL;
+  }
+
+  getPostAuthUrl(userType: 'employee' | 'user' | null): string {
+    const returnUrl = this.getReturnUrl();
+    return this.isValidReturnUrl(returnUrl) ? returnUrl : this.getDefaultUrlForUserType(userType);
   }
 
   private loadReturnUrl(): void {
     const stored = localStorage.getItem('return_url');
-    if (stored) {
+    if (stored && this.isValidReturnUrl(stored)) {
       this.returnUrlSubject.next(stored);
     }
   }
 
   clearReturnUrl(): void {
-    this.returnUrlSubject.next('/employee/dashboard');
+    this.returnUrlSubject.next(this.DEFAULT_EMPLOYEE_URL);
     localStorage.removeItem('return_url');
+  }
+
+  private isValidReturnUrl(url: string | null | undefined): url is string {
+    if (!url || !url.startsWith('/')) {
+      return false;
+    }
+
+    return !url.startsWith('/login') && !url.startsWith('/verify-pin') && !url.startsWith('/activate');
   }
 
   // Employee Login
@@ -252,9 +280,6 @@ export class AuthService {
     // refresh token is now stored in httpOnly cookie (set by server); do not store in localStorage
     localStorage.setItem(this.USER_TYPE_KEY, response.userType);
     
-    // Clear return URL on new login - start fresh
-    this.clearReturnUrl();
-    
     if (response.employee) {
       localStorage.setItem(this.EMPLOYEE_DATA_KEY, JSON.stringify(response.employee));
     }
@@ -272,6 +297,8 @@ export class AuthService {
   }
 
   private loadStoredData(): void {
+    this.loadReturnUrl();
+
     const userType = localStorage.getItem(this.USER_TYPE_KEY);
     const token = localStorage.getItem(this.TOKEN_KEY);
     const pinVerified = localStorage.getItem('pin_verified') === 'true';
@@ -282,7 +309,6 @@ export class AuthService {
         const employee: Employees = JSON.parse(employeeData);
         this.employeeSubject.next(employee);
         this.pinVerifiedSubject.next(pinVerified);
-        this.loadReturnUrl();
         this.startInactivityTimer(employee.pinTimeout);
       }
     } else if (token && userType === 'user') {
@@ -440,6 +466,7 @@ export class AuthService {
     this.employeeSubject.next(null);
     this.userSubject.next(null);
     this.pinVerifiedSubject.next(false);
+    this.clearReturnUrl();
 
     if (this.inactivityTimer) {
       this.inactivityTimer.unsubscribe();

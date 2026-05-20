@@ -28,3 +28,4 @@ export * from '../repair_cases/entities/repair_case.entity';
 export * from '../web_cache/entities/web_cache.entity';
 export * from '../diagnosis/entities/diagnosis_session.entity';
 export * from '../retrieval_log/entities/retrieval_log.entity';
+export * from '../media/entities/media-asset.entity';

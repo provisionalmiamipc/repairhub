@@ -4,6 +4,7 @@ import { ServiceOrdersService } from '../../shared/services/service-orders.servi
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
 import { ServiceOrdersDetailComponent } from './service-orders-detail.component';
 import { CommonModule } from '@angular/common';
+import { NavigationHistoryService } from '../../shared/services/navigation-history.service';
 
 @Component({
   selector: 'app-service-orders-detail-page',
@@ -25,7 +26,8 @@ export class ServiceOrdersDetailPageComponent {
   constructor(
     private service: ServiceOrdersService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private navigationHistory: NavigationHistoryService
   ) {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -34,7 +36,7 @@ export class ServiceOrdersDetailPageComponent {
   }
 
   goBack() {
-    this.router.navigate(['../'], { relativeTo: this.route });
+    this.navigationHistory.goBackOrDefault('/service-orders');
   }
 
   onEdit() {
