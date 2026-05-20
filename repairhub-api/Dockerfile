@@ -76,4 +76,4 @@ USER nestjs
 EXPOSE 8080
 
 # Comando para iniciar la aplicación
-CMD ["node", "dist/src/main.js"]
+CMD ["npm", "run", "start"]
