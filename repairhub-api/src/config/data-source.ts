@@ -1,23 +1,30 @@
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
-import * as entities from './entities';
 
 config(); // Cargar variables de entorno
 
 const configService = new ConfigService();
+const databaseUrl = configService.get<string>('DATABASE_URL');
+const sourceRoot = __filename.endsWith('.js') ? 'dist/src' : 'src';
 
 export default new DataSource({
   type: 'postgres',
-  host: configService.get('DB_HOST'),
-  port: configService.get('DB_PORT'),
-  username: configService.get('DB_USERNAME'),
-  password: configService.get('DB_PASSWORD'),
-  database: configService.get('DB_DATABASE'),
+  ...(databaseUrl
+    ? { url: databaseUrl }
+    : {
+        host: configService.get<string>('DB_HOST'),
+        port: Number(configService.get('DB_PORT') ?? 5432),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database:
+          configService.get<string>('DB_DATABASE') ??
+          configService.get<string>('DB_NAME'),
+      }),
   // Support both TS (src) when running with ts-node and JS (dist) when running built code
-  entities: ['src/**/*.entity{.ts,.js}', 'dist/**/*.entity{.ts,.js}'],
+  entities: [`${sourceRoot}/**/*.entity{.ts,.js}`],
   // Keep migrations in src during development and dist when built
-  migrations: ['src/migrations/*{.ts,.js}', 'dist/migrations/*{.ts,.js}'],
+  migrations: [`${sourceRoot}/migrations/*{.ts,.js}`],
   synchronize: false,
   logging: true,
 

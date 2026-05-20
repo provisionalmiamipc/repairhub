@@ -23,9 +23,15 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate -d src/config/data-source.ts",
     "migration:create": "npm run typeorm -- migration:create",
-    "migration:run": "npm run typeorm -- migration:run -d src/config/data-source.ts",
-    "migration:revert": "npm run typeorm -- migration:revert -d src/config/data-source.ts",
-    "migration:show": "npm run typeorm -- migration:show -d src/config/data-source.ts"
+    "migration:run": "node scripts/typeorm-cli.js migration:run",
+    "migration:run:dev": "npm run typeorm -- migration:run -d src/config/data-source.ts",
+    "migration:run:prod": "typeorm migration:run -d dist/src/config/data-source.js",
+    "migration:revert": "node scripts/typeorm-cli.js migration:revert",
+    "migration:revert:dev": "npm run typeorm -- migration:revert -d src/config/data-source.ts",
+    "migration:revert:prod": "typeorm migration:revert -d dist/src/config/data-source.js",
+    "migration:show": "node scripts/typeorm-cli.js migration:show",
+    "migration:show:dev": "npm run typeorm -- migration:show -d src/config/data-source.ts",
+    "migration:show:prod": "typeorm migration:show -d dist/src/config/data-source.js"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",

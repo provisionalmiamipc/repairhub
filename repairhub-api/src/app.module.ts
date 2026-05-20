@@ -119,7 +119,7 @@ const DebugModuleOptional = (() => {
         const baseOptions: TypeOrmModuleOptions = {
           type: 'postgres',
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          synchronize: configService.get('DB_SYNCHRONIZE') === 'false',
+          synchronize: configService.get('DB_SYNCHRONIZE') === 'true',
           logging: configService.get('DB_LOGGING') === 'true',
           autoLoadEntities: true, // ← Importante para cargar entidades automáticamente
         };
