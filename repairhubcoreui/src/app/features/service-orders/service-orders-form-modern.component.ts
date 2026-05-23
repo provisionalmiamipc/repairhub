@@ -575,6 +575,13 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     if (this.serviceOrderForm.invalid) {
       this.markFormGroupTouched(this.serviceOrderForm);
+      const invalidFields = this.getInvalidFieldLabels();
+      this.formState.update(s => ({
+        ...s,
+        error: invalidFields.length
+          ? `Please complete the required fields: ${invalidFields.join(', ')}`
+          : 'Please complete the required fields'
+      }));
       return;
     }
 
@@ -660,6 +667,26 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
           }));
         }
       });
+  }
+
+  private getInvalidFieldLabels(): string[] {
+    const labels: Record<string, string> = {
+      centerId: 'Center',
+      storeId: 'Store',
+      customerId: 'Customer',
+      deviceId: 'Device',
+      deviceBrandId: 'Brand',
+      model: 'Model',
+      paymentTypeId: 'Payment Type',
+      assignedTechId: 'Assigned Technician',
+      createdById: 'Created By',
+      price: 'Price',
+      repairCost: 'Repair Cost'
+    };
+
+    return Object.keys(this.serviceOrderForm.controls)
+      .filter(key => this.serviceOrderForm.get(key)?.invalid)
+      .map(key => labels[key] ?? key);
   }
   
 

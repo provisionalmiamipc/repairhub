@@ -157,8 +157,7 @@ export class EmailService {
       const context = {
         techName: options.techName || 'Technician',
         appointmentCode: options.appointmentCode || '',
-        date: typeof options.date === 'string' ? options.date : (options.date ? new Date(options.date).toLocaleString() : ''),
-        time: options.time || '',
+        dateTime: options.date ? this.formatDateTimeLabel(options.date, options.time) : '',
         message: options.message || 'You have an appointment scheduled for tomorrow.',
       };
       const logoAttachments = this.getLogoCidAttachments();
@@ -180,7 +179,7 @@ export class EmailService {
                 <p style="margin:0 0 12px 0;">Hello <strong>${context.techName}</strong>,</p>
                 <p style="margin:0 0 12px 0;">${context.message}</p>
                 <p style="margin:0 0 12px 0;"><strong>Appointment:</strong> #${context.appointmentCode}</p>
-                <p style="margin:0 0 12px 0;"><strong>Date & time:</strong> ${context.date} at ${context.time}</p>
+                <p style="margin:0 0 12px 0;"><strong>Date & time:</strong> ${context.dateTime}</p>
               </td>
             </tr>
             <tr>
@@ -316,6 +315,63 @@ export class EmailService {
     await this.sendHtmlWithResendFallback(options.to, subject, html, logoAttachments);
   }
 
+  async sendCustomerAppointmentUpdated(options: {
+    to: string;
+    customerName?: string;
+    appointmentCode: string;
+    date: string | Date;
+    time?: string;
+    storeName?: string;
+    centerName?: string;
+    deviceName?: string;
+  }) {
+    const dateLabel = this.formatDateTimeLabel(options.date, options.time);
+    const logoAttachments = this.getLogoCidAttachments();
+    const logoHtml = logoAttachments.length ? `<img src="cid:logo@repairhub" alt="Logo" style="height:56px;" />` : '';
+    const subject = `Appointment updated #${options.appointmentCode}`;
+    const customerName = options.customerName || 'Customer';
+    const location = [options.storeName, options.centerName].filter(Boolean).join(' - ');
+    const locationHtml = location ? `<p><strong>Location:</strong> ${location}</p>` : '';
+    const deviceHtml = options.deviceName ? `<p><strong>Device:</strong> ${options.deviceName}</p>` : '';
+
+    const html = `<!doctype html>
+<html>
+  <body style="font-family: Arial, sans-serif; color: #1f2937; background:#f8fafc; padding: 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff; border-radius:8px; overflow:hidden;">
+            <tr>
+              <td style="padding:20px 24px; border-bottom:1px solid #e5e7eb;">
+                ${logoHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px;">
+                <p style="margin:0 0 12px 0;">Hello <strong>${customerName}</strong>,</p>
+                <p style="margin:0 0 12px 0;">Your appointment has been updated.</p>
+                <p style="margin:0 0 12px 0;"><strong>Appointment:</strong> #${options.appointmentCode}</p>
+                <p style="margin:0 0 12px 0;"><strong>Date & time:</strong> ${dateLabel}</p>
+                ${locationHtml}
+                ${deviceHtml}
+                <p style="margin:20px 0 0 0;">If you need to reschedule, please contact us.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 24px; font-size:12px; color:#6b7280; background:#f9fafb;">
+                This is an automated message, please do not reply directly.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+    await this.sendHtmlWithResendFallback(options.to, subject, html, logoAttachments);
+  }
+
   private async sendHtmlWithResendFallback(to: string, subject: string, html: string, attachments: any[] = []): Promise<void> {
     const recipient = String(to || '').trim();
     if (!recipient) throw new Error('Invalid recipient email');
@@ -385,10 +441,26 @@ export class EmailService {
   }
 
   private formatDateTimeLabel(date: string | Date, time?: string): string {
-    if (typeof date === 'string') {
-      return time ? `${date} ${time}` : date;
+    const dateParts = typeof date === 'string'
+      ? String(date).split('T')[0].match(/^(\d{4})-(\d{2})-(\d{2})$/)
+      : null;
+
+    if (dateParts) {
+      const [, year, month, day] = dateParts;
+      return time ? `${month}/${day}/${year} ${time}` : `${month}/${day}/${year}`;
     }
-    const formatted = date.toLocaleDateString();
+
+    const parsed = date instanceof Date ? date : new Date(date);
+    if (Number.isNaN(parsed.getTime())) {
+      return time ? `${String(date)} ${time}` : String(date);
+    }
+
+    const formatted = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(parsed);
     return time ? `${formatted} ${time}` : formatted;
   }
 }

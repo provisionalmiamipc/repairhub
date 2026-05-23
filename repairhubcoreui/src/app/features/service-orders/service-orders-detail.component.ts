@@ -2,7 +2,6 @@ import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { ServiceOrderImage, ServiceOrders } from '../../shared/models/ServiceOrders';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../shared/services/auth.service';
-import { RepairCopilotWidgetComponent } from './components/repair-copilot-widget/repair-copilot-widget.component';
 import { MediaService } from '../../shared/services/media.service';
 import { finalize } from 'rxjs/operators';
 
@@ -10,7 +9,7 @@ import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-service-orders-detail',
   standalone: true,
-  imports: [CommonModule, RepairCopilotWidgetComponent],
+  imports: [CommonModule],
   templateUrl: './service-orders-detail.component.html',
 })
 export class ServiceOrdersDetailComponent {

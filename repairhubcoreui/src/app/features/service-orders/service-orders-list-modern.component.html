@@ -65,7 +65,27 @@
       </svg>
     </div>
 
-    <div class="filters-container">
+    <div class="filter-actions">
+      <button
+        type="button"
+        class="btn btn-outline-secondary filters-toggle"
+        [attr.aria-expanded]="filtersExpanded()"
+        (click)="toggleFilters()">
+        <i class="bi bi-funnel"></i>
+        Filters
+        @if (activeFiltersCount() > 0) {
+        <span class="filter-count">{{ activeFiltersCount() }}</span>
+        }
+      </button>
+
+      @if (activeFiltersCount() > 0) {
+      <button type="button" class="btn btn-link clear-filters" (click)="clearFilters()">
+        Clear
+      </button>
+      }
+    </div>
+
+    <div class="filters-container" [class.is-expanded]="filtersExpanded()">
       <div class="filter-group">
         <label class="filter-label">Status</label>
         <select
@@ -81,29 +101,44 @@
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Lock</label>
+        <label class="filter-label">Device</label>
         <select
           class="form-select form-select-lg mb-3"
-          [value]="filterLock()"
-          (change)="onLockFilterChange($any($event).target.value)"
+          [value]="filterDevice()"
+          (change)="onDeviceFilterChange($any($event).target.value)"
         >
-          <option value="all">All</option>
-          <option value="locked">Locked</option>
-          <option value="unlocked">Unlocked</option>
+          <option value="0">All</option>
+          @for (device of deviceFilterOptions(); track device.id) {
+          <option [value]="device.id">{{ device.name }}</option>
+          }
         </select>
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Sort by</label>
+        <label class="filter-label">Store</label>
         <select
           class="form-select form-select-lg mb-3"
-          [value]="sortBy()"
-          (change)="onSortChange($any($event).target.value)"
+          [value]="filterStore()"
+          (change)="onStoreFilterChange($any($event).target.value)"
         >
-          <option value="date">Date (Most recent)</option>
-          <option value="orderCode">Order Code</option>
-          <option value="customer">Customer</option>
-          <option value="totalCost">Total Cost</option>
+          <option value="0">All</option>
+          @for (store of storeFilterOptions(); track store.id) {
+          <option [value]="store.id">{{ store.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label">Repair Status</label>
+        <select
+          class="form-select form-select-lg mb-3"
+          [value]="filterSubStatus()"
+          (change)="onSubStatusFilterChange($any($event).target.value)"
+        >
+          <option value="all">All</option>
+          @for (subStatus of subStatusFilterOptions(); track subStatus) {
+          <option [value]="subStatus">{{ subStatus }}</option>
+          }
         </select>
       </div>
     </div>

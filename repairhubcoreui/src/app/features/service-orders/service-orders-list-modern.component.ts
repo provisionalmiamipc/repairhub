@@ -46,7 +46,10 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   readonly serviceOrders = signal<ServiceOrders[]>([]);
   readonly searchQuery = signal('');
   readonly filterStatus = signal<'all' | 'active' | 'completed' | 'canceled'>('active');
-  readonly filterLock = signal<'all' | 'locked' | 'unlocked'>('all');
+  readonly filterDevice = signal<number | 0>(0);
+  readonly filterStore = signal<number | 0>(0);
+  readonly filterSubStatus = signal<string>('all');
+  readonly filtersExpanded = signal(false);
   readonly sortBy = signal<'orderCode' | 'customer' | 'date' | 'totalCost'>('date');
 
   // View mode: 'professional' is the default (2026 professional list view)
@@ -55,12 +58,22 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
 
   isLoading = computed(() => this.listState().isLoading);
   error = computed(() => this.listState().error);
+  readonly activeFiltersCount = computed(() => {
+    let count = 0;
+    if (this.filterStatus() !== 'active') count += 1;
+    if (this.filterDevice() !== 0) count += 1;
+    if (this.filterStore() !== 0) count += 1;
+    if (this.filterSubStatus() !== 'all') count += 1;
+    return count;
+  });
 
   filteredServiceOrders = computed(() => {
     const orders = this.serviceOrders();
     const query = this.searchQuery().toLowerCase();
     const status = this.filterStatus();
-    const lock = this.filterLock();
+    const deviceId = this.filterDevice();
+    const storeId = this.filterStore();
+    const subStatus = this.filterSubStatus();
     const sortField = this.sortBy();
 
     let filtered = orders.filter(order => {
@@ -83,10 +96,11 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
         matchesStatus = order.canceled;
       }
 
-      // Lock filter
-      const matchesLock = lock === 'all' || (lock === 'locked' && order.lock) || (lock === 'unlocked' && !order.lock);
+      const matchesDevice = deviceId === 0 || order.deviceId === deviceId;
+      const matchesStore = storeId === 0 || order.storeId === storeId;
+      const matchesSubStatus = subStatus === 'all' || this.getLatestRepairStatus(order) === subStatus;
 
-      return matchesSearch && matchesStatus && matchesLock;
+      return matchesSearch && matchesStatus && matchesDevice && matchesStore && matchesSubStatus;
     });
 
     // Sort
@@ -165,12 +179,31 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     this.loadServiceOrders(false);
   }
 
+  toggleFilters(): void {
+    this.filtersExpanded.update(value => !value);
+  }
+
+  clearFilters(): void {
+    this.filterStatus.set('active');
+    this.filterDevice.set(0);
+    this.filterStore.set(0);
+    this.filterSubStatus.set('all');
+  }
+
   onFilterChange(status: 'all' | 'active' | 'completed' | 'canceled'): void {
     this.filterStatus.set(status);
   }
 
-  onLockFilterChange(lock: 'all' | 'locked' | 'unlocked'): void {
-    this.filterLock.set(lock);
+  onDeviceFilterChange(deviceId: string): void {
+    this.filterDevice.set(Number(deviceId));
+  }
+
+  onStoreFilterChange(storeId: string): void {
+    this.filterStore.set(Number(storeId));
+  }
+
+  onSubStatusFilterChange(subStatus: string): void {
+    this.filterSubStatus.set(subStatus);
   }
 
   onSortChange(field: 'orderCode' | 'customer' | 'date' | 'totalCost'): void {
@@ -290,4 +323,39 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
       maximumFractionDigits: 0
     }).format(value);
   }
+
+  readonly deviceFilterOptions = computed(() => {
+    const byId = new Map<number, string>();
+    this.serviceOrders().forEach(order => {
+      if (order.deviceId && order.device?.name) {
+        byId.set(order.deviceId, order.device.name);
+      }
+    });
+    return Array.from(byId.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  readonly storeFilterOptions = computed(() => {
+    const byId = new Map<number, string>();
+    this.serviceOrders().forEach(order => {
+      if (order.storeId && order.store?.storeName) {
+        byId.set(order.storeId, order.store.storeName);
+      }
+    });
+    return Array.from(byId.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  readonly subStatusFilterOptions = computed(() => {
+    const statuses = new Set<string>();
+    this.serviceOrders().forEach(order => {
+      const status = this.getLatestRepairStatus(order);
+      if (status) {
+        statuses.add(status);
+      }
+    });
+    return Array.from(statuses).sort((a, b) => a.localeCompare(b));
+  });
 }

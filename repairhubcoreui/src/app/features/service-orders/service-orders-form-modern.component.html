@@ -435,10 +435,11 @@
 
                 <!-- Payment Type -->
                 <div class="col-md-6 col-xl-4">
-                  <label for="paymentTypeId" class="form-label">Payment Type</label>
+                  <label for="paymentTypeId" class="form-label">Payment Type *</label>
                   <div class="input-group">
-                    <select id="paymentTypeId" class="form-select" formControlName="paymentTypeId">
-                      <option [ngValue]="null">Select payment type</option>
+                    <select id="paymentTypeId" class="form-select" [class.is-invalid]="isFieldInvalid('paymentTypeId')"
+                      formControlName="paymentTypeId">
+                      <option [ngValue]="null" disabled>Select payment type</option>
                       @for (paymentType of paymentTypes(); track paymentType.id) {
                       <option [value]="paymentType.id">{{ paymentType.type }}</option>
                       }
@@ -446,6 +447,9 @@
                     <button class="btn btn-outline-secondary" type="button" (click)="openAddPaymentType()"
                       [disabled]="isOrderFinalized() || isFormReadOnly()">+</button>
                   </div>
+                  @if (isFieldInvalid('paymentTypeId')) {
+                  <span class="error-message">{{ getFieldError('paymentTypeId') }}</span>
+                  }
                 </div>
 
                 <!-- Tax -->
@@ -1151,7 +1155,7 @@
         <!-- Submit button -->
         @if (!showSteps() || currentStep() === steps.length - 1) {
         <button type="submit" class="btn btn-success" *ngIf="!isExpertNonCenterAdmin()"
-          [disabled]="!serviceOrderForm.valid || isSaving() || isOrderFinalized() || isFormReadOnly()">
+          [disabled]="isSaving() || isOrderFinalized() || isFormReadOnly()">
           @if (isSaving()) {
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...
           } @else {
@@ -1297,6 +1301,7 @@
   }
 
   <app-repair-copilot-widget
+    *ngIf="isEditMode()"
     [serviceOrderId]="currentServiceOrderId()"
     [device]="getCopilotDeviceName()"
     [brand]="getCopilotBrandName()"
