@@ -77,14 +77,15 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     const sortField = this.sortBy();
 
     let filtered = orders.filter(order => {
-      // Search: order code, customer, serial, device, brand and model
+      // Search: order code, customer, serial, device, brand, model and issue
       const matchesSearch = !query || 
         order.orderCode.toLowerCase().includes(query) ||
         `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.toLowerCase().includes(query) ||
         (order.serial || '').toLowerCase().includes(query) ||
         (order.device?.name || '').toLowerCase().includes(query) ||
         (order.deviceBrand?.name || '').toLowerCase().includes(query) ||
-        (order.model || '').toLowerCase().includes(query);
+        (order.model || '').toLowerCase().includes(query) ||
+        (order.defectivePart || '').toLowerCase().includes(query);
 
       // Status filter
       let matchesStatus = true;
