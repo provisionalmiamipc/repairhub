@@ -9,6 +9,7 @@ import {
   userGuard,
   employeeAdminGuard,
   accountantGuard,
+  invoiceGuard,
   centerAdminGuard,
   permissionGuard,
   allPermissionsGuard
@@ -159,6 +160,11 @@ export const routes: Routes = [
       { path: 'sales/:id', loadComponent: () => import('./features/sales/sales-detail-page.component').then(m => m.SalesDetailPageComponent), canActivate: [authGuard, accountantGuard] },
       { path: 'sales/:id/edit', loadComponent: () => import('./features/sales/sales-form-modern.component').then(m => m.SalesFormModernComponent), canActivate: [authGuard, accountantGuard] },
 
+      { path: 'invoices', loadComponent: () => import('./features/invoices/invoices-list.component').then(m => m.InvoicesListComponent), canActivate: [authGuard, invoiceGuard] },
+      { path: 'invoices/new', loadComponent: () => import('./features/invoices/invoices-form.component').then(m => m.InvoicesFormComponent), canActivate: [authGuard, invoiceGuard] },
+      { path: 'invoices/:id', loadComponent: () => import('./features/invoices/invoices-detail.component').then(m => m.InvoicesDetailComponent), canActivate: [authGuard, invoiceGuard] },
+      { path: 'invoices/:id/edit', loadComponent: () => import('./features/invoices/invoices-form.component').then(m => m.InvoicesFormComponent), canActivate: [authGuard, invoiceGuard] },
+
       { path: 'sale-items', loadComponent: () => import('./features/sale-items/sale-items-list-modern.component').then(m => m.SaleItemsListModernComponent), canActivate: [authGuard] },
       { path: 'sale-items/new', loadComponent: () => import('./features/sale-items/sale-items-form-modern.component').then(m => m.SaleItemsFormModernComponent), canActivate: [authGuard] },
       { path: 'sale-items/:id', loadComponent: () => import('./features/sale-items/sale-items-detail-page.component').then(m => m.SaleItemsDetailPageComponent), canActivate: [authGuard] },
@@ -214,6 +220,7 @@ export const routes: Routes = [
       { path: 'service-orders/new', loadComponent: () => import('./features/service-orders/service-orders-form-modern.component').then(m => m.ServiceOrdersFormModernComponent), canActivate: [authGuard, centerAdminGuard] },
       { path: 'service-orders/:id', loadComponent: () => import('./features/service-orders/service-orders-detail-page.component').then(m => m.ServiceOrdersDetailPageComponent), canActivate: [authGuard] },
       { path: 'service-orders/:id/edit', loadComponent: () => import('./features/service-orders/service-orders-form-modern.component').then(m => m.ServiceOrdersFormModernComponent), canActivate: [authGuard] },
+      { path: 'warranties', loadComponent: () => import('./features/warranties/warranties-list.component').then(m => m.WarrantiesListComponent), canActivate: [authGuard] },
 
       { path: 'stores', loadComponent: () => import('./features/stores/stores-list-modern.component').then(m => m.StoresListModernComponent), canActivate: [authGuard, centerAdminGuard] },
       { path: 'stores/new', loadComponent: () => import('./features/stores/stores-form-modern.component').then(m => m.StoresFormModernComponent), canActivate: [authGuard, centerAdminGuard] },

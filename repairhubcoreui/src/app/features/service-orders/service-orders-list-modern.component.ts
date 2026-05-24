@@ -315,6 +315,53 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     return order.lastRepairStatus?.status || 'No status';
   }
 
+  hasWarranty(order: ServiceOrders): boolean {
+    return Array.isArray(order.warranties) && order.warranties.length > 0;
+  }
+
+  getLatestWarranty(order: ServiceOrders) {
+    const warranties = Array.isArray(order.warranties) ? order.warranties : [];
+    if (!warranties.length) return null;
+    return [...warranties].sort((a, b) =>
+      new Date(b.createdAt || b.warrantyStartDate).getTime() -
+      new Date(a.createdAt || a.warrantyStartDate).getTime()
+    )[0];
+  }
+
+  getWarrantyIconClass(order: ServiceOrders): string {
+    const warranty = this.getLatestWarranty(order);
+    if (!warranty) return 'text-secondary';
+    if (warranty.status === 'void') return 'text-danger';
+    if (warranty.status === 'expired' || new Date(warranty.warrantyEndDate).getTime() < Date.now()) {
+      return 'text-warning';
+    }
+    return 'text-success';
+  }
+
+  getWarrantyTooltip(order: ServiceOrders): string {
+    const warranty = this.getLatestWarranty(order);
+    if (!warranty) return 'No warranty created';
+    const endDate = this.formatDate(warranty.warrantyEndDate);
+    if (warranty.status === 'void') {
+      return `Warranty voided${warranty.warrantyVoidReason ? ': ' + warranty.warrantyVoidReason : ''}`;
+    }
+    if (warranty.status === 'expired' || new Date(warranty.warrantyEndDate).getTime() < Date.now()) {
+      return `Warranty expired on ${endDate}`;
+    }
+    return `Warranty active until ${endDate}`;
+  }
+
+  private formatDate(value: string | Date | undefined): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  }
+
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',

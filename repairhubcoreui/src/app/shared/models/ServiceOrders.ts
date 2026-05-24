@@ -11,6 +11,9 @@ import { SOItems } from "./SOItems";
 import { SONotes } from "./SONotes";
 import { Stores } from "./Stores";
 import { ReceivedPart } from './ReceivedPart';
+import { Warranty, WarrantyDurationUnit } from './Warranty';
+
+export type WarrantyDecision = 'pending' | 'approved' | 'rejected';
 
 export interface LastRepairStatus {
   id: number;
@@ -56,7 +59,14 @@ export interface ServiceOrders {
   assignedTechId: number;
   createdById: number;
   noteReception: string;
+  warrantyDuration: number;
+  warrantyDurationUnit: WarrantyDurationUnit;
   estimated: string;
+  isWarrantyOrder?: boolean;
+  originalServiceOrderId?: number | null;
+  warrantyId?: number | null;
+  warrantyDecision?: WarrantyDecision | null;
+  warrantyDecisionReason?: string | null;
   cloused: boolean;
   canceled: boolean;
   createdAt: Date;
@@ -69,6 +79,9 @@ export interface ServiceOrders {
   sONotes?: SONotes[];
   serviceOrderRequestes?: ServiceOrderRequeste[];
   receivedParts?: ReceivedPart[];
+  warranties?: Warranty[];
+  warranty?: Warranty;
+  originalServiceOrder?: ServiceOrders;
   center?: Centers;
   assignedTech?: Employees;
   customer?: Customers;

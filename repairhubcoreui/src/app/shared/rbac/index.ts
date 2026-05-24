@@ -16,6 +16,7 @@ export {
   storeAdminGuard,
   employeeAdminGuard,
   accountantGuard,
+  invoiceGuard,
   permissionGuard,
   anyPermissionGuard,
   allPermissionsGuard,

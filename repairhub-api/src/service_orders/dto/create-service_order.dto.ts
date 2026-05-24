@@ -1,6 +1,8 @@
-import { IsInt, IsNumber, IsOptional, IsBoolean, IsString, IsArray, ValidateNested } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsBoolean, IsString, IsArray, ValidateNested, IsIn, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateReceivedPartNestedDto } from './create-received-part-nested.dto';
+import type { WarrantyDurationUnit } from '../../warranties/entities/warranty.entity';
+import type { WarrantyDecision } from '../entities/service_order.entity';
 
 export class CreateServiceOrderDto {
 	@IsInt()
@@ -51,8 +53,37 @@ export class CreateServiceOrderDto {
 	@IsString()
 	noteReception?: string;
 
+	@IsOptional()
+	@IsInt()
+	@Min(0)
+	warrantyDuration?: number;
+
+	@IsOptional()
+	@IsIn(['days', 'months', 'years'])
+	warrantyDurationUnit?: WarrantyDurationUnit;
+
 	@IsString()
 	estimated?: string;
+
+	@IsOptional()
+	@IsBoolean()
+	isWarrantyOrder?: boolean;
+
+	@IsOptional()
+	@IsInt()
+	originalServiceOrderId?: number | null;
+
+	@IsOptional()
+	@IsInt()
+	warrantyId?: number | null;
+
+	@IsOptional()
+	@IsIn(['pending', 'approved', 'rejected'])
+	warrantyDecision?: WarrantyDecision | null;
+
+	@IsOptional()
+	@IsString()
+	warrantyDecisionReason?: string | null;
 
 	@IsInt()
 	paymentTypeId: number;

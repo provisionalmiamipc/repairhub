@@ -9,6 +9,7 @@ import { SODiagnostic } from '../../shared/models/SODiagnostic';
 import { SOItems } from '../../shared/models/SOItems';
 import { RepairStatus } from '../../shared/models/RepairStatus';
 import { ReceivedPart } from '../../shared/models/ReceivedPart';
+import { Warranty } from '../../shared/models/Warranty';
 import { ServiceOrdersService } from '../../shared/services/service-orders.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { StoresService } from '../../shared/services/stores.service';
@@ -41,6 +42,7 @@ import { Stores } from '../../shared/models/Stores';
 import { RepairCopilotWidgetComponent } from './components/repair-copilot-widget/repair-copilot-widget.component';
 import { MediaService } from '../../shared/services/media.service';
 import { NavigationHistoryService } from '../../shared/services/navigation-history.service';
+import { WarrantiesService } from '../../shared/services/warranties.service';
 
 interface FormState {
   isLoading: boolean;
@@ -107,6 +109,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   private receivedPartsService = inject(ReceivedPartsService);
   private mediaService = inject(MediaService);
   private navigationHistory = inject(NavigationHistoryService);
+  private warrantiesService = inject(WarrantiesService);
   private destroy$ = new Subject<void>();
 
   // Lógica de visibilidad y valores por tipo de usuario
@@ -196,6 +199,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   soDiagnostics: SODiagnostic[] = [];
   soItems: SOItems[] = [];
   repairStatuses: RepairStatus[] = [];
+  warranties: Warranty[] = [];
+  isWarrantyLoading = false;
+  isWarrantySaving = false;
+  isWarrantyOrderSaving = false;
+  isWarrantyDecisionSaving = false;
 
   // Modals
   showNoteModal = false;
@@ -210,6 +218,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   showCustomerSearch = false;
   showCustomerModal = false;
   showReceivedPartModal = false;
+  showWarrantyDecisionModal = false;
 
   // Editing models
   editingNote: Partial<SONotes> | null = null;
@@ -221,6 +230,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   editingPaymentType: Partial<any> | null = null;
   editingCustomer: Customers | null = null;
   editingReceivedPart: Partial<ReceivedPart> | null = null;
+  pendingWarrantyDecision: 'approved' | 'rejected' | null = null;
+  warrantyDecisionReasonDraft = '';
 
   // Collected received parts before saving the order
   receivedParts: ReceivedPart[] = [];
@@ -317,7 +328,14 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       totalCost: [0],
       lock: [false],
       noteReception: [''],
+      warrantyDuration: [6, [Validators.required, Validators.min(0)]],
+      warrantyDurationUnit: ['months', Validators.required],
       estimated: [''],
+      isWarrantyOrder: [false],
+      originalServiceOrderId: [null],
+      warrantyId: [null],
+      warrantyDecision: [null],
+      warrantyDecisionReason: [''],
       cloused: [false],
       canceled: [false]
     });
@@ -369,6 +387,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
         next: (order) => {
             this.serviceOrderForm.patchValue(order);
             this.serviceOrder.set(order);
+            this.warranties = Array.isArray(order.warranties) ? order.warranties : [];
             this.selectedImageFiles = [];
             this.selectedImagePreviews.forEach(url => URL.revokeObjectURL(url));
             this.selectedImagePreviews = [];
@@ -397,6 +416,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
             this.selectedCenterId.set(centerId);
           }
           this.loadRelatedCollections();
+          this.loadWarranties();
 
           // If editing and user is Expert non-center-admin, make form read-only
           const employee = this.authService.getCurrentEmployee();
@@ -430,6 +450,143 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
 
   isOrderFinalized(): boolean {
     return !!this.serviceOrderForm.get('cloused')?.value || !!this.serviceOrderForm.get('canceled')?.value;
+  }
+
+  get activeWarranty(): Warranty | null {
+    return this.warranties.find(warranty => warranty.status === 'active') ?? null;
+  }
+
+  get latestWarranty(): Warranty | null {
+    return this.warranties[0] ?? null;
+  }
+
+  canCreateWarranty(): boolean {
+    return !!this.currentServiceOrderId() &&
+      !!this.serviceOrderForm.get('cloused')?.value &&
+      !this.serviceOrderForm.get('canceled')?.value &&
+      Number(this.serviceOrderForm.get('warrantyDuration')?.value ?? 0) > 0 &&
+      !this.activeWarranty;
+  }
+
+  canCreateWarrantyOrder(): boolean {
+    return !!this.activeWarranty && !this.serviceOrderForm.get('isWarrantyOrder')?.value;
+  }
+
+  getWarrantyPeriodLabel(): string {
+    const duration = this.serviceOrderForm.get('warrantyDuration')?.value ?? 6;
+    const unit = this.serviceOrderForm.get('warrantyDurationUnit')?.value ?? 'months';
+    return `${duration} ${unit}`;
+  }
+
+  loadWarranties(): void {
+    const serviceOrderId = this.currentServiceOrderId();
+    if (!serviceOrderId) return;
+    this.isWarrantyLoading = true;
+    this.warrantiesService.getByServiceOrder(serviceOrderId).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isWarrantyLoading = false)
+    ).subscribe({
+      next: warranties => this.warranties = warranties ?? [],
+      error: () => this.toastService.error('Error loading warranty')
+    });
+  }
+
+  createWarranty(): void {
+    const serviceOrderId = this.currentServiceOrderId();
+    if (!serviceOrderId) return;
+    this.isWarrantySaving = true;
+    const createdById = this.resolveCreatedByIdForRelated(this.serviceOrderForm.get('createdById')?.value) ?? null;
+    this.warrantiesService.createFromServiceOrder(serviceOrderId, createdById).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isWarrantySaving = false)
+    ).subscribe({
+      next: warranty => {
+        this.warranties = [warranty, ...this.warranties];
+        this.toastService.success('Warranty created');
+      },
+      error: (err) => this.toastService.error(err?.error?.message || 'Error creating warranty')
+    });
+  }
+
+  voidWarranty(warranty: Warranty): void {
+    const reason = window.prompt('Void reason');
+    if (!reason?.trim()) return;
+    this.isWarrantySaving = true;
+    const voidedById = this.resolveCreatedByIdForRelated(null) ?? null;
+    this.warrantiesService.voidWarranty(warranty.id, {
+      warrantyVoidReason: reason.trim(),
+      voidedById,
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isWarrantySaving = false)
+    ).subscribe({
+      next: updated => {
+        this.warranties = this.warranties.map(item => item.id === updated.id ? updated : item);
+        this.toastService.success('Warranty voided');
+      },
+      error: () => this.toastService.error('Error voiding warranty')
+    });
+  }
+
+  createWarrantyOrder(warranty: Warranty): void {
+    const serviceOrderId = this.currentServiceOrderId();
+    if (!serviceOrderId) return;
+    this.isWarrantyOrderSaving = true;
+    const createdById = this.resolveCreatedByIdForRelated(this.serviceOrderForm.get('createdById')?.value) ?? null;
+    this.warrantiesService.createWarrantyOrder(warranty.id, {
+      assignedTechId: this.serviceOrderForm.get('assignedTechId')?.value ?? null,
+      createdById,
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isWarrantyOrderSaving = false)
+    ).subscribe({
+      next: order => {
+        this.toastService.success('Warranty service order created');
+        this.router.navigate(['/service-orders', order.id, 'edit']);
+      },
+      error: (err) => this.toastService.error(err?.error?.message || 'Error creating warranty order')
+    });
+  }
+
+  openWarrantyDecisionModal(decision: 'approved' | 'rejected'): void {
+    this.pendingWarrantyDecision = decision;
+    this.warrantyDecisionReasonDraft = decision === 'approved' ? 'Covered by warranty' : '';
+    this.showWarrantyDecisionModal = true;
+  }
+
+  closeWarrantyDecisionModal(): void {
+    this.showWarrantyDecisionModal = false;
+    this.pendingWarrantyDecision = null;
+    this.warrantyDecisionReasonDraft = '';
+  }
+
+  confirmWarrantyDecision(): void {
+    const serviceOrderId = this.currentServiceOrderId();
+    const decision = this.pendingWarrantyDecision;
+    if (!serviceOrderId || !decision) return;
+    const reason = this.warrantyDecisionReasonDraft.trim();
+    if (decision === 'rejected' && !reason) {
+      this.toastService.error('Reason is required to reject a warranty claim');
+      return;
+    }
+
+    this.isWarrantyDecisionSaving = true;
+    this.serviceOrdersService.update(serviceOrderId, {
+      ...this.serviceOrderForm.getRawValue(),
+      warrantyDecision: decision,
+      warrantyDecisionReason: reason || null,
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isWarrantyDecisionSaving = false)
+    ).subscribe({
+      next: order => {
+        this.serviceOrder.set(order);
+        this.serviceOrderForm.patchValue(order);
+        this.closeWarrantyDecisionModal();
+        this.toastService.success(decision === 'approved' ? 'Warranty claim approved' : 'Warranty claim rejected');
+      },
+      error: () => this.toastService.error('Error updating warranty decision')
+    });
   }
 
   completeOrder(): void {
@@ -681,7 +838,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       assignedTechId: 'Assigned Technician',
       createdById: 'Created By',
       price: 'Price',
-      repairCost: 'Repair Cost'
+      repairCost: 'Repair Cost',
+      warrantyDuration: 'Warranty Duration',
+      warrantyDurationUnit: 'Warranty Unit',
     };
 
     return Object.keys(this.serviceOrderForm.controls)
@@ -1389,6 +1548,18 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     const tax = this.getTaxAmount();
     return Number(Number.isFinite(total + tax) ? total + tax : 0);
   }
+
+  shouldShowPending(): boolean {
+    const price = Number(this.serviceOrderForm.get('price')?.value) || 0;
+    const advancePayment = Number(this.serviceOrderForm.get('advancePayment')?.value) || 0;
+    return price > 0 && advancePayment > 0;
+  }
+
+  getPendingAmount(): number {
+    const pending = this.getCurrentTotal() - (Number(this.serviceOrderForm.get('advancePayment')?.value) || 0);
+    return Number(Number.isFinite(pending) ? pending : 0);
+  }
+
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',

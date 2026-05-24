@@ -54,6 +54,37 @@
   </div>
   } @else {
   <form class="needs-validation" autocomplete="off" [formGroup]="serviceOrderForm" (ngSubmit)="onSubmit()">
+    @if (serviceOrderForm.get('isWarrantyOrder')?.value) {
+    <div class="alert alert-info d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-center" role="alert">
+      <div>
+        <strong>Warranty Order</strong>
+        <div>
+          Decision: {{ serviceOrderForm.get('warrantyDecision')?.value || 'pending' | titlecase }}
+          @if (serviceOrder()?.originalServiceOrder?.orderCode) {
+          · Original: {{ serviceOrder()?.originalServiceOrder?.orderCode }}
+          }
+        </div>
+        @if (serviceOrderForm.get('warrantyDecisionReason')?.value) {
+        <small>{{ serviceOrderForm.get('warrantyDecisionReason')?.value }}</small>
+        }
+      </div>
+      @if (!isFormReadOnly()) {
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-success" type="button"
+          [disabled]="isWarrantyDecisionSaving || serviceOrderForm.get('warrantyDecision')?.value !== 'pending'"
+          (click)="openWarrantyDecisionModal('approved')">
+          Approve
+        </button>
+        <button class="btn btn-sm btn-outline-danger" type="button"
+          [disabled]="isWarrantyDecisionSaving || serviceOrderForm.get('warrantyDecision')?.value !== 'pending'"
+          (click)="openWarrantyDecisionModal('rejected')">
+          Reject
+        </button>
+      </div>
+      }
+    </div>
+    }
+
     <!-- EDIT MODE: Show all fields at once -->
     @if (isEditMode()) {
     <div class="row g-4">
@@ -269,6 +300,22 @@
                     placeholder="Estimated repair..." rows="3"></textarea>
                 </div>
 
+                @if (!isExpertNonCenterAdmin()) {
+                <div class="col-md-6 col-xl-4">
+                  <label for="warrantyDuration" class="form-label">Warranty Duration</label>
+                  <input type="number" id="warrantyDuration" autocomplete="off" class="form-control"
+                    formControlName="warrantyDuration" min="0" step="1" />
+                </div>
+                <div class="col-md-6 col-xl-4">
+                  <label for="warrantyDurationUnit" class="form-label">Warranty Unit</label>
+                  <select id="warrantyDurationUnit" class="form-select" formControlName="warrantyDurationUnit">
+                    <option value="days">Days</option>
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                  </select>
+                </div>
+                }
+
                 <!-- Status (edit only) -->
                 @if (showCenterAndStoreFields()) {
                 <div class="col-12">
@@ -482,6 +529,12 @@
                       <div class="text-muted">Total</div>
                       <div class="fw-bold">{{ formatCurrency(getCurrentTotal()) }}</div>
                     </div>
+                    @if (shouldShowPending()) {
+                    <div class="d-flex justify-content-between">
+                      <div class="text-muted">Pending</div>
+                      <div class="fw-bold">{{ formatCurrency(getPendingAmount()) }}</div>
+                    </div>
+                    }
                   </div>
                   }
                 </div>
@@ -497,6 +550,78 @@
         <div class="card border-0 shadow-sm">
           <div class="card-body p-4">
             <h2 class="step-title mb-3">Related</h2>
+
+            <div class="card mb-3">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Warranty</span>
+                <button
+                  *ngIf="canCreateWarranty()"
+                  class="btn btn-sm btn-outline-primary"
+                  type="button"
+                  [disabled]="isWarrantySaving"
+                  (click)="createWarranty()">
+                  <span class="spinner-border spinner-border-sm me-1" *ngIf="isWarrantySaving"></span>
+                  Create Manually
+                </button>
+              </div>
+              <div class="card-body">
+                @if (isWarrantyLoading) {
+                <div class="text-muted">
+                  <span class="spinner-border spinner-border-sm me-2"></span> Loading warranty
+                </div>
+                } @else if (latestWarranty) {
+                <div class="d-flex flex-column gap-2">
+                  <div>
+                    <span class="badge"
+                      [class.bg-success]="latestWarranty.status === 'active'"
+                      [class.bg-secondary]="latestWarranty.status === 'expired'"
+                      [class.bg-danger]="latestWarranty.status === 'void'">
+                      {{ latestWarranty.status | titlecase }}
+                    </span>
+                  </div>
+                  <div class="small">
+                    <strong>Period:</strong> {{ latestWarranty.warrantyDuration }} {{ latestWarranty.warrantyDurationUnit }}
+                  </div>
+                  <div class="small">
+                    <strong>Start:</strong> {{ latestWarranty.warrantyStartDate | date:'MM/dd/yyyy' }}
+                  </div>
+                  <div class="small">
+                    <strong>End:</strong> {{ latestWarranty.warrantyEndDate | date:'MM/dd/yyyy' }}
+                  </div>
+                  @if (latestWarranty.warrantyVoidReason) {
+                  <div class="small">
+                    <strong>Void Reason:</strong> {{ latestWarranty.warrantyVoidReason }}
+                  </div>
+                  }
+                  @if (latestWarranty.status === 'active') {
+                  <div class="small text-muted">
+                    Void coverage only when this warranty should no longer be valid for future claims.
+                  </div>
+                  <button class="btn btn-sm btn-outline-primary align-self-start" type="button"
+                    *ngIf="isOrderFinalized()"
+                    [disabled]="isWarrantyOrderSaving"
+                    (click)="createWarrantyOrder(latestWarranty)">
+                    <span class="spinner-border spinner-border-sm me-1" *ngIf="isWarrantyOrderSaving"></span>
+                    Create Warranty Order
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger align-self-start" type="button"
+                  *ngIf="isOrderFinalized()"
+                    [disabled]="isWarrantySaving"
+                    (click)="voidWarranty(latestWarranty)">
+                    Void Warranty Coverage
+                  </button>
+                  }
+                </div>
+                } @else {
+                <div class="text-muted">
+                  Warranty period: {{ getWarrantyPeriodLabel() }}.
+                  @if (!serviceOrderForm.get('cloused')?.value) {
+                  The warranty is created automatically when the status moves from Repaired to Delivered/Pick Up.
+                  }
+                </div>
+                }
+              </div>
+            </div>
 
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
@@ -920,6 +1045,20 @@
                 placeholder="Estimated repair..." rows="4" autocapitalize="sentences"></textarea>
             </div>
 
+            <div class="col-md-6 col-xl-4">
+              <label for="warrantyDurationCreate" class="form-label">Warranty Duration</label>
+              <input type="number" id="warrantyDurationCreate" autocomplete="off" class="form-control"
+                formControlName="warrantyDuration" min="0" step="1" />
+            </div>
+            <div class="col-md-6 col-xl-4">
+              <label for="warrantyDurationUnitCreate" class="form-label">Warranty Unit</label>
+              <select id="warrantyDurationUnitCreate" class="form-select" formControlName="warrantyDurationUnit">
+                <option value="days">Days</option>
+                <option value="months">Months</option>
+                <option value="years">Years</option>
+              </select>
+            </div>
+
             <div class="col-12">
               <div class="card border-0 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
@@ -1095,6 +1234,12 @@
                       <div class="text">Total</div>
                       <div class="fw-bold">{{ formatCurrency(getCurrentTotal()) }}</div>
                     </div>
+                    @if (shouldShowPending()) {
+                    <div class="d-flex justify-content-between">
+                      <div class="text">Pending</div>
+                      <div class="fw-bold">{{ formatCurrency(getPendingAmount()) }}</div>
+                    </div>
+                    }
                   </div>
                   }
                 </div>
@@ -1293,6 +1438,51 @@
           <button class="btn btn-secondary" type="button" (click)="closeReceivedPartModal()">Cancel</button>
           <button class="btn btn-primary" type="button" (click)="saveReceivedPartLocal(editingReceivedPart)"
             [disabled]="!editingReceivedPart || !editingReceivedPart.accessory">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show"></div>
+  }
+
+  @if (showWarrantyDecisionModal) {
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
+    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            {{ pendingWarrantyDecision === 'approved' ? 'Approve Warranty Claim' : 'Reject Warranty Claim' }}
+          </h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeWarrantyDecisionModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-2">
+            <label class="form-label">
+              {{ pendingWarrantyDecision === 'approved' ? 'Approval note' : 'Rejection reason *' }}
+            </label>
+            <textarea
+              class="form-control"
+              rows="4"
+              [(ngModel)]="warrantyDecisionReasonDraft"
+              [ngModelOptions]="{ standalone: true }"
+              autocapitalize="sentences">
+            </textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" (click)="closeWarrantyDecisionModal()">Cancel</button>
+          <button
+            class="btn"
+            [class.btn-success]="pendingWarrantyDecision === 'approved'"
+            [class.btn-danger]="pendingWarrantyDecision === 'rejected'"
+            type="button"
+            [disabled]="isWarrantyDecisionSaving || (pendingWarrantyDecision === 'rejected' && !warrantyDecisionReasonDraft.trim())"
+            (click)="confirmWarrantyDecision()">
+            @if (isWarrantyDecisionSaving) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            {{ pendingWarrantyDecision === 'approved' ? 'Approve' : 'Reject' }}
+          </button>
         </div>
       </div>
     </div>

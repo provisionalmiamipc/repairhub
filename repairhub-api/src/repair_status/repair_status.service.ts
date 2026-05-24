@@ -6,6 +6,7 @@ import { CreateRepairStatusDto } from './dto/create-repair_status.dto';
 import { UpdateRepairStatusDto } from './dto/update-repair_status.dto';
 import { ServiceOrder } from '../service_orders/entities/service_order.entity';
 import { EmailService } from '../common/email/email.service';
+import { Warranty } from '../warranties/entities/warranty.entity';
 
 @Injectable()
 export class RepairStatusService {
@@ -14,6 +15,8 @@ export class RepairStatusService {
     private readonly repairStatusRepository: Repository<RepairStatus>,
     @InjectRepository(ServiceOrder)
     private readonly serviceOrderRepository: Repository<ServiceOrder>,
+    @InjectRepository(Warranty)
+    private readonly warrantyRepository: Repository<Warranty>,
     private readonly emailService: EmailService,
   ) {}
 
@@ -25,8 +28,17 @@ export class RepairStatusService {
     // Count existing statuses for the order to decide whether to send email
     const serviceOrderId = createRepairStatusDto.serviceOrderId;
     const existingCount = await this.repairStatusRepository.count({ where: { serviceOrderId } });
+    const previousStatus = await this.repairStatusRepository.findOne({
+      where: { serviceOrderId },
+      order: { createdAt: 'DESC', id: 'DESC' },
+    });
 
     const saved = await this.repairStatusRepository.save(repairStatus);
+
+    // Keep warranty automation isolated so a warranty issue never blocks status email delivery.
+    void this.createWarrantyIfDeliveryStatus(saved, previousStatus).catch((err) => {
+      console.error('RepairStatusService: failed to auto-create warranty', err);
+    });
 
     // Non-blocking email dispatch to avoid delaying API response.
     if (existingCount > 0) {
@@ -36,6 +48,68 @@ export class RepairStatusService {
     }
 
     return saved;
+  }
+
+  private async createWarrantyIfDeliveryStatus(saved: RepairStatus, previousStatus: RepairStatus | null): Promise<void> {
+    if (!this.isWarrantyStartStatus(saved.status)) return;
+    if (!this.isRepairedStatus(previousStatus?.status)) return;
+
+    const order = await this.serviceOrderRepository.findOne({
+      where: { id: saved.serviceOrderId },
+    });
+    if (!order) return;
+    if (order.canceled || order.isWarrantyOrder) return;
+    if (!order.warrantyDuration || Number(order.warrantyDuration) <= 0) return;
+
+    const existing = await this.warrantyRepository.findOne({
+      where: {
+        serviceOrderId: order.id,
+      },
+      order: { createdAt: 'DESC' },
+    });
+    if (existing && existing.status !== 'void') return;
+
+    const startDate = saved.createdAt || new Date();
+    const duration = Number(order.warrantyDuration);
+    const unit = order.warrantyDurationUnit || 'months';
+    const warranty = this.warrantyRepository.create({
+      centerId: order.centerId,
+      storeId: order.storeId,
+      serviceOrderId: order.id,
+      customerId: order.customerId,
+      deviceId: order.deviceId,
+      serial: order.serial,
+      status: 'active',
+      warrantyDuration: duration,
+      warrantyDurationUnit: unit,
+      warrantyStartDate: startDate,
+      warrantyEndDate: this.addDuration(startDate, duration, unit),
+      coverageSummary: 'Limited repair warranty',
+      createdById: saved.createdById ?? order.createdById ?? null,
+    });
+
+    await this.warrantyRepository.save(warranty);
+  }
+
+  private isWarrantyStartStatus(status?: string): boolean {
+    const normalized = this.normalizeStatus(status);
+    return normalized === 'delivered' || normalized === 'pickup' || normalized === 'pick up' || normalized === 'picked up';
+  }
+
+  private isRepairedStatus(status?: string): boolean {
+    return this.normalizeStatus(status) === 'repaired';
+  }
+
+  private normalizeStatus(status?: string): string {
+    return String(status ?? '').trim().toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ');
+  }
+
+  private addDuration(date: Date, duration: number, unit: string): Date {
+    const result = new Date(date);
+    if (unit === 'days') result.setDate(result.getDate() + duration);
+    else if (unit === 'years') result.setFullYear(result.getFullYear() + duration);
+    else result.setMonth(result.getMonth() + duration);
+    return result;
   }
 
   private async dispatchRepairStatusEmail(saved: RepairStatus, serviceOrderId: number): Promise<void> {

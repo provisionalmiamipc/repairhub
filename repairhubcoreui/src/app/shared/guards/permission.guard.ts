@@ -115,6 +115,35 @@ export const accountantGuard: CanActivateFn = (route) => {
 };
 
 /**
+ * Guard: Para facturas.
+ * Permite USER, CenterAdmin, AdminStore y Accountant.
+ */
+export const invoiceGuard: CanActivateFn = () => {
+  const permissionsService = inject(PermissionsService);
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (permissionsService.isAdmin()) {
+    return true;
+  }
+
+  const employee = authService.getCurrentEmployee();
+  const employeeType = permissionsService.getEmployeeType();
+
+  if (
+    employee?.isCenterAdmin ||
+    employeeType === EmployeeType.ADMIN_STORE ||
+    employeeType === EmployeeType.ACCOUNTANT
+  ) {
+    return true;
+  }
+
+  console.warn('Access denied: Invoice access required');
+  router.navigate(['/unauthorized']);
+  return false;
+};
+
+/**
  * Guard: Basado en Permiso Específico
  * Uso: { path: 'create-order', canActivate: [permissionGuard], data: { requiredPermission: Permission.CREATE_ORDER } }
  */

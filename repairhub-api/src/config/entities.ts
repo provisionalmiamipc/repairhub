@@ -29,3 +29,7 @@ export * from '../web_cache/entities/web_cache.entity';
 export * from '../diagnosis/entities/diagnosis_session.entity';
 export * from '../retrieval_log/entities/retrieval_log.entity';
 export * from '../media/entities/media-asset.entity';
+export * from '../received-parts/entities/received-part.entity';
+export * from '../warranties/entities/warranty.entity';
+export * from '../invoices/entities/invoice.entity';
+export * from '../invoices/entities/invoice-item.entity';

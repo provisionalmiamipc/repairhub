@@ -15,6 +15,7 @@ export interface EmailOptions {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
+  private readonly businessTimeZone = 'America/New_York';
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
@@ -126,6 +127,7 @@ export class EmailService {
         };
         if (contentType) out.content_type = contentType;
         if (disposition) out.disposition = disposition;
+        if (disposition) out.content_disposition = disposition;
         if (cid) out.cid = cid;
         if (contentId) out.content_id = contentId;
         return out;
@@ -152,7 +154,8 @@ export class EmailService {
 
   async sendRepairStatusUpdate(options: { to: string; customerName: string; orderCode: string; status: string; date: string | Date; }) {
     const subject = `Update on your service order #${options.orderCode}`;
-    let html = `<p>Dear ${options.customerName},</p><p>Your service order #${options.orderCode} has changed to: <strong>${options.status}</strong> on ${typeof options.date === 'string' ? options.date : new Date(options.date).toLocaleString()}</p>`;
+    const dateLabel = this.formatDateTimeLabel(options.date);
+    let html = `<p>Dear ${options.customerName},</p><p>Your service order #${options.orderCode} has changed to: <strong>${options.status}</strong> on ${dateLabel}</p>`;
 
     try {
       const tmplPath = resolveTemplate('repair-status-updated.hbs');
@@ -161,7 +164,7 @@ export class EmailService {
           const handlebars = require('handlebars');
           const src = fs.readFileSync(tmplPath, 'utf8');
           const tpl = handlebars.compile(src);
-          html = tpl({ customerName: options.customerName, orderCode: options.orderCode, status: options.status, date: typeof options.date === 'string' ? options.date : new Date(options.date).toLocaleString() });
+          html = tpl({ customerName: options.customerName, orderCode: options.orderCode, status: options.status, date: dateLabel });
         } catch (e) {
           this.logger.debug('Failed to render repair-status template, using fallback HTML');
         }
@@ -169,17 +172,19 @@ export class EmailService {
 
       const attachments: any[] = [];
       try {
-        const logoPath = resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
+        const logoPath = resolveUpload(['sopdf.jpg']);
         if (logoPath) {
           const content = fs.readFileSync(logoPath);
           attachments.push({
             filename: path.basename(logoPath),
-            content,
+            type: logoPath.endsWith('.png') ? 'image/png' : 'image/jpg',
+            content: content.toString('base64'),
+            content_type: logoPath.endsWith('.png') ? 'image/png' : 'image/jpg',
             cid: 'logo@repairhub',
             content_id: 'logo@repairhub',
-            contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg',
-            contentDisposition: 'inline',
             disposition: 'inline',
+            contentDisposition: 'inline',
+            content_disposition: 'inline',
           });
         }
       } catch (e) {
@@ -191,6 +196,26 @@ export class EmailService {
       this.logger.error('EmailService.sendRepairStatusUpdate failed', error && error.message ? error.message : error);
       throw error;
     }
+  }
+
+  private formatDateTimeLabel(value: string | Date): string {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: this.businessTimeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(date);
+
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find(item => item.type === type)?.value ?? '';
+
+    return `${part('month')}/${part('day')}/${part('year')} ${part('hour')}:${part('minute')}`;
   }
 
   async sendDiagnosticNotification(opts: { to: string | string[]; customerName: string; orderCode: string; diagnostic: string; date: string | Date; forCenter?: boolean; }) {

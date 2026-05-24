@@ -11,6 +11,8 @@ import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
 import { ReceivedPart } from '../received-parts/entities/received-part.entity';
 import { MediaService } from '../media/media.service';
+import { Warranty } from '../warranties/entities/warranty.entity';
+import type { WarrantyDurationUnit } from '../warranties/entities/warranty.entity';
 
 
 @Injectable()
@@ -141,7 +143,10 @@ formatDateToMMDDYYYY(date: Date): string {
         'sonotes',
         'sodiagnostic',
         'repairStatus',
-        'receivedParts'
+        'receivedParts',
+        'warranties',
+        'warranty',
+        'originalServiceOrder'
       ],
     });
 
@@ -267,7 +272,10 @@ formatDateToMMDDYYYY(date: Date): string {
       'sonotes',
       'sodiagnostic',
       'repairStatus',
-      'receivedParts'
+      'receivedParts',
+      'warranties',
+      'warranty',
+      'originalServiceOrder'
     ];
     const customerWhere = customerId ? { customerId } : {};
 
@@ -322,7 +330,10 @@ formatDateToMMDDYYYY(date: Date): string {
         'sonotes',
         'sodiagnostic',
         'repairStatus',
-        'receivedParts'
+        'receivedParts',
+        'warranties',
+        'warranty',
+        'originalServiceOrder'
       ],
     });
     if (!entity) throw new NotFoundException(`ServiceOrder #${id} not found`);
@@ -346,7 +357,50 @@ formatDateToMMDDYYYY(date: Date): string {
     delete updateData.deviceId;
     delete updateData.deviceBrandId;
     await this.serviceOrderRepository.update(id, updateData);
+    await this.syncWarrantyDurationAfterOrderUpdate(id, updateDto);
     return this.findOne(id);
+  }
+
+  private async syncWarrantyDurationAfterOrderUpdate(id: number, updateDto: UpdateServiceOrderDto) {
+    if (updateDto.warrantyDuration === undefined && updateDto.warrantyDurationUnit === undefined) {
+      return;
+    }
+
+    const order = await this.serviceOrderRepository.findOne({ where: { id } });
+    if (!order) return;
+
+    const warrantyRepo = this.serviceOrderRepository.manager.getRepository(Warranty);
+    const warranties = await warrantyRepo.find({
+      where: { serviceOrderId: id },
+      order: { createdAt: 'DESC' },
+    });
+
+    const warranty = warranties.find((warranty) => warranty.status !== 'void');
+    if (!warranty) return;
+
+    const duration = Number(order.warrantyDuration ?? 0);
+    if (!Number.isFinite(duration) || duration < 0) {
+      return;
+    }
+
+    const unit = (order.warrantyDurationUnit || 'months') as WarrantyDurationUnit;
+    const startDate = warranty.warrantyStartDate || new Date();
+    const warrantyEndDate = this.addWarrantyDuration(startDate, duration, unit);
+
+    await warrantyRepo.update(warranty.id, {
+      warrantyDuration: duration,
+      warrantyDurationUnit: unit,
+      warrantyEndDate,
+    });
+
+  }
+
+  private addWarrantyDuration(date: Date, duration: number, unit: WarrantyDurationUnit): Date {
+    const result = new Date(date);
+    if (unit === 'days') result.setDate(result.getDate() + duration);
+    else if (unit === 'years') result.setFullYear(result.getFullYear() + duration);
+    else result.setMonth(result.getMonth() + duration);
+    return result;
   }
 
   async updateWithImages(

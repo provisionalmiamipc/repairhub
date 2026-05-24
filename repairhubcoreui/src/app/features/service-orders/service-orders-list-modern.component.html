@@ -176,7 +176,7 @@
               }
               <th scope="col">Device</th>
               <th scope="col">Brand</th>
-              <th scope="col">Store</th>
+              <th scope="col">Issue</th>
               <th scope="col">Status</th>
               
               @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
@@ -191,9 +191,17 @@
               <tr [ngClass]="getStatusClass(order)">
                 <td>
                   <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-credit-card-2-front fs-5 text-secondary"></i>
+                    <i
+                      class="bi bi-credit-card-2-front fs-5 warranty-order-icon"
+                      [ngClass]="getWarrantyIconClass(order)"
+                      [attr.title]="getWarrantyTooltip(order)"
+                      [attr.aria-label]="getWarrantyTooltip(order)">
+                    </i>
                     <div>
                       <div class="fw-semibold">{{ order.orderCode }}</div>
+                      @if (order.isWarrantyOrder) {
+                      <span class="badge bg-info text-dark">Warranty Order</span>
+                      }
                       
                     </div>
                   </div>
@@ -210,7 +218,7 @@
                   <div class="small text-muted">{{ order.serial || '-' }}</div>
                 </td>
                 <td>{{ order.deviceBrand?.name|| '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
-                <td>{{ order.store?.storeName || 'N/A' }}</td>                
+                <td>{{ order.defectivePart || 'N/A' }}</td>                
                 <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span>
                   <div class="small text-muted">{{ getLatestRepairStatus(order) }}</div>
                 </td>
@@ -244,10 +252,21 @@
             <!-- Header -->
             <div class="card-header">
               <div class="order-title">
-                <h3 class="order-code">{{ order.orderCode }}</h3>
+                <h3 class="order-code">
+                  <i
+                    class="bi bi-credit-card-2-front warranty-order-icon me-2"
+                    [ngClass]="getWarrantyIconClass(order)"
+                    [attr.title]="getWarrantyTooltip(order)"
+                    [attr.aria-label]="getWarrantyTooltip(order)">
+                  </i>
+                  {{ order.orderCode }}
+                </h3>
                 <span class="status-badge" [ngClass]="getStatusClass(order)">
                   {{ getStatusBadge(order) }}
                 </span>
+                @if (order.isWarrantyOrder) {
+                <span class="badge bg-info text-dark">Warranty Order · {{ order.warrantyDecision || 'pending' | titlecase }}</span>
+                }
               </div>
               <div class="lock-indicator" *ngIf="order.lock">
                 <span class="lock-icon"><i class="bi bi-lock-fill"></i></span> Locked

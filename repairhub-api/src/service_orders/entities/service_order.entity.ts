@@ -16,7 +16,10 @@ import { ReceivedPart } from '../../received-parts/entities/received-part.entity
 import { Exclude } from 'class-transformer';
 import { ChatMessage } from '../../chat_messages/entities/chat_message.entity';
 import { DocumentEntity } from '../../documents/entities/document.entity';
+import { Warranty } from '../../warranties/entities/warranty.entity';
+import type { WarrantyDurationUnit } from '../../warranties/entities/warranty.entity';
 
+export type WarrantyDecision = 'pending' | 'approved' | 'rejected';
 
 
 @Entity('service_orders')
@@ -128,10 +131,51 @@ export class ServiceOrder {
     @IsOptional()
     noteReception?: string;
 
+    @Column('int', { default: 6 })
+    @IsNumber()
+    warrantyDuration: number;
+
+    @Column({ type: 'varchar', default: 'months' })
+    @IsString()
+    warrantyDurationUnit: WarrantyDurationUnit;
+
     @Column({nullable: true})
     @IsString()
     @IsOptional()
     estimated: string;
+
+    @Column({ default: false })
+    @IsBoolean()
+    isWarrantyOrder: boolean;
+
+    @Column('int', { nullable: true })
+    @IsOptional()
+    originalServiceOrderId?: number | null;
+
+    @ManyToOne(() => ServiceOrder, (serviceOrder) => serviceOrder.warrantyClaimOrders, { nullable: true })
+    @JoinColumn({ name: 'originalServiceOrderId' })
+    originalServiceOrder?: ServiceOrder | null;
+
+    @OneToMany(() => ServiceOrder, (serviceOrder) => serviceOrder.originalServiceOrder)
+    warrantyClaimOrders: ServiceOrder[];
+
+    @Column('int', { nullable: true })
+    @IsOptional()
+    warrantyId?: number | null;
+
+    @ManyToOne(() => Warranty, (warranty) => warranty.warrantyOrders, { nullable: true })
+    @JoinColumn({ name: 'warrantyId' })
+    warranty?: Warranty | null;
+
+    @Column({ type: 'varchar', nullable: true })
+    @IsString()
+    @IsOptional()
+    warrantyDecision?: WarrantyDecision | null;
+
+    @Column({ type: 'text', nullable: true })
+    @IsString()
+    @IsOptional()
+    warrantyDecisionReason?: string | null;
 
     @Column({ default: false })
     @IsBoolean()
@@ -185,5 +229,8 @@ export class ServiceOrder {
 
     @OneToMany(() => DocumentEntity, (documentEntity) => documentEntity.serviceOrder)
     documents: DocumentEntity[];
+
+    @OneToMany(() => Warranty, (warranty) => warranty.serviceOrder)
+    warranties: Warranty[];
 
 }

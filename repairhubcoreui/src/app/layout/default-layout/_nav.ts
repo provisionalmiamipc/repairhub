@@ -66,6 +66,18 @@ export const navItems: NavItemWithRoles[] = [
     iconComponent: { name: 'cil-notes' },
     roles: null // visible para todos
   },
+  {
+    name: 'Warranties',
+    url: '/warranties',
+    icon: 'bi bi-shield-check',
+    roles: [UserType.USER, EmployeeType.ADMIN_STORE]
+  },
+  {
+    name: 'Invoices',
+    url: '/invoices',
+    icon: 'bi bi-receipt',
+    roles: [UserType.USER, EmployeeType.ADMIN_STORE, EmployeeType.ACCOUNTANT]
+  },
   
   {
     name: 'Customers',

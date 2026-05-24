@@ -42,6 +42,9 @@ import { RepairCasesModule } from './repair_cases/repair_cases.module';
 import { DiagnosisModule } from './diagnosis/diagnosis.module';
 import { MediaModule } from './media/media.module';
 import { JwtAnyGuard } from './auth/guards/jwt-any.guard';
+import { ReceivedPartsModule } from './received-parts/received-parts.module';
+import { WarrantiesModule } from './warranties/warranties.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 // Cargar DebugModule de forma condicional (evita errores si no se compila/instala)
 const DebugModuleOptional = (() => {
@@ -172,6 +175,9 @@ const DebugModuleOptional = (() => {
     RepairCasesModule,
     DiagnosisModule,
     MediaModule,
+    ReceivedPartsModule,
+    WarrantiesModule,
+    InvoicesModule,
 
   ],
   controllers: [AppController],
