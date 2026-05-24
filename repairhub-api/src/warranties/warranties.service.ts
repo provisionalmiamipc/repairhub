@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThanOrEqual, Not, Repository } from 'typeorm';
+import { In, MoreThanOrEqual, Not, Repository } from 'typeorm';
+import { DeviceBrand } from '../device_brands/entities/device_brand.entity';
 import { RepairStatus } from '../repair_status/entities/repair_status.entity';
 import { ServiceOrder } from '../service_orders/entities/service_order.entity';
 import { CreateWarrantyOrderDto } from './dto/create-warranty-order.dto';
@@ -12,7 +13,7 @@ import type { WarrantyDurationUnit } from './entities/warranty.entity';
 
 @Injectable()
 export class WarrantiesService {
-  private readonly relations = ['serviceOrder', 'customer', 'device', 'store', 'center', 'createdBy', 'voidedBy'];
+  private readonly relations = ['serviceOrder', 'serviceOrder.device', 'serviceOrder.deviceBrand', 'customer', 'device', 'store', 'center', 'createdBy', 'voidedBy'];
 
   constructor(
     @InjectRepository(Warranty)
@@ -75,13 +76,29 @@ export class WarrantiesService {
     });
   }
 
-  findAll() {
-    return this.repo.find({ relations: this.relations, order: { createdAt: 'DESC' } });
+  async findAll() {
+    const warranties = await this.repo
+      .createQueryBuilder('warranty')
+      .leftJoinAndSelect('warranty.serviceOrder', 'serviceOrder')
+      .leftJoinAndSelect('serviceOrder.device', 'serviceOrderDevice')
+      .leftJoinAndSelect('serviceOrder.deviceBrand', 'serviceOrderDeviceBrand')
+      .leftJoinAndSelect('warranty.customer', 'customer')
+      .leftJoinAndSelect('warranty.device', 'device')
+      .leftJoinAndSelect('warranty.store', 'store')
+      .leftJoinAndSelect('warranty.center', 'center')
+      .leftJoinAndSelect('warranty.createdBy', 'createdBy')
+      .leftJoinAndSelect('warranty.voidedBy', 'voidedBy')
+      .orderBy('warranty.createdAt', 'DESC')
+      .getMany();
+
+    await this.ensureServiceOrderBrands(warranties);
+    return warranties.map((warranty) => this.withComputedStatus(warranty));
   }
 
   async findOne(id: number) {
     const warranty = await this.repo.findOne({ where: { id }, relations: this.relations });
     if (!warranty) throw new NotFoundException('Warranty not found');
+    await this.ensureServiceOrderBrands([warranty]);
     return this.withComputedStatus(warranty);
   }
 
@@ -91,6 +108,7 @@ export class WarrantiesService {
       relations: this.relations,
       order: { createdAt: 'DESC' },
     });
+    await this.ensureServiceOrderBrands(warranties);
     return warranties.map((warranty) => this.withComputedStatus(warranty));
   }
 
@@ -247,6 +265,28 @@ export class WarrantiesService {
       return { ...warranty, status: 'expired' };
     }
     return warranty;
+  }
+
+  private async ensureServiceOrderBrands(warranties: Warranty[]) {
+    const missingBrandIds = warranties
+      .map((warranty) => warranty.serviceOrder)
+      .filter((order): order is ServiceOrder => !!order && !!order.deviceBrandId && !order.deviceBrand)
+      .map((order) => Number(order.deviceBrandId));
+
+    const brandIds = [...new Set(missingBrandIds)];
+    if (!brandIds.length) return;
+
+    const brands = await this.repo.manager.getRepository(DeviceBrand).find({
+      where: { id: In(brandIds) },
+    });
+    const brandsById = new Map(brands.map((brand) => [Number(brand.id), brand]));
+
+    warranties.forEach((warranty) => {
+      const order = warranty.serviceOrder;
+      if (!order || order.deviceBrand || !order.deviceBrandId) return;
+      const brand = brandsById.get(Number(order.deviceBrandId));
+      if (brand) order.deviceBrand = brand;
+    });
   }
 
   private async getNextOrderCode(): Promise<string> {

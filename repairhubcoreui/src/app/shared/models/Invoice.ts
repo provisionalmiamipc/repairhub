@@ -2,6 +2,7 @@ import { Centers } from './Centers';
 import { Customers } from './Customers';
 import { Employees } from './Employees';
 import { Items } from './Items';
+import { PaymentTypes } from './PaymentTypes';
 import { ServiceOrders } from './ServiceOrders';
 import { Stores } from './Stores';
 
@@ -32,6 +33,7 @@ export interface Invoice {
   customerId: number;
   serviceOrderId?: number | null;
   createdById?: number | null;
+  paymentTypeId?: number | null;
   status: InvoiceStatus;
   issueDate: string | Date;
   dueDate?: string | Date | null;
@@ -46,6 +48,7 @@ export interface Invoice {
   notes?: string | null;
   serviceSummary?: string | null;
   terms?: string | null;
+  paymentInstructions?: string | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
   center?: Centers;
@@ -53,5 +56,6 @@ export interface Invoice {
   customer?: Customers;
   serviceOrder?: ServiceOrders;
   createdBy?: Employees;
+  paymentType?: PaymentTypes | null;
   items?: InvoiceItem[];
 }

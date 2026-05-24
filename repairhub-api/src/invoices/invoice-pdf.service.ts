@@ -88,6 +88,7 @@ export class InvoicePdfService {
     });
 
     this.drawTotals(doc, invoice, right - 120, 568);
+    this.drawPaymentDetails(doc, invoice, left, 620);
     this.drawTerms(doc, invoice, left, 675);
     if (!this.drawFooterImage(doc, pageWidth)) {
       this.drawFooterMark(doc, 448, 742);
@@ -146,6 +147,19 @@ export class InvoicePdfService {
       doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').text(this.money(value, true), x + 62, rowY, { width: 72, align: 'right' });
       rowY += 27;
     });
+  }
+
+  private drawPaymentDetails(doc: any, invoice: Invoice, x: number, y: number) {
+    const paymentMethod = invoice.paymentType?.type;
+    const instructions = invoice.paymentInstructions?.trim();
+    if (!paymentMethod && !instructions) return;
+
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#221F1F').text('Payment method:', x, y, { continued: true });
+    doc.font('Helvetica').text(` ${paymentMethod || 'N/A'}`);
+
+    if (instructions) {
+      doc.font('Helvetica').fontSize(8.5).text(instructions, x, y + 14, { width: 360, lineGap: 1 });
+    }
   }
 
   private drawTerms(doc: any, invoice: Invoice, x: number, y: number) {

@@ -110,6 +110,8 @@ export class DefaultLayoutComponent implements OnInit {
         if (item.url === '/stores' ||
           item.url === '/employees' ||
           item.url === '/appointments' ||
+          item.url === '/customers' ||
+          item.url === '/warranties' ||
           item.url === '/invoices' ||
           item.url === '/devices' ||
           item.url === '/device-brands' ||

@@ -13,6 +13,7 @@ import { Store } from '../../stores/entities/store.entity';
 import { Customer } from '../../customers/entities/customer.entity';
 import { ServiceOrder } from '../../service_orders/entities/service_order.entity';
 import { Employee } from '../../employees/entities/employee.entity';
+import { PaymentType } from '../../payment_type/entities/payment_type.entity';
 import { InvoiceItem } from './invoice-item.entity';
 
 export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'void';
@@ -45,6 +46,10 @@ export class Invoice {
   @JoinColumn({ name: 'createdById' })
   createdBy?: Employee | null;
 
+  @ManyToOne(() => PaymentType, { nullable: true })
+  @JoinColumn({ name: 'paymentTypeId' })
+  paymentType?: PaymentType | null;
+
   @Column('int')
   centerId: number;
 
@@ -59,6 +64,9 @@ export class Invoice {
 
   @Column('int', { nullable: true })
   createdById?: number | null;
+
+  @Column('int', { nullable: true })
+  paymentTypeId?: number | null;
 
   @Column({ type: 'varchar', default: 'draft' })
   status: InvoiceStatus;
@@ -101,6 +109,9 @@ export class Invoice {
 
   @Column({ type: 'text', nullable: true })
   terms?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  paymentInstructions?: string | null;
 
   @OneToMany(() => InvoiceItem, (item) => item.invoice)
   items: InvoiceItem[];

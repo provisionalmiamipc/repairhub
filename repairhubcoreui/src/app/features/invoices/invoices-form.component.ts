@@ -6,6 +6,7 @@ import { finalize } from 'rxjs/operators';
 import { Centers } from '../../shared/models/Centers';
 import { Customers } from '../../shared/models/Customers';
 import { Invoice, InvoiceItem } from '../../shared/models/Invoice';
+import { PaymentTypes } from '../../shared/models/PaymentTypes';
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
 import { Stores } from '../../shared/models/Stores';
 import { CustomerSearchComponent } from '../customers/customer-search.component';
@@ -13,6 +14,7 @@ import { AuthService } from '../../shared/services/auth.service';
 import { CentersService } from '../../shared/services/centers.service';
 import { CustomersService } from '../../shared/services/customers.service';
 import { InvoicesService } from '../../shared/services/invoices.service';
+import { PaymentTypesService } from '../../shared/services/payment-types.service';
 import { ServiceOrdersService } from '../../shared/services/service-orders.service';
 import { StoresService } from '../../shared/services/stores.service';
 import { ToastService } from '../../shared/services/toast.service';
@@ -74,6 +76,15 @@ import { ToastService } from '../../shared/services/toast.service';
             <div class="col-md-4">
               <label class="form-label">Via</label>
               <input class="form-control" [(ngModel)]="form.via" name="via">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Payment Method</label>
+              <select class="form-select" [(ngModel)]="form.paymentTypeId" name="paymentTypeId">
+                <option [ngValue]="null">Select payment method</option>
+                <option *ngFor="let paymentType of filteredPaymentTypes()" [ngValue]="paymentType.id">
+                  {{ paymentType.type }}
+                </option>
+              </select>
             </div>
             <div class="col-md-6">
               <label class="form-label">Bill To Address</label>
@@ -181,6 +192,11 @@ import { ToastService } from '../../shared/services/toast.service';
               <label class="form-label">Terms</label>
               <textarea class="form-control" rows="3" [(ngModel)]="form.terms" name="terms"></textarea>
             </div>
+            <div class="col-12">
+              <label class="form-label">Payment Instructions</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="form.paymentInstructions" name="paymentInstructions"
+                placeholder="Example: Zelle: miamipcenter@gmail.com"></textarea>
+            </div>
           </div>
         </div>
         <div class="card-footer d-flex justify-content-end gap-2">
@@ -222,6 +238,7 @@ export class InvoicesFormComponent implements OnInit {
   private storesService = inject(StoresService);
   private serviceOrdersService = inject(ServiceOrdersService);
   private customersService = inject(CustomersService);
+  private paymentTypesService = inject(PaymentTypesService);
   private authService = inject(AuthService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
@@ -231,6 +248,7 @@ export class InvoicesFormComponent implements OnInit {
   readonly stores = signal<Stores[]>([]);
   readonly customers = signal<Customers[]>([]);
   readonly serviceOrders = signal<ServiceOrders[]>([]);
+  readonly paymentTypes = signal<PaymentTypes[]>([]);
   readonly isSaving = signal(false);
   readonly isEditMode = signal(false);
   invoiceId: number | null = null;
@@ -247,6 +265,8 @@ export class InvoicesFormComponent implements OnInit {
     billToAddress: '',
     billToContact: '',
     via: 'Workshop',
+    paymentTypeId: null,
+    paymentInstructions: '',
     tax: 0,
     discount: 0,
     serviceSummary: '',
@@ -272,6 +292,15 @@ export class InvoicesFormComponent implements OnInit {
     );
   });
 
+  readonly filteredPaymentTypes = computed(() => {
+    const centerId = Number(this.form.centerId || 0);
+    const storeId = Number(this.form.storeId || 0);
+    return this.paymentTypes().filter(type =>
+      (!centerId || Number((type as any).centerId || type.center?.id || 0) === centerId) &&
+      (!storeId || Number((type as any).storeId || type.store?.id || 0) === storeId)
+    );
+  });
+
   ngOnInit(): void {
     this.loadLookups();
     const id = this.route.snapshot.paramMap.get('id');
@@ -288,6 +317,7 @@ export class InvoicesFormComponent implements OnInit {
     this.centersService.getAll().subscribe(data => this.centers.set(data || []));
     this.storesService.getAll().subscribe(data => this.stores.set(data || []));
     this.customersService.getAll().subscribe(data => this.customers.set(data || []));
+    this.paymentTypesService.getAll().subscribe(data => this.paymentTypes.set(data || []));
   }
 
   loadInvoice(id: number): void {
@@ -303,6 +333,8 @@ export class InvoicesFormComponent implements OnInit {
           billToAddress: invoice.billToAddress || '',
           billToContact: invoice.billToContact || '',
           via: invoice.via || 'Workshop',
+          paymentTypeId: invoice.paymentTypeId || null,
+          paymentInstructions: invoice.paymentInstructions || '',
           tax: Number(invoice.tax || 0),
           discount: Number(invoice.discount || 0),
           serviceSummary: invoice.serviceSummary || '',
@@ -445,6 +477,8 @@ export class InvoicesFormComponent implements OnInit {
       billToAddress: payload.billToAddress,
       billToContact: payload.billToContact,
       via: payload.via,
+      paymentTypeId: payload.paymentTypeId ? Number(payload.paymentTypeId) : null,
+      paymentInstructions: payload.paymentInstructions,
       tax: payload.tax,
       discount: payload.discount,
       serviceSummary: payload.serviceSummary,
@@ -453,7 +487,8 @@ export class InvoicesFormComponent implements OnInit {
     };
 
     Object.keys(updatePayload).forEach((key) => {
-      if ((updatePayload as any)[key] === undefined || (updatePayload as any)[key] === '') {
+      const allowEmptyFields = ['terms', 'paymentInstructions'];
+      if ((updatePayload as any)[key] === undefined || ((updatePayload as any)[key] === '' && !allowEmptyFields.includes(key))) {
         delete (updatePayload as any)[key];
       }
     });

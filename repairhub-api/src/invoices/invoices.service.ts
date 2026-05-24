@@ -16,7 +16,7 @@ import { InvoicePdfService } from './invoice-pdf.service';
 
 @Injectable()
 export class InvoicesService {
-  private readonly relations = ['center', 'store', 'customer', 'serviceOrder', 'createdBy', 'items', 'items.item', 'items.serviceOrder'];
+  private readonly relations = ['center', 'store', 'customer', 'serviceOrder', 'createdBy', 'paymentType', 'items', 'items.item', 'items.serviceOrder'];
 
   constructor(
     @InjectRepository(Invoice)
@@ -67,6 +67,7 @@ export class InvoicesService {
       customerId: so.customerId,
       serviceOrderId: so.id,
       createdById: createdById ?? so.createdById,
+      paymentTypeId: so.paymentTypeId,
       notes: `Draft generated from service order ${so.orderCode}`,
       billToName: so.customer ? `${so.customer.firstName} ${so.customer.lastName}` : undefined,
       billToAddress: so.customer?.city,

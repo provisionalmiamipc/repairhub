@@ -57,8 +57,16 @@ export class CreateInvoiceDto {
   terms?: string;
 
   @IsOptional()
+  @IsString()
+  paymentInstructions?: string;
+
+  @IsOptional()
   @IsInt()
   createdById?: number;
+
+  @IsOptional()
+  @IsInt()
+  paymentTypeId?: number;
 
   @IsOptional()
   @IsNumber()

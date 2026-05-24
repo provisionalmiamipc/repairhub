@@ -6,8 +6,8 @@ import { Stores } from "./Stores";
 
 export interface PaymentTypes {
   id: number;
- // centerid: number;
- // storeid: number;
+  centerId?: number;
+  storeId?: number;
   type: string;
   description: string;
   createdAt: Date;
