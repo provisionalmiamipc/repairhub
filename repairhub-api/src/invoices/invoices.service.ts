@@ -32,11 +32,12 @@ export class InvoicesService {
   ) {}
 
   async create(dto: CreateInvoiceDto) {
+    const { items, ...invoiceData } = dto;
     const invoiceNumber = dto.invoiceNumber?.trim() || await this.getNextInvoiceNumber();
     const issueDate = dto.issueDate ?? new Date().toISOString().slice(0, 10);
 
     const invoice = this.invoiceRepo.create({
-      ...dto,
+      ...invoiceData,
       invoiceNumber,
       issueDate,
       status: 'draft',
@@ -48,8 +49,8 @@ export class InvoicesService {
 
     const savedInvoice = await this.invoiceRepo.save(invoice);
 
-    if (dto.items?.length) {
-      await this.addItems(savedInvoice.id, dto.items);
+    if (items?.length) {
+      await this.addItems(savedInvoice.id, items);
     }
 
     return this.findOne(savedInvoice.id);

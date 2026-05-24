@@ -102,7 +102,7 @@ export class Invoice {
   @Column({ type: 'text', nullable: true })
   terms?: string | null;
 
-  @OneToMany(() => InvoiceItem, (item) => item.invoice, { cascade: true })
+  @OneToMany(() => InvoiceItem, (item) => item.invoice)
   items: InvoiceItem[];
 
   @CreateDateColumn({ type: 'timestamp' })
