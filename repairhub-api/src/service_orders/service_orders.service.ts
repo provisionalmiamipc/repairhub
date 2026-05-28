@@ -13,6 +13,7 @@ import { ReceivedPart } from '../received-parts/entities/received-part.entity';
 import { MediaService } from '../media/media.service';
 import { Warranty } from '../warranties/entities/warranty.entity';
 import type { WarrantyDurationUnit } from '../warranties/entities/warranty.entity';
+import { EmailService } from '../common/email/email.service';
 
 
 @Injectable()
@@ -26,6 +27,7 @@ export class ServiceOrdersService {
     private readonly repairStatusRepository: Repository<RepairStatus>,
     private readonly pdfService: ServiceOrderPdfService,
     private readonly mailService: ServiceOrderMailService,
+    private readonly emailService: EmailService,
     @Optional() private readonly puppeteerPdfService?: ServiceOrderPuppeteerPdfService,
     private readonly pdfJobService?: ServiceOrderPdfJobService,
     private readonly mediaService?: MediaService,
@@ -69,6 +71,32 @@ formatDateToMMDDYYYY(date: Date): string {
       ...order,
       lastRepairStatus: this.pickLastRepairStatus(order),
     }));
+  }
+
+  private normalizeRepairStatus(status?: string): string {
+    return String(status ?? '').trim().toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ');
+  }
+
+  private isDeliveryStatus(status?: string): boolean {
+    const normalized = this.normalizeRepairStatus(status);
+    return normalized === 'delivered' || normalized === 'pickup' || normalized === 'pick up' || normalized === 'picked up';
+  }
+
+  private isRepairedStatus(status?: string): boolean {
+    return this.normalizeRepairStatus(status) === 'repaired';
+  }
+
+  private shouldShowWarrantyPolicy(statuses: RepairStatus[]): boolean {
+    if (!Array.isArray(statuses) || statuses.length < 2) return false;
+
+    const sorted = [...statuses].sort((a: any, b: any) => {
+      const byDate = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return byDate || Number(a.id || 0) - Number(b.id || 0);
+    });
+    const previous = sorted[sorted.length - 2];
+    const current = sorted[sorted.length - 1];
+
+    return this.isDeliveryStatus(current?.status) && this.isRepairedStatus(previous?.status);
   }
 
   async create(createDto: CreateServiceOrderDto) {
@@ -472,9 +500,13 @@ formatDateToMMDDYYYY(date: Date): string {
 
     if (!fullOrder) throw new NotFoundException(`ServiceOrder #${id} not found`);
 
-    const lastRepairStatus = (fullOrder.repairStatus && (Array.isArray(fullOrder.repairStatus)
-      ? fullOrder.repairStatus[fullOrder.repairStatus.length - 1]
-      : fullOrder.repairStatus)) || null;
+    const repairStatuses = Array.isArray(fullOrder.repairStatus)
+      ? [...fullOrder.repairStatus].sort((a: any, b: any) => {
+        const byDate = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return byDate || Number(a.id || 0) - Number(b.id || 0);
+      })
+      : [];
+    const lastRepairStatus = repairStatuses.length ? repairStatuses[repairStatuses.length - 1] : null;
 
     const pdfData = {
       orderCode: fullOrder.orderCode,
@@ -502,12 +534,13 @@ formatDateToMMDDYYYY(date: Date): string {
       estimated: fullOrder.estimated || '',
       noteReception: fullOrder.noteReception || '',
       terms: '',
+      showWarrantyPolicy: this.shouldShowWarrantyPolicy(repairStatuses),
       lastrepairStatus: lastRepairStatus ? ({
         id: lastRepairStatus.id,
         status: lastRepairStatus.status || '',
         date: this.formatDateToMMDDYYYY(lastRepairStatus.createdAt) || '',
       }) : null,
-      repairStatus: (fullOrder.repairStatus || []).map(rs => ({
+      repairStatus: repairStatuses.map(rs => ({
         id: rs.id,
         status: rs.status || '',
         date: this.formatDateToMMDDYYYY(rs.createdAt) || '',
@@ -567,9 +600,14 @@ formatDateToMMDDYYYY(date: Date): string {
 
     if (!fullOrder) throw new NotFoundException(`ServiceOrder #${id} not found`);
 
-    const lastRepairStatus = (fullOrder.repairStatus && (Array.isArray(fullOrder.repairStatus)
-      ? fullOrder.repairStatus[fullOrder.repairStatus.length - 1]
-      : fullOrder.repairStatus)) || null;
+    const repairStatuses = Array.isArray(fullOrder.repairStatus)
+      ? [...fullOrder.repairStatus].sort((a: any, b: any) => {
+        const byDate = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return byDate || Number(a.id || 0) - Number(b.id || 0);
+      })
+      : [];
+    const lastRepairStatus = repairStatuses.length ? repairStatuses[repairStatuses.length - 1] : null;
+    const shouldSendCompletionEmail = this.shouldShowWarrantyPolicy(repairStatuses);
 
     const pdfData = {
       orderCode: fullOrder.orderCode,
@@ -597,12 +635,13 @@ formatDateToMMDDYYYY(date: Date): string {
       estimated: fullOrder.estimated || '',
       noteReception: fullOrder.noteReception || '',
       terms: '',
+      showWarrantyPolicy: shouldSendCompletionEmail,
       lastrepairStatus: lastRepairStatus ? ({
         id: lastRepairStatus.id,
-        status: lastRepairStatus.status || '',        
+        status: lastRepairStatus.status || '',
         date: this.formatDateToMMDDYYYY(lastRepairStatus.createdAt) || '',
       }) : null,
-      repairStatus: (fullOrder.repairStatus || [])
+      repairStatus: repairStatuses
           .map(rs => ({
             id: rs.id,
             status: rs.status || '',
@@ -631,25 +670,43 @@ formatDateToMMDDYYYY(date: Date): string {
         : [],
     };
 
+    if (shouldSendCompletionEmail) {
+      const pdfBuffer = await this.generatePdfBufferFromData(pdfData);
+      if (pdfData.customerEmail) {
+        await this.emailService.sendServiceCompletionNotification({
+          to: pdfData.customerEmail,
+          customerName: pdfData.customerName,
+          orderCode: pdfData.orderCode,
+          pdfBuffer,
+        });
+      }
+      return { ok: true, queued: false, completionEmail: true };
+    }
+
     if (this.pdfJobService) {
       this.pdfJobService.enqueue({ pdfData });
       return { ok: true, queued: true };
     }
 
     // Fallback: generate PDF synchronously and send
-    let pdfBuffer: Buffer;
-    if (this.pdfService && typeof (this.pdfService as any).generateRepairPdfBuffer === 'function') {
-      pdfBuffer = await (this.pdfService as any).generateRepairPdfBuffer(pdfData);
-    } else if (this.puppeteerPdfService) {
-      pdfBuffer = await this.puppeteerPdfService.generate(pdfData);
-    } else {
-      pdfBuffer = await this.pdfService.generate(pdfData) as unknown as Buffer;
-    }
+    const pdfBuffer = await this.generatePdfBufferFromData(pdfData);
 
     if (pdfData.customerEmail) {
       await this.mailService.sendOrderCreatedMail(pdfData, pdfBuffer);
     }
 
     return { ok: true, queued: false };
+  }
+
+  private async generatePdfBufferFromData(pdfData: any): Promise<Buffer> {
+    if (this.pdfService && typeof (this.pdfService as any).generateRepairPdfBuffer === 'function') {
+      return (this.pdfService as any).generateRepairPdfBuffer(pdfData);
+    }
+
+    if (this.puppeteerPdfService) {
+      return this.puppeteerPdfService.generate(pdfData);
+    }
+
+    return this.pdfService.generate(pdfData) as unknown as Buffer;
   }
 }

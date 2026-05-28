@@ -58,10 +58,9 @@ export class EmailService {
     const subject = `Order status update #${options.orderCode}`;
     const resendKey = process.env.RESEND_API_KEY || this.config.get<string>('RESEND_API_KEY');
     try {
-      // try to resolve a logo in uploads
       let logoPath: string | null = null;
       try {
-        logoPath = resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
+        logoPath = this.resolveStandardEmailHeader() || resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
       } catch (e) {
         // ignore
       }
@@ -76,12 +75,13 @@ export class EmailService {
       const attachments: any[] = [];
       if (logoPath) {
         attachments.push({
-          filename: path.basename(logoPath),
+          filename: 'email-header.png',
           path: logoPath,
-          cid: 'logo@repairhub',
+          cid: 'email-header@repairhub',
           contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg',
           contentDisposition: 'inline',
           disposition: 'inline',
+          content_disposition: 'inline',
         });
       }
 
@@ -106,12 +106,13 @@ export class EmailService {
           const content = att.path && fs.existsSync(att.path) ? fs.readFileSync(att.path).toString('base64') : null;
           if (!content) return null;
           return {
-            filename: att.filename,
+            filename: 'email-header.png',
             content,
             content_type: att.contentType,
             cid: att.cid,
             content_id: att.cid,
             disposition: 'inline',
+            content_disposition: 'inline',
           };
         }).filter(Boolean);
 
@@ -161,7 +162,7 @@ export class EmailService {
         message: options.message || 'You have an appointment scheduled for tomorrow.',
       };
       const logoAttachments = this.getLogoCidAttachments();
-      const logoHtml = logoAttachments.length ? `<img src="cid:logo@repairhub" alt="Logo" style="height:56px;" />` : '';
+      const logoHtml = logoAttachments.length ? `<img src="cid:email-header@repairhub" alt="Logo" style="height:56px;" />` : '';
       const html = `<!doctype html>
 <html>
   <body style="font-family: Arial, sans-serif; color: #1f2937; background:#f8fafc; padding: 20px;">
@@ -213,7 +214,7 @@ export class EmailService {
   }) {
     const dateLabel = this.formatDateTimeLabel(options.date, options.time);
     const logoAttachments = this.getLogoCidAttachments();
-    const logoHtml = logoAttachments.length ? `<img src="cid:logo@repairhub" alt="Logo" style="height:56px;" />` : '';
+    const logoHtml = logoAttachments.length ? `<img src="cid:email-header@repairhub" alt="Logo" style="height:56px;" />` : '';
     const subject = `Appointment scheduled #${options.appointmentCode}`;
     const customerName = options.customerName || 'Customer';
     const location = [options.storeName, options.centerName].filter(Boolean).join(' - ');
@@ -270,7 +271,7 @@ export class EmailService {
   }) {
     const dateLabel = this.formatDateTimeLabel(options.date, options.time);
     const logoAttachments = this.getLogoCidAttachments();
-    const logoHtml = logoAttachments.length ? `<img src="cid:logo@repairhub" alt="Logo" style="height:56px;" />` : '';
+    const logoHtml = logoAttachments.length ? `<img src="cid:email-header@repairhub" alt="Logo" style="height:56px;" />` : '';
     const subject = `Reminder: appointment #${options.appointmentCode}`;
     const customerName = options.customerName || 'Customer';
     const location = [options.storeName, options.centerName].filter(Boolean).join(' - ');
@@ -327,7 +328,7 @@ export class EmailService {
   }) {
     const dateLabel = this.formatDateTimeLabel(options.date, options.time);
     const logoAttachments = this.getLogoCidAttachments();
-    const logoHtml = logoAttachments.length ? `<img src="cid:logo@repairhub" alt="Logo" style="height:56px;" />` : '';
+    const logoHtml = logoAttachments.length ? `<img src="cid:email-header@repairhub" alt="Logo" style="height:56px;" />` : '';
     const subject = `Appointment updated #${options.appointmentCode}`;
     const customerName = options.customerName || 'Customer';
     const location = [options.storeName, options.centerName].filter(Boolean).join(' - ');
@@ -392,11 +393,11 @@ export class EmailService {
           }
           if (!contentBase64) return null;
           return {
-            filename: att.filename || 'sopdf.jpg',
+            filename: att.cid || att.content_id ? 'email-header.png' : (att.filename || 'attachment'),
             content: contentBase64,
             content_type: att.contentType || att.content_type || 'image/png',
-            cid: att.cid || att.content_id || 'logo@repairhub',
-            content_id: att.cid || att.content_id || 'logo@repairhub',
+            cid: att.cid || att.content_id || 'email-header@repairhub',
+            content_id: att.cid || att.content_id || 'email-header@repairhub',
             content_disposition: att.contentDisposition || att.disposition || 'inline',
             disposition: att.disposition || 'inline',
           };
@@ -428,9 +429,9 @@ export class EmailService {
       const logoPath = this.resolveStandardEmailHeader() || resolveUpload(['sopdf.jpg', 'logo.png', 'logo.jpg', 'sopdf1.jpg']);
       if (!logoPath || !fs.existsSync(logoPath)) return [];
       return [{
-        filename: path.basename(logoPath),
+        filename: 'email-header.png',
         path: logoPath,
-        cid: 'logo@repairhub',
+        cid: 'email-header@repairhub',
         contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg',
         contentDisposition: 'inline',
         disposition: 'inline',
@@ -442,9 +443,9 @@ export class EmailService {
 
   private resolveStandardEmailHeader(): string | null {
     const candidates = [
-      path.join(__dirname, 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      path.join(__dirname, '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      path.join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      path.join(__dirname, 'templates', 'emails', 'assets', 'email-header.png'),
+      path.join(__dirname, '..', 'templates', 'emails', 'assets', 'email-header.png'),
+      path.join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'email-header.png'),
     ];
 
     return candidates.find(candidate => fs.existsSync(candidate)) || null;

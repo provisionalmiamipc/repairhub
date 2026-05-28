@@ -34,13 +34,13 @@ export class RepairPdfService {
         this.drawReceivedPartsSection(doc, data);
 
         // Add new page for notes
-        doc.addPage();
+        //doc.addPage();
         this.drawDiagnosticsSection(doc, data);
         this.drawStatusHistorySection(doc, data);
         this.drawProductSummarySection(doc, data);
 
-        doc.addPage();
-        this.drawTermsAndConditions(doc);
+        //doc.addPage();
+        this.drawTermsOrWarrantyPolicy(doc, data);
         this.drawServiceOrderImages(doc, data);
 
         // Finalize PDF
@@ -86,7 +86,7 @@ export class RepairPdfService {
         this.drawProductSummarySection(doc, data);
 
         doc.addPage();
-        this.drawTermsAndConditions(doc);
+        this.drawTermsOrWarrantyPolicy(doc, data);
         this.drawServiceOrderImages(doc, data);
 
         doc.end();
@@ -196,19 +196,20 @@ export class RepairPdfService {
 
     const centerLines = [
       'Miami Photography Center. LLC',
+      'www.miamiphotographycenter.com',
       '3911 SW 27th St, West Park, 33023, FL',
       'service@miamiphotographycenter.com',
       '+1 (786) 763-2091',
-      'www.miamiphotographycenter.com',
     ];
 
     doc.fillColor(black).font('Helvetica-Bold').fontSize(10.5);
-    let headerTextY = 72;
-    centerLines.forEach((line, index) => {
+    const centerLineHeight = 16;
+    let headerTextY = 60;
+    centerLines.forEach((line) => {
       doc
         .font('Helvetica-Bold')
         .text(line, 330, headerTextY, { width: 220, align: 'right' });
-      headerTextY += index === centerLines.length - 1 ? 17 : 13;
+      headerTextY += centerLineHeight;
     });
 
     // DATE and REPAIR ID section
@@ -1167,6 +1168,114 @@ export class RepairPdfService {
   /**
    * Draw Terms and Conditions section
    */
+  private drawTermsOrWarrantyPolicy(doc: PDFDocument, data: any): void {
+    if (data?.showWarrantyPolicy === true) {
+      this.drawWarrantyPolicy(doc);
+      return;
+    }
+
+    this.drawTermsAndConditions(doc);
+  }
+
+  /**
+   * Draw Warranty Policy section for completed service orders
+   */
+  private drawWarrantyPolicy(doc: PDFDocument): void {
+    const marginLeft = doc.page.margins.left;
+    const marginRight = doc.page.margins.right;
+    const pageWidth = doc.page.width;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+
+    this.ensureSpace(doc, 210);
+    let yPos = doc.y + 25;
+
+    doc
+      .fontSize(14)
+      .font('Helvetica-Bold')
+      .fillColor('#000000')
+      .text('WARRANTY POLICY', marginLeft, yPos);
+
+    yPos += 28;
+
+    const paragraphs = [
+      'Miami Photography Center provides limited warranty coverage for the specific service and documented work performed under normal operating conditions.',
+      'Warranty coverage and applicable period are specified individually within each completed service order.',
+      'This warranty does not cover:',
+    ];
+
+    paragraphs.forEach((paragraph) => {
+      doc.font('Helvetica').fontSize(8.5).fillColor('#000000');
+      const textHeight = doc.heightOfString(paragraph, { width: contentWidth, lineGap: 2 });
+      if (yPos + textHeight + 8 > this.pageBottom(doc)) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
+      doc.text(paragraph, marginLeft, yPos, {
+        width: contentWidth,
+        align: 'left',
+        lineGap: 2,
+      });
+      yPos += textHeight + 8;
+    });
+
+    const exclusions = [
+      'Impact or liquid damage',
+      'Sand, humidity or corrosion',
+      'Improper handling or misuse',
+      'Unauthorized repairs or tampering',
+      'External electrical damage or accessories',
+      'Data loss or media recovery',
+    ];
+
+    exclusions.forEach((item) => {
+      doc.font('Helvetica').fontSize(8.5).fillColor('#000000');
+      const textHeight = doc.heightOfString(item, { width: contentWidth - 18, lineGap: 2 });
+      if (yPos + textHeight + 4 > this.pageBottom(doc)) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
+
+      doc.text('-', marginLeft + 3, yPos, { width: 10 });
+      doc.text(item, marginLeft + 18, yPos, {
+        width: contentWidth - 18,
+        align: 'left',
+        lineGap: 2,
+      });
+      yPos += textHeight + 5;
+    });
+
+    yPos += 8;
+
+    const closingParagraphs = [
+      'All warranty evaluations must be performed by Miami Photography Center prior to approval.',
+      'Equipment not claimed within 90 days after service completion notification may be subject to storage or abandonment procedures permitted under applicable regulations.',
+      'For assistance:',
+      'service@miamiphotographycenter.com',
+      'www.miamiphotographycenter.com',
+    ];
+
+    closingParagraphs.forEach((paragraph, index) => {
+      const isContactLine = index >= closingParagraphs.length - 2;
+      doc
+        .font(isContactLine ? 'Helvetica-Bold' : 'Helvetica')
+        .fontSize(8.5)
+        .fillColor('#000000');
+      const textHeight = doc.heightOfString(paragraph, { width: contentWidth, lineGap: 2 });
+      if (yPos + textHeight + 8 > this.pageBottom(doc)) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
+      doc.text(paragraph, marginLeft, yPos, {
+        width: contentWidth,
+        align: 'left',
+        lineGap: 2,
+      });
+      yPos += textHeight + (isContactLine ? 4 : 8);
+    });
+
+    doc.y = yPos;
+  }
+
   private drawTermsAndConditions(doc: PDFDocument): void {
     const marginLeft = doc.page.margins.left;
     const marginRight = doc.page.margins.right;

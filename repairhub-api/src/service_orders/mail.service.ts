@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { resolveUpload, resolveTemplate } from '../common/asset-utils';
-import * as path from 'path';
 import * as fs from 'fs';
 import { join } from 'path';
 
@@ -26,14 +25,15 @@ export class ServiceOrderMailService {
           const logo = fs.readFileSync(p);
           const contentType = p.endsWith('.png') ? 'image/png' : 'image/jpeg';
           logoAttachment = {
-            filename: path.basename(p),
+            filename: 'email-header.png',
               // include both content_type and cid so both Resend and SMTP handle inline
               type: contentType,
               content: logo.toString('base64'),
               content_type: contentType,
-              cid: 'logo@repairhub',
-              content_id: 'logo@repairhub',
+              cid: 'email-header@repairhub',
+              content_id: 'email-header@repairhub',
               disposition: 'inline',
+              content_disposition: 'inline',
           };
         }
       } catch (e) {
@@ -175,10 +175,11 @@ export class ServiceOrderMailService {
             contentType: 'application/pdf',
           },
           // Attach logo if present
-          ...(logoPath ? [{ filename: path.basename(logoPath), 
+          ...(logoPath ? [{ filename: 'email-header.png',
             path: logoPath, 
-            cid: 'logo@repairhub', 
-            contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg' }] : []),
+            cid: 'email-header@repairhub',
+            contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg',
+            contentDisposition: 'inline' as const }] : []),
         ],
       });
       // sent via SMTP fallback
@@ -191,9 +192,9 @@ export class ServiceOrderMailService {
 
   private resolveEmailLogoPath(): string | null {
     const invoiceLogoCandidates = [
-      join(__dirname, '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      join(__dirname, '..', 'templates', 'emails', 'assets', 'email-header.png'),
+      join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'email-header.png'),
+      join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'email-header.png'),
       join(__dirname, '..', 'invoices', 'assets', 'invoice-logo-text-trimmed.png'),
       join(__dirname, '..', '..', 'invoices', 'assets', 'invoice-logo-text-trimmed.png'),
       join(process.cwd(), 'src', 'invoices', 'assets', 'invoice-logo-text-trimmed.png'),

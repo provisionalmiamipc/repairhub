@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { existsSync, readFileSync } from 'fs';
-import { basename, join } from 'path';
+import { join } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmailService } from '../common/email/email.service';
@@ -241,7 +241,7 @@ export class InvoicesService {
         <body bgcolor="#f6f7f9" style="margin:0; padding:0; background:#f6f7f9; background-color:#f6f7f9; font-family:Arial, sans-serif; color:#222;">
           <div style="max-width:640px; margin:0 auto; padding:28px 16px;">
             <div style="background:#ffffff; border:1px solid #e7e7e7; border-radius:8px; overflow:hidden;">
-              <img src="cid:invoice-header@repairhub" alt="Miami Photography Center" style="display:block; width:100%; max-width:640px; height:auto; margin:0;" />
+              <img src="cid:email-header@repairhub" alt="Miami Photography Center" style="display:block; width:100%; max-width:640px; height:auto; margin:0;" />
               <div style="padding:30px;">
                 <h1 style="margin:0 0 18px 0; font-size:22px; line-height:1.3; color:#111111;">Invoice Notification</h1>
                 <p style="margin:0 0 14px 0; font-size:15px; line-height:1.6;">Dear <strong>${customerName}</strong>,</p>
@@ -275,19 +275,22 @@ export class InvoicesService {
 
   private invoiceEmailHeaderAttachment() {
     const headerPath = [
-      join(__dirname, '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      join(__dirname, '..', 'templates', 'emails', 'assets', 'email-header.png'),
+      join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'email-header.png'),
+      join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'email-header.png'),
     ].find(candidate => existsSync(candidate));
 
     if (!headerPath) return null;
 
     return {
-      filename: basename(headerPath),
+      filename: 'email-header.png',
       content: readFileSync(headerPath),
       contentType: 'image/png',
-      cid: 'invoice-header@repairhub',
+      cid: 'email-header@repairhub',
+      content_id: 'email-header@repairhub',
       contentDisposition: 'inline',
+      disposition: 'inline',
+      content_disposition: 'inline',
     };
   }
 

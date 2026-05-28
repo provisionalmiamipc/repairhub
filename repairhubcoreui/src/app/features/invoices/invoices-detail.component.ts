@@ -269,7 +269,7 @@ export class InvoicesDetailComponent implements OnInit {
   selectedInvoice: Invoice | null = null;
   modalNotes = 'Paid in full';
   modalEmail = '';
-  modalMessage = 'Please find your invoice attached.';
+  modalMessage = '';
   modalReason = '';
 
   ngOnInit(): void {
@@ -326,7 +326,7 @@ export class InvoicesDetailComponent implements OnInit {
   openEmailModal(invoice: Invoice): void {
     this.selectedInvoice = invoice;
     this.modalEmail = invoice.customer?.email || '';
-    this.modalMessage = 'Please find your invoice attached.';
+    this.modalMessage = '';
     this.actionModal.set({
       type: 'email',
       title: 'Send invoice by email',

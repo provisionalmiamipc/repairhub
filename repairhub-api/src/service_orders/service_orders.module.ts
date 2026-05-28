@@ -11,9 +11,10 @@ import { ServiceOrderPuppeteerPdfService } from './puppeteer-pdf.service';
 import { ServiceOrderMailService } from './mail.service';
 import { ServiceOrderPdfJobService } from './pdf-job.service';
 import { MediaModule } from '../media/media.module';
+import { EmailModule } from '../common/email/email.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus]), MediaModule],
+  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus]), MediaModule, EmailModule],
   controllers: [ServiceOrdersController],
   providers: [
     ServiceOrdersService,
@@ -26,5 +27,6 @@ import { MediaModule } from '../media/media.module';
     ServiceOrderMailService,
     ServiceOrderPdfJobService,
   ],
+  exports: [ServiceOrdersService],
 })
 export class ServiceOrdersModule {}

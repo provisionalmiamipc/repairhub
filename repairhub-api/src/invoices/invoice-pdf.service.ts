@@ -35,20 +35,21 @@ export class InvoicePdfService {
     this.drawHeader(doc, pageWidth, left, black, yellow);
 
     const centerLines = [
-      'Miami Photography Center. LLC',      
+      'Miami Photography Center. LLC',
+      'www.miamiphotographycenter.com',
       '3911 SW 27th St, West Park, 33023, FL',
       'service@miamiphotographycenter.com',
       '+1 (786) 763-2091',
-      'www.miamiphotographycenter.com',
     ];
 
     doc.fillColor(black).font('Helvetica-Bold').fontSize(10.5);
-    let y = 72;
-    centerLines.forEach((line, index) => {
+    const centerLineHeight = 16;
+    let y = 60;
+    centerLines.forEach((line) => {
       doc
         .font('Helvetica-Bold')
         .text(line, 330, y, { width: 220, align: 'right' });
-      y += index === centerLines.length - 1 ? 17 : 13;
+      y += centerLineHeight;
     });
     y = 160;
     doc

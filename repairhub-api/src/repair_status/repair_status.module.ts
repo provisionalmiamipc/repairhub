@@ -6,9 +6,10 @@ import { RepairStatus } from './entities/repair_status.entity';
 import { ServiceOrder } from '../service_orders/entities/service_order.entity';
 import { EmailModule } from '../common/email/email.module';
 import { Warranty } from '../warranties/entities/warranty.entity';
+import { ServiceOrdersModule } from '../service_orders/service_orders.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([RepairStatus, ServiceOrder, Warranty]), EmailModule],
+  imports: [TypeOrmModule.forFeature([RepairStatus, ServiceOrder, Warranty]), EmailModule, ServiceOrdersModule],
   controllers: [RepairStatusController],
   providers: [RepairStatusService],
 })

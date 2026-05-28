@@ -7,6 +7,7 @@ import { UpdateRepairStatusDto } from './dto/update-repair_status.dto';
 import { ServiceOrder } from '../service_orders/entities/service_order.entity';
 import { EmailService } from '../common/email/email.service';
 import { Warranty } from '../warranties/entities/warranty.entity';
+import { ServiceOrdersService } from '../service_orders/service_orders.service';
 
 @Injectable()
 export class RepairStatusService {
@@ -18,6 +19,7 @@ export class RepairStatusService {
     @InjectRepository(Warranty)
     private readonly warrantyRepository: Repository<Warranty>,
     private readonly emailService: EmailService,
+    private readonly serviceOrdersService: ServiceOrdersService,
   ) {}
 
   async create(createRepairStatusDto: CreateRepairStatusDto) {
@@ -42,7 +44,7 @@ export class RepairStatusService {
 
     // Non-blocking email dispatch to avoid delaying API response.
     if (existingCount > 0) {
-      void this.dispatchRepairStatusEmail(saved, serviceOrderId).catch((err) => {
+      void this.dispatchRepairStatusEmail(saved, serviceOrderId, previousStatus).catch((err) => {
         console.error('RepairStatusService: failed to send status update email', err);
       });
     }
@@ -112,7 +114,7 @@ export class RepairStatusService {
     return result;
   }
 
-  private async dispatchRepairStatusEmail(saved: RepairStatus, serviceOrderId: number): Promise<void> {
+  private async dispatchRepairStatusEmail(saved: RepairStatus, serviceOrderId: number, previousStatus: RepairStatus | null): Promise<void> {
     const order = await this.serviceOrderRepository.findOne({
       where: { id: serviceOrderId },
       relations: ['customer'],
@@ -123,10 +125,22 @@ export class RepairStatusService {
 
     if (!to) return;
 
+    const orderCode = (order as any).orderCode || String(serviceOrderId);
+    if (this.isWarrantyStartStatus(saved.status) && this.isRepairedStatus(previousStatus?.status)) {
+      const pdfBuffer = await this.serviceOrdersService.generatePdf(serviceOrderId);
+      await this.emailService.sendServiceCompletionNotification({
+        to,
+        customerName,
+        orderCode,
+        pdfBuffer,
+      });
+      return;
+    }
+
     await this.emailService.sendRepairStatusUpdate({
       to,
       customerName,
-      orderCode: (order as any).orderCode || String(serviceOrderId),
+      orderCode,
       status: saved.status,
       date: saved.createdAt || new Date(),
     });

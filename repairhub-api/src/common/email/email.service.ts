@@ -176,12 +176,12 @@ export class EmailService {
         if (logoPath) {
           const content = fs.readFileSync(logoPath);
           attachments.push({
-            filename: path.basename(logoPath),
+            filename: 'email-header.png',
             type: logoPath.endsWith('.png') ? 'image/png' : 'image/jpg',
             content: content.toString('base64'),
             content_type: logoPath.endsWith('.png') ? 'image/png' : 'image/jpg',
-            cid: 'logo@repairhub',
-            content_id: 'logo@repairhub',
+            cid: 'email-header@repairhub',
+            content_id: 'email-header@repairhub',
             disposition: 'inline',
             contentDisposition: 'inline',
             content_disposition: 'inline',
@@ -196,6 +196,95 @@ export class EmailService {
       this.logger.error('EmailService.sendRepairStatusUpdate failed', error && error.message ? error.message : error);
       throw error;
     }
+  }
+
+  async sendServiceCompletionNotification(options: {
+    to: string;
+    customerName: string;
+    orderCode: string;
+    pdfBuffer: Buffer;
+  }): Promise<void> {
+    const subject = `Service Order ${options.orderCode} Completed`;
+    const customerName = this.escapeHtml(options.customerName || 'Customer');
+    const orderCode = this.escapeHtml(options.orderCode);
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { margin: 0; padding: 0; background: #f4f5f7; font-family: Arial, Helvetica, sans-serif; color: #1f2933; }
+    .wrapper { width: 100%; padding: 28px 0; }
+    .container { max-width: 640px; margin: 0 auto; background: #ffffff; border: 1px solid #e4e7ec; }
+    .header img { display: block; width: 100%; max-width: 640px; height: auto; }
+    .content { padding: 32px 34px; font-size: 15px; line-height: 1.65; }
+    h1 { margin: 0 0 22px; font-size: 22px; line-height: 1.25; color: #111827; }
+    p { margin: 0 0 16px; }
+    .contact { font-weight: 700; color: #111827; }
+    .footer { padding: 18px 34px 26px; color: #667085; font-size: 12px; border-top: 1px solid #eef0f3; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header"><img src="cid:email-header@repairhub" alt="Miami Photography Center" /></div>
+      <div class="content">
+        <h1>Service Completion Notification</h1>
+        <p>Dear ${customerName},</p>
+        <p>Your service order ${orderCode} has been completed and the equipment has been successfully delivered/released.</p>
+        <p>Attached you will find the final service documentation containing the completed work details, technical service summary and warranty information related to your order.</p>
+        <p>We recommend keeping this document for your records and future service reference.</p>
+        <p>If you have any questions regarding the completed service, warranty coverage or future maintenance recommendations, please contact us directly at:</p>
+        <p class="contact">service@miamiphotographycenter.com</p>
+        <p>Thank you for trusting Miami Photography Center.</p>
+        <p>Best regards,<br />Miami Photography Center<br />Technical Service Department</p>
+      </div>
+      <div class="footer">This is an automated notification message.</div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const attachments: any[] = [];
+    const headerAttachment = this.createStandardHeaderAttachment();
+    if (headerAttachment) attachments.push(headerAttachment);
+    attachments.push({
+      filename: `service-order-${options.orderCode}.pdf`,
+      content: options.pdfBuffer,
+      contentType: 'application/pdf',
+    });
+
+    await this.sendEmail({ to: options.to, subject, html, attachments });
+  }
+
+  private createStandardHeaderAttachment(): any | null {
+    try {
+      const logoPath = this.resolveStandardEmailHeader() || resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
+      if (!logoPath) return null;
+      const contentType = logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      return {
+        filename: 'email-header.png',
+        content: fs.readFileSync(logoPath),
+        contentType,
+        content_type: contentType,
+        cid: 'email-header@repairhub',
+        content_id: 'email-header@repairhub',
+        disposition: 'inline',
+        contentDisposition: 'inline',
+        content_disposition: 'inline',
+      };
+    } catch (e) {
+      this.logger.debug('No standard header attachment for email');
+      return null;
+    }
+  }
+
+  private escapeHtml(value: string): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   private formatDateTimeLabel(value: string | Date): string {
@@ -242,7 +331,7 @@ export class EmailService {
         const logoPath = this.resolveStandardEmailHeader() || resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
         if (logoPath) {
           const content = fs.readFileSync(logoPath);
-          attachments.push({ filename: path.basename(logoPath), content, cid: 'logo@repairhub', content_id: 'logo@repairhub', contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg', contentDisposition: 'inline', disposition: 'inline' });
+          attachments.push({ filename: 'email-header.png', content, cid: 'email-header@repairhub', content_id: 'email-header@repairhub', contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg', contentDisposition: 'inline', disposition: 'inline', content_disposition: 'inline' });
         }
       } catch (e) {
         this.logger.debug('No logo attachment for diagnostic email');
@@ -257,9 +346,9 @@ export class EmailService {
 
   private resolveStandardEmailHeader(): string | null {
     const candidates = [
-      path.join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      path.join(__dirname, '..', '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
-      path.join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      path.join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'email-header.png'),
+      path.join(__dirname, '..', '..', '..', 'templates', 'emails', 'assets', 'email-header.png'),
+      path.join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'email-header.png'),
     ];
 
     return candidates.find(candidate => fs.existsSync(candidate)) || null;
