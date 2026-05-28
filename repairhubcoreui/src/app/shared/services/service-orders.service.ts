@@ -18,6 +18,10 @@ export class ServiceOrdersService extends BaseService<ServiceOrders> {
     return this.http.post<any>(`${this.apiUrl}/${id}/resend-email`, {}).pipe(timeout(30000));
   }
 
+  downloadPdf(id: number) {
+    return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' }).pipe(timeout(30000));
+  }
+
   getByCustomer(customerId: number) {
     return this.http.get<ServiceOrders[]>(`${this.apiUrl}?customerId=${customerId}`).pipe(timeout(30000));
   }
@@ -56,7 +60,10 @@ export class ServiceOrdersService extends BaseService<ServiceOrders> {
     const formData = new FormData();
     formData.append('data', JSON.stringify(data));
     deleteImageIds.forEach(id => formData.append('deleteImageIds', String(id)));
-    images.forEach(file => formData.append('images', file));
+    images.forEach(file => {
+      formData.append('images', file);
+      formData.append('imageKinds', file.name.startsWith('customer-signature') ? 'signature' : 'image');
+    });
     return formData;
   }
 }

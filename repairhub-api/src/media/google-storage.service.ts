@@ -80,6 +80,18 @@ export class GoogleStorageService {
     return url;
   }
 
+  async downloadBuffer(key?: string | null) {
+    if (!key) return null;
+    this.ensureConfigured();
+
+    const [buffer] = await this.storage
+      .bucket(this.bucketName)
+      .file(key)
+      .download();
+
+    return buffer;
+  }
+
   async deleteFile(key?: string | null) {
     if (!key) return;
     this.ensureConfigured();

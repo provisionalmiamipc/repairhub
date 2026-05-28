@@ -160,6 +160,22 @@ export class DevicesFormModernComponent implements OnInit {
     this.currentStep.update(step => Math.max(step - 1, 0));
   }
 
+  uppercaseControlValue(controlName: 'name' | 'description', event: Event): void {
+    const field = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+    const control = this.deviceForm.get(controlName);
+    if (!field || !control) return;
+
+    const selectionStart = field.selectionStart;
+    const selectionEnd = field.selectionEnd;
+    const upperValue = field.value.toLocaleUpperCase();
+    field.value = upperValue;
+    control.setValue(upperValue);
+
+    if (selectionStart !== null && selectionEnd !== null) {
+      field.setSelectionRange(selectionStart, selectionEnd);
+    }
+  }
+
   canProceedToNextStep(): boolean {
     const step = this.currentStep();
 

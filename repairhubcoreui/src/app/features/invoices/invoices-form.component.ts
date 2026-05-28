@@ -267,7 +267,7 @@ export class InvoicesFormComponent implements OnInit {
     via: 'Workshop',
     paymentTypeId: null,
     paymentInstructions: '',
-    tax: 0,
+    tax: 7,
     discount: 0,
     serviceSummary: '',
     terms: '',

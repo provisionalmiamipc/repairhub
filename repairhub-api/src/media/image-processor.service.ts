@@ -52,6 +52,13 @@ export class ImageProcessorService implements OnModuleInit {
     };
   }
 
+  async toJpegBuffer(input: Buffer): Promise<Buffer> {
+    return sharp(input)
+      .rotate()
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toBuffer();
+  }
+
   private async toTargetWebp(
     input: Buffer,
     options: {

@@ -99,7 +99,9 @@
             type="text" 
             formControlName="name" 
             placeholder="iPhone 15, Galaxy S24..."
+            autocapitalize="characters"
             [class.invalid]="isFieldInvalid('name')"
+            (input)="uppercaseControlValue('name', $event)"
           />
           @if (isFieldInvalid('name')) {
             <div class="error-message">{{ getFieldError('name') }}</div>
@@ -112,7 +114,9 @@
             formControlName="description" 
             placeholder="Optional device description"
             rows="4"
+            autocapitalize="characters"
             [class.invalid]="isFieldInvalid('description')"
+            (input)="uppercaseControlValue('description', $event)"
           ></textarea>
           @if (isFieldInvalid('description')) {
             <div class="error-message">{{ getFieldError('description') }}</div>

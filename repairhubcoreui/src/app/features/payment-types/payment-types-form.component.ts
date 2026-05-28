@@ -130,6 +130,22 @@ export class PaymentTypesFormComponent {
     this.cancel.emit();
   }
 
+  uppercaseControlValue(controlName: 'type' | 'description', event: Event): void {
+    const field = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+    const control = this.form.get(controlName);
+    if (!field || !control) return;
+
+    const selectionStart = field.selectionStart;
+    const selectionEnd = field.selectionEnd;
+    const upperValue = field.value.toLocaleUpperCase();
+    field.value = upperValue;
+    control.setValue(upperValue);
+
+    if (selectionStart !== null && selectionEnd !== null) {
+      field.setSelectionRange(selectionStart, selectionEnd);
+    }
+  }
+
   onSubmit() {
     if (this.form.valid) {
       const payload = this.form.getRawValue() as Partial<PaymentTypes>;

@@ -30,68 +30,112 @@ export class InvoicePdfService {
     const pageWidth = doc.page.width;
     const left = 56;
     const right = 550;
+    const contentBottom = 720;
 
-    if (!this.drawHeaderImage(doc, pageWidth)) {
-      doc.rect(0, 38, pageWidth, 103).fill(yellow);
-      this.drawLogo(doc, left, 68);
-    }
+    this.drawHeader(doc, pageWidth, left, black, yellow);
 
     const centerLines = [
-      'Miami Photography Center LLC',
-      'miamipcenter@gmail.com',
-      '3911 sw 27th St, West Park 33023, FL',
+      'Miami Photography Center. LLC',      
+      '3911 SW 27th St, West Park, 33023, FL',
+      'service@miamiphotographycenter.com',
       '+1 (786) 763-2091',
+      'www.miamiphotographycenter.com',
     ];
 
     doc.fillColor(black).font('Helvetica-Bold').fontSize(10.5);
-    let y = 160;
+    let y = 72;
     centerLines.forEach((line, index) => {
       doc
         .font('Helvetica-Bold')
         .text(line, 330, y, { width: 220, align: 'right' });
       y += index === centerLines.length - 1 ? 17 : 13;
     });
+    y = 160;
     doc
-      .font('Helvetica')
+      .font('Helvetica-Bold')
       .fontSize(10)
-      .text(`Invoice No. ${invoice.invoiceNumber} / ${this.formatDate(invoice.issueDate)}`, 330, y + 4, { width: 220, align: 'right' });
+      .text(`Invoice No. ${invoice.invoiceNumber}`, 330, y, { width: 220, align: 'right' });
+    y += 14;
+    doc.text(`Date: ${this.formatDate(invoice.issueDate)}`, 330, y, { width: 220, align: 'right' });
 
-    let bodyY = 265;
+    let bodyY = 165;
     doc.fontSize(11).fillColor(black);
     this.labelValue(doc, 'Customer:', this.billToName(invoice), left, bodyY);
     bodyY += 15;
     this.labelValue(doc, 'Address:', invoice.billToAddress || invoice.customer?.city || '', left, bodyY);
     bodyY += 15;
-    this.labelValue(doc, 'O:', this.billToContact(invoice), left, bodyY);
+    this.labelValue(doc, 'Contact:', this.billToContact(invoice), left, bodyY);
     bodyY += 15;
     this.labelValue(doc, 'Via:', invoice.via || 'Workshop', left, bodyY);
 
-    const tableY = 345;
-    doc.font('Helvetica-Bold').fontSize(16).text('SERVICES', left, tableY);
-    doc.text('PRICE', 470, tableY, { width: 80, align: 'right' });
+    let tableY = 245;
+    this.drawServicesHeader(doc, left, tableY);
 
     let rowY = tableY + 28;
     const items = [...(invoice.items || [])].sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
     items.forEach((item) => {
-      doc.font('Helvetica-Bold').fontSize(10.5).text(item.description || '', left, rowY, { width: 360 });
+      const description = item.description || '';
+      const rowHeight = Math.max(
+        16,
+        doc.font('Helvetica-Bold').fontSize(10.5).heightOfString(description, { width: 360 }) + 4,
+      );
+
+      if (rowY + rowHeight > contentBottom) {
+        this.drawFooter(doc, pageWidth);
+        doc.addPage();
+        this.drawHeader(doc, pageWidth, left, black, yellow);
+        tableY = 165;
+        this.drawServicesHeader(doc, left, tableY);
+        rowY = tableY + 28;
+      }
+
+      doc.font('Helvetica-Bold').fontSize(10.5).fillColor(black).text(description, left, rowY, { width: 360 });
       doc.font('Helvetica').text(this.money(item.lineTotal), 470, rowY, { width: 80, align: 'right' });
-      rowY += 16;
+      rowY += rowHeight;
     });
 
-    const summaryY = Math.max(rowY + 38, 445);
-    doc.font('Helvetica-Bold').fontSize(10).text('Service Summary:', left, summaryY);
-    let bulletY = summaryY + 16;
-    this.summaryLines(invoice).forEach((line) => {
-      doc.circle(left + 18, bulletY + 4, 1.8).fill(black);
-      doc.font('Helvetica-Bold').fontSize(8.8).text(line, left + 28, bulletY, { width: 390 });
-      bulletY += 14;
-    });
+    let summaryY = Math.max(rowY + 34, 345);
+    const lowerContentHeight = 310;
+    if (summaryY + lowerContentHeight > contentBottom) {
+      this.drawFooter(doc, pageWidth);
+      doc.addPage();
+      this.drawHeader(doc, pageWidth, left, black, yellow);
+      summaryY = 165;
+    }
 
-    this.drawTotals(doc, invoice, right - 120, 568);
-    this.drawPaymentDetails(doc, invoice, left, 620);
-    this.drawTerms(doc, invoice, left, 675);
+    const summaryEndY = this.drawServiceSummary(doc, invoice, left, summaryY, black);
+    const totalsEndY = this.drawTotals(doc, invoice, right - 120, summaryY);
+    const paymentY = Math.max(summaryEndY + 20, totalsEndY + 18);
+    const paymentEndY = this.drawPaymentDetails(doc, invoice, left, paymentY);
+    let termsY = paymentEndY + 26;
+
+    if (termsY + 110 > contentBottom) {
+      this.drawFooter(doc, pageWidth);
+      doc.addPage();
+      this.drawHeader(doc, pageWidth, left, black, yellow);
+      termsY = 165;
+    }
+
+    this.drawTerms(doc, invoice, left, termsY, contentBottom, pageWidth, black, yellow);
+    this.drawFooter(doc, pageWidth);
+  }
+
+  private drawHeader(doc: any, pageWidth: number, left: number, black: string, yellow: string) {
+    if (!this.drawHeaderImage(doc, pageWidth)) {
+      doc.rect(0, 38, pageWidth, 103).fill(yellow);
+      this.drawLogo(doc, left, 68);
+    }
+    doc.fillColor(black);
+  }
+
+  private drawServicesHeader(doc: any, left: number, y: number) {
+    doc.font('Helvetica-Bold').fontSize(16).fillColor('#221F1F').text('SERVICES', left, y);
+    doc.text('PRICE', 470, y, { width: 80, align: 'right' });
+  }
+
+  private drawFooter(doc: any, pageWidth: number) {
     if (!this.drawFooterImage(doc, pageWidth)) {
-      this.drawFooterMark(doc, 448, 742);
+      this.drawFooterMark(doc, 450, 760);
     }
   }
 
@@ -124,17 +168,32 @@ export class InvoicePdfService {
   private drawFooterMark(doc: any, x: number, y: number) {
     const fullMark = this.assetPathAny(['invoice-mark-full-trimmed.png', 'invoice-mark-full.png']);
     if (fullMark) {
-      doc.image(fullMark, x, y + 10, { width: 120 });
+      doc.image(fullMark, x, y + 10, { width: 80 });
       return;
     }
 
     const mark = this.assetPath('invoice-mark.png');
-    doc.font('Helvetica-Bold').fontSize(48).fillColor('#000000').text('mpc', x, y);
-    if (mark) doc.image(mark, x + 70, y + 8, { width: 58 });
+    doc.font('Helvetica-Bold').fontSize(36).fillColor('#000000').text('mpc', x, y);
+    if (mark) doc.image(mark, x + 54, y + 8, { width: 44 });
   }
 
-  private drawTotals(doc: any, invoice: Invoice, x: number, y: number) {
-    doc.rect(x, y, 112, 3).fill('#221F1F');
+  private drawServiceSummary(doc: any, invoice: Invoice, x: number, y: number, black: string): number {
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(black).text('Service Summary:', x, y);
+    let bulletY = y + 16;
+    this.summaryLines(invoice).forEach((line) => {
+      const lineHeight = doc.font('Helvetica-Bold').fontSize(8.8).heightOfString(line, { width: 390, lineGap: 1 });
+      doc.circle(x + 18, bulletY + 4, 1.8).fill(black);
+      doc.font('Helvetica-Bold').fontSize(8.8).fillColor(black).text(line, x + 28, bulletY, {
+        width: 390,
+        lineGap: 1,
+      });
+      bulletY += Math.max(14, lineHeight + 4);
+    });
+    return bulletY;
+  }
+
+  private drawTotals(doc: any, invoice: Invoice, x: number, y: number): number {
+    doc.rect(x, y, 133, 2).fill('#221F1F');
     const rows = [
       ['SUBTOTAL', Number(invoice.subtotal || 0), false],
       [`TAX ${this.percent(invoice.tax)}%`, this.taxAmount(invoice), false],
@@ -147,29 +206,61 @@ export class InvoicePdfService {
       doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').text(this.money(value, true), x + 62, rowY, { width: 72, align: 'right' });
       rowY += 27;
     });
+
+    return rowY;
   }
 
-  private drawPaymentDetails(doc: any, invoice: Invoice, x: number, y: number) {
+  private drawPaymentDetails(doc: any, invoice: Invoice, x: number, y: number): number {
     const paymentMethod = invoice.paymentType?.type;
     const instructions = invoice.paymentInstructions?.trim();
-    if (!paymentMethod && !instructions) return;
+    if (!paymentMethod && !instructions) return y;
 
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#221F1F').text('Payment method:', x, y, { continued: true });
     doc.font('Helvetica').text(` ${paymentMethod || 'N/A'}`);
 
     if (instructions) {
       doc.font('Helvetica').fontSize(8.5).text(instructions, x, y + 14, { width: 360, lineGap: 1 });
+      return y + 14 + doc.heightOfString(instructions, { width: 360, lineGap: 1 });
     }
+
+    return y + 14;
   }
 
-  private drawTerms(doc: any, invoice: Invoice, x: number, y: number) {
-    doc.font('Helvetica-Bold').fontSize(16).fillColor('#000000').text('TERM & CONDITION', x, y);
+  private drawTerms(
+    doc: any,
+    invoice: Invoice,
+    x: number,
+    y: number,
+    contentBottom: number,
+    pageWidth: number,
+    black: string,
+    yellow: string,
+  ) {
+    const drawTitle = () => {
+      doc.font('Helvetica-Bold').fontSize(16).fillColor('#000000').text('TERMS & CONDITIONS', x, y);
+      y += 22;
+    };
+
+    drawTitle();
     const terms = this.termsLines(invoice);
-    let termY = y + 22;
+    const bulletX = x + 4;
+    const textX = x + 18;
+    const textWidth = 506;
     terms.forEach((term, index) => {
       doc.font(index === terms.length - 1 ? 'Helvetica-Bold' : 'Helvetica').fontSize(8).fillColor('#000000');
-      doc.text(`·  ${term}`, x + 4, termY, { width: 520, align: 'left', lineGap: 1 });
-      termY += doc.heightOfString(`·  ${term}`, { width: 520, lineGap: 1 }) + 2;
+      const height = doc.heightOfString(term, { width: textWidth, lineGap: 1 });
+
+      if (y + height + 4 > contentBottom) {
+        this.drawFooter(doc, pageWidth);
+        doc.addPage();
+        this.drawHeader(doc, pageWidth, x, black, yellow);
+        y = 165;
+        drawTitle();
+      }
+
+      doc.text('-', bulletX, y, { width: 8, align: 'left' });
+      doc.text(term, textX, y, { width: textWidth, align: 'left', lineGap: 1 });
+      y += height + 4;
     });
   }
 

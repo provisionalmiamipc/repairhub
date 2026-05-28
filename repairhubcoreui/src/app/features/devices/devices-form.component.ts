@@ -134,6 +134,22 @@ export class DevicesFormComponent {
     this.cancel.emit();
   }
 
+  uppercaseControlValue(controlName: 'name' | 'description', event: Event): void {
+    const field = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+    const control = this.form.get(controlName);
+    if (!field || !control) return;
+
+    const selectionStart = field.selectionStart;
+    const selectionEnd = field.selectionEnd;
+    const upperValue = field.value.toLocaleUpperCase();
+    field.value = upperValue;
+    control.setValue(upperValue);
+
+    if (selectionStart !== null && selectionEnd !== null) {
+      field.setSelectionRange(selectionStart, selectionEnd);
+    }
+  }
+
   private initializeUserType(): void {
     const userType = this.authService.getUserType();
     this.userType.set(userType as 'employee' | 'user' | null);

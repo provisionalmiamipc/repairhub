@@ -182,6 +182,52 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   readonly employees = signal<any[]>([]);
   readonly selectedCenterId = signal<number | null>(null);
   readonly serviceOrder = signal<ServiceOrders | null>(null);
+  readonly modelSourceOrders = signal<ServiceOrders[]>([]);
+  readonly isModelSuggestionsOpen = signal(false);
+  readonly modelSuggestionContext = signal({
+    deviceId: null as number | null,
+    deviceBrandId: null as number | null,
+    model: ''
+  });
+  readonly modelSuggestions = computed(() => {
+    const { deviceId, deviceBrandId, model } = this.modelSuggestionContext();
+    if (!deviceId || !deviceBrandId) return [];
+
+    const currentOrderId = this.currentServiceOrderId();
+    const query = this.normalizeModel(model);
+    const suggestions = new Map<string, { label: string; updatedAt: number }>();
+
+    this.modelSourceOrders()
+      .filter(order =>
+        order.id !== currentOrderId &&
+        Number(order.deviceId) === deviceId &&
+        Number(order.deviceBrandId) === deviceBrandId &&
+        typeof order.model === 'string' &&
+        order.model.trim().length > 0
+      )
+      .forEach(order => {
+        const label = order.model.trim();
+        const normalizedLabel = this.normalizeModel(label);
+        if (query && (!normalizedLabel.includes(query) || normalizedLabel === query)) return;
+
+        const updatedAt = order.updatedAt ? new Date(order.updatedAt).getTime() : 0;
+        const existing = suggestions.get(normalizedLabel);
+        if (!existing || updatedAt > existing.updatedAt) {
+          suggestions.set(normalizedLabel, { label, updatedAt });
+        }
+      });
+
+    return Array.from(suggestions.values())
+      .sort((a, b) => b.updatedAt - a.updatedAt || a.label.localeCompare(b.label))
+      .slice(0, 8)
+      .map(suggestion => suggestion.label);
+  });
+  readonly showModelSuggestions = computed(() =>
+    this.isModelSuggestionsOpen() &&
+    this.modelSuggestions().length > 0 &&
+    !this.isFormReadOnly() &&
+    !this.isOrderLockedForEditing()
+  );
   readonly imageFallbackUrl = 'assets/images/no-image-icon-23483.png';
   readonly maxImages = 5;
   readonly canUseCameraCapture =
@@ -193,6 +239,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   selectedImage: ServiceOrderImage | null = null;
   selectedImageDisplayUrl = this.imageFallbackUrl;
   isLoadingDisplayImage = false;
+  isDrawingSignature = false;
+  hasSignatureStroke = false;
 
   // Related lists (edit mode)
   soNotes: SONotes[] = [];
@@ -294,6 +342,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     this.checkEditMode();
     this.setupCostCalculation();
     this.setupCenterChange();
+    this.setupModelSuggestions();
     // If user is Expert and not center admin, skip the Center/Store step in create mode
     if (!this.isEditMode() && this.isExpertNonCenterAdmin()) {
       // Start at step 1 (Customer & Device)
@@ -337,7 +386,8 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       warrantyDecision: [null],
       warrantyDecisionReason: [''],
       cloused: [false],
-      canceled: [false]
+      canceled: [false],
+      createdAt: ['']
     });
   }
 
@@ -369,6 +419,97 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     this.employeesService.getAll()
       .pipe(takeUntil(this.destroy$))
       .subscribe(data => this.employees.set(data || []));
+
+    this.serviceOrdersService.getAll()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: data => this.modelSourceOrders.set(data || []),
+        error: () => this.modelSourceOrders.set([])
+      });
+  }
+
+  private setupModelSuggestions(): void {
+    ['deviceId', 'deviceBrandId', 'model'].forEach(controlName => {
+      this.serviceOrderForm.get(controlName)?.valueChanges
+        .pipe(debounceTime(controlName === 'model' ? 80 : 0), takeUntil(this.destroy$))
+        .subscribe(() => this.syncModelSuggestionContext());
+    });
+
+    this.syncModelSuggestionContext();
+  }
+
+  private syncModelSuggestionContext(): void {
+    this.modelSuggestionContext.set({
+      deviceId: this.toNullableNumber(this.serviceOrderForm.get('deviceId')?.value),
+      deviceBrandId: this.toNullableNumber(this.serviceOrderForm.get('deviceBrandId')?.value),
+      model: String(this.serviceOrderForm.get('model')?.value || '')
+    });
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private normalizeModel(value: string): string {
+    return value.trim().toLocaleLowerCase();
+  }
+
+  openModelSuggestions(): void {
+    this.syncModelSuggestionContext();
+    this.isModelSuggestionsOpen.set(true);
+  }
+
+  closeModelSuggestions(): void {
+    window.setTimeout(() => this.isModelSuggestionsOpen.set(false), 120);
+  }
+
+  selectModelSuggestion(model: string): void {
+    const control = this.serviceOrderForm.get('model');
+    control?.setValue(model.toLocaleUpperCase());
+    control?.markAsDirty();
+    control?.markAsTouched();
+    this.isModelSuggestionsOpen.set(false);
+  }
+
+  uppercaseControlValue(controlName: string, event: Event): void {
+    const field = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+    const control = this.serviceOrderForm.get(controlName);
+    if (!field || !control) return;
+
+    const upperValue = field.value.toLocaleUpperCase();
+    this.setUppercaseFieldValue(field, upperValue);
+    control.setValue(upperValue);
+  }
+
+  uppercaseReceivedPartField(fieldName: 'accessory' | 'observations', event: Event): void {
+    if (!this.editingReceivedPart) return;
+
+    const field = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+    if (!field) return;
+
+    const upperValue = field.value.toLocaleUpperCase();
+    this.setUppercaseFieldValue(field, upperValue);
+    (this.editingReceivedPart as Record<string, any>)[fieldName] = upperValue;
+  }
+
+  uppercaseWarrantyReason(event: Event): void {
+    const field = event.target as HTMLTextAreaElement | null;
+    if (!field) return;
+
+    const upperValue = field.value.toLocaleUpperCase();
+    this.setUppercaseFieldValue(field, upperValue);
+    this.warrantyDecisionReasonDraft = upperValue;
+  }
+
+  private setUppercaseFieldValue(field: HTMLInputElement | HTMLTextAreaElement, value: string): void {
+    const selectionStart = field.selectionStart;
+    const selectionEnd = field.selectionEnd;
+    field.value = value;
+
+    if (selectionStart !== null && selectionEnd !== null) {
+      field.setSelectionRange(selectionStart, selectionEnd);
+    }
   }
 
   private checkEditMode(): void {
@@ -385,7 +526,11 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (order) => {
-            this.serviceOrderForm.patchValue(order);
+            this.serviceOrderForm.patchValue({
+              ...order,
+              createdAt: this.toDatetimeLocalValue(order.createdAt)
+            }, { emitEvent: false });
+            this.syncModelSuggestionContext();
             this.serviceOrder.set(order);
             this.warranties = Array.isArray(order.warranties) ? order.warranties : [];
             this.selectedImageFiles = [];
@@ -443,13 +588,21 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   }
 
   private lockFormIfFinalized(): void {
-    if (this.isOrderFinalized()) {
+    if (this.isOrderLockedForEditing()) {
       this.serviceOrderForm.disable({ emitEvent: false });
     }
   }
 
   isOrderFinalized(): boolean {
     return !!this.serviceOrderForm.get('cloused')?.value || !!this.serviceOrderForm.get('canceled')?.value;
+  }
+
+  canEditFinalizedOrder(): boolean {
+    return this.authService.getUserType() === 'user';
+  }
+
+  isOrderLockedForEditing(): boolean {
+    return this.isOrderFinalized() && !this.canEditFinalizedOrder();
   }
 
   get activeWarranty(): Warranty | null {
@@ -657,6 +810,23 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
+  private toDatetimeLocalValue(value: unknown): string {
+    if (!value) return '';
+
+    const date = new Date(value as string | number | Date);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const offsetMs = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+  }
+
+  private toIsoDateValue(value: unknown): string | undefined {
+    if (!value) return undefined;
+
+    const date = new Date(value as string | number | Date);
+    return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+  }
+
   private setupCenterChange(): void {
     this.serviceOrderForm.get('centerId')?.valueChanges
       .pipe(takeUntil(this.destroy$))
@@ -745,6 +915,17 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     this.formState.update(s => ({ ...s, isSaving: true, error: null }));
 
     const orderData: any = this.serviceOrderForm.getRawValue();
+    if (this.isEditMode()) {
+      const createdAt = this.toIsoDateValue(orderData.createdAt);
+      if (createdAt) {
+        orderData.createdAt = createdAt;
+      } else {
+        delete orderData.createdAt;
+      }
+    } else {
+      delete orderData.createdAt;
+    }
+
     // Include received parts in payload only on create (no enviar en edición)
     if (!this.isEditMode() && (this.receivedParts || []).length) {
       // Determine final createdById to apply to parts when missing
@@ -896,6 +1077,125 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     this.selectedImageFiles.splice(index, 1);
     this.selectedImagePreviews.splice(index, 1);
+  }
+
+  isSignatureCaptureDisabled(): boolean {
+    return this.isOrderLockedForEditing() || this.isFormReadOnly();
+  }
+
+  startSignature(event: PointerEvent, canvas: HTMLCanvasElement): void {
+    if (this.isSignatureCaptureDisabled()) return;
+    event.preventDefault();
+    canvas.setPointerCapture?.(event.pointerId);
+    const context = this.getSignatureContext(canvas);
+    if (!context) return;
+
+    const point = this.signaturePoint(event, canvas);
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+    this.isDrawingSignature = true;
+  }
+
+  drawSignature(event: PointerEvent, canvas: HTMLCanvasElement): void {
+    if (!this.isDrawingSignature || this.isSignatureCaptureDisabled()) return;
+    event.preventDefault();
+    const context = this.getSignatureContext(canvas);
+    if (!context) return;
+
+    const point = this.signaturePoint(event, canvas);
+    context.lineTo(point.x, point.y);
+    context.stroke();
+    this.hasSignatureStroke = true;
+  }
+
+  endSignature(event: PointerEvent, canvas: HTMLCanvasElement): void {
+    if (!this.isDrawingSignature) return;
+    event.preventDefault();
+    this.isDrawingSignature = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+  }
+
+  clearSignature(canvas: HTMLCanvasElement): void {
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    this.prepareSignatureCanvas(context, canvas);
+    this.hasSignatureStroke = false;
+    this.isDrawingSignature = false;
+  }
+
+  saveSignature(canvas: HTMLCanvasElement): void {
+    if (this.isSignatureCaptureDisabled()) return;
+
+    if (!this.hasSignatureStroke) {
+      this.toastService.error('Please capture the customer signature first');
+      return;
+    }
+
+    const existingSignatureIndex = this.selectedImageFiles.findIndex(file =>
+      file.name.startsWith('customer-signature')
+    );
+    const existingSavedSignature = this.activeExistingImages.find(image => image.kind === 'signature');
+    const needsNewSlot = existingSignatureIndex === -1;
+
+    if (needsNewSlot && this.totalImageCount >= this.maxImages && !existingSavedSignature) {
+      this.toastService.error(`Maximum ${this.maxImages} images allowed`);
+      return;
+    }
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        this.toastService.error('Unable to save signature');
+        return;
+      }
+
+      const file = new File([blob], 'customer-signature.png', { type: 'image/png' });
+      const previewUrl = URL.createObjectURL(file);
+
+      if (existingSavedSignature && !this.deletedImageIds.includes(existingSavedSignature.id)) {
+        this.deletedImageIds.push(existingSavedSignature.id);
+      }
+
+      if (existingSignatureIndex >= 0) {
+        URL.revokeObjectURL(this.selectedImagePreviews[existingSignatureIndex]);
+        this.selectedImageFiles[existingSignatureIndex] = file;
+        this.selectedImagePreviews[existingSignatureIndex] = previewUrl;
+      } else {
+        this.selectedImageFiles.push(file);
+        this.selectedImagePreviews.push(previewUrl);
+      }
+
+      this.toastService.success('Customer signature added');
+    }, 'image/png');
+  }
+
+  private getSignatureContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+
+    if (!canvas.dataset['signatureReady']) {
+      this.prepareSignatureCanvas(context, canvas);
+      canvas.dataset['signatureReady'] = 'true';
+    }
+
+    context.lineWidth = 2.4;
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.strokeStyle = '#111827';
+    return context;
+  }
+
+  private prepareSignatureCanvas(context: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  private signaturePoint(event: PointerEvent, canvas: HTMLCanvasElement): { x: number; y: number } {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
+      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+    };
   }
 
   markExistingImageForDeletion(image: ServiceOrderImage): void {

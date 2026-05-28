@@ -3,7 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { Invoice } from '../../shared/models/Invoice';
+import { Invoice, InvoiceItem, InvoiceStatus } from '../../shared/models/Invoice';
 import { InvoicesService } from '../../shared/services/invoices.service';
 import { ToastService } from '../../shared/services/toast.service';
 
@@ -65,7 +65,15 @@ import { ToastService } from '../../shared/services/toast.service';
                   </thead>
                   <tbody>
                     <tr *ngFor="let item of inv.items || []">
-                      <td>{{ item.description }}</td>
+                      <td>
+                        <div>{{ item.description }}</div>
+                        <a
+                          *ngIf="item.serviceOrderId"
+                          class="small fw-semibold text-decoration-none"
+                          [routerLink]="['/service-orders', item.serviceOrderId]">
+                          Service Order {{ serviceOrderLabel(item) }}
+                        </a>
+                      </td>
                       <td class="text-end">{{ item.quantity }}</td>
                       <td class="text-end">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
                       <td class="text-end">{{ item.discount || 0 | currency:'USD':'symbol':'1.2-2' }}</td>
@@ -352,12 +360,12 @@ export class InvoicesDetailComponent implements OnInit {
     if (!modal || !invoice) return;
 
     if (modal.type === 'issue') {
-      this.runAction(() => this.service.issue(invoice.id), 'Invoice issued', true);
+      this.runAction(() => this.service.issue(invoice.id), 'Invoice issued', true, 'issued');
       return;
     }
 
     if (modal.type === 'payment') {
-      this.runAction(() => this.service.recordPayment(invoice.id, this.modalNotes || undefined), 'Payment recorded', true);
+      this.runAction(() => this.service.recordPayment(invoice.id, this.modalNotes || undefined), 'Payment recorded', true, 'paid');
       return;
     }
 
@@ -371,6 +379,7 @@ export class InvoicesDetailComponent implements OnInit {
           this.actionModal.set(null);
           this.selectedInvoice = null;
           this.toast.success('Invoice email sent');
+          this.router.navigate(['/invoices']);
         },
         error: (err) => this.toast.error(err?.error?.message || 'Error sending invoice email'),
       });
@@ -383,7 +392,7 @@ export class InvoicesDetailComponent implements OnInit {
         this.toast.error('Void reason is required');
         return;
       }
-      this.runAction(() => this.service.voidInvoice(invoice.id, reason), 'Invoice voided', true);
+      this.runAction(() => this.service.voidInvoice(invoice.id, reason), 'Invoice voided', true, 'void');
     }
   }
 
@@ -405,6 +414,10 @@ export class InvoicesDetailComponent implements OnInit {
     return [invoice.createdBy?.firstName, invoice.createdBy?.lastName].filter(Boolean).join(' ');
   }
 
+  serviceOrderLabel(item: InvoiceItem): string {
+    return item.serviceOrder?.orderCode || `#${item.serviceOrderId}`;
+  }
+
   hasInvoiceDetails(invoice: Invoice): boolean {
     return [
       invoice.center?.centerName || invoice.centerId,
@@ -419,16 +432,29 @@ export class InvoicesDetailComponent implements OnInit {
     ].some(value => this.hasValue(value));
   }
 
-  private runAction(requestFactory: () => any, successMessage: string, closeModal = false): void {
+  private runAction(
+    requestFactory: () => any,
+    successMessage: string,
+    closeModal = false,
+    expectedStatus?: InvoiceStatus
+  ): void {
     this.isSaving.set(true);
     requestFactory().pipe(finalize(() => this.isSaving.set(false))).subscribe({
-      next: (invoice: Invoice) => {
-        this.invoice.set(invoice);
+      next: (invoice: Invoice | null | undefined) => {
+        const current = this.invoice();
+        const updatedInvoice = {
+          ...(current || {}),
+          ...(invoice || {}),
+          ...(expectedStatus ? { status: expectedStatus } : {}),
+        } as Invoice;
+
+        this.invoice.set(updatedInvoice);
         if (closeModal) {
           this.actionModal.set(null);
           this.selectedInvoice = null;
         }
         this.toast.success(successMessage);
+        this.router.navigate(['/invoices']);
       },
       error: (err: any) => this.toast.error(err?.error?.message || 'Invoice action failed'),
     });

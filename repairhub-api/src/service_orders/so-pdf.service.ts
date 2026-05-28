@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
-import * as fs from 'fs';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { Response } from 'express';
 import { resolveUpload } from '../common/asset-utils';
 
@@ -40,6 +41,7 @@ export class RepairPdfService {
 
         doc.addPage();
         this.drawTermsAndConditions(doc);
+        this.drawServiceOrderImages(doc, data);
 
         // Finalize PDF
         doc.end();
@@ -77,14 +79,15 @@ export class RepairPdfService {
         this.drawNotesSection(doc, data);
         this.drawReceivedPartsSection(doc, data);
 
-        // Add new page for notes and remaining sections
+        // Add new page for the remaining sections.
         doc.addPage();
         this.drawDiagnosticsSection(doc, data);
         this.drawStatusHistorySection(doc, data);
         this.drawProductSummarySection(doc, data);
 
-        //doc.addPage();
+        doc.addPage();
         this.drawTermsAndConditions(doc);
+        this.drawServiceOrderImages(doc, data);
 
         doc.end();
       } catch (err) {
@@ -93,38 +96,87 @@ export class RepairPdfService {
     });
   }
 
-  /**
-   * Generates the repair PDF and streams it to the response
-   * @param data - Repair data object
-   * @param res - Express Response object
-   
-  async streamRepairPdf(data: any, res: Response): Promise<void> {
-    const doc = new PDFDocument({
-      size: 'letter',
-      margins: { top: 50, bottom: 50, left: 50, right: 50 },
+  private drawServiceOrderImages(doc: PDFDocument, data: any): void {
+    const images = Array.isArray(data.serviceOrderImages) ? data.serviceOrderImages : [];
+    if (!images.length) return;
+
+    const marginLeft = doc.page.margins.left;
+    const marginRight = doc.page.margins.right;
+    const marginBottom = doc.page.margins.bottom;
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+    const gap = 12;
+    const columns = 2;
+    const imageWidth = (contentWidth - gap) / columns;
+    const imageHeight = 150;
+    const titleHeight = 26;
+    const rowHeight = imageHeight + 24;
+
+    let yPos = doc.y + 30;
+    if (yPos + titleHeight + rowHeight > pageHeight - marginBottom) {
+      doc.addPage();
+      yPos = doc.page.margins.top;
+    }
+
+    doc
+      .fontSize(14)
+      .font('Helvetica-Bold')
+      .fillColor('#000000')
+      .text('SERVICE ORDER IMAGES', marginLeft, yPos);
+    yPos += titleHeight;
+
+    images.forEach((image: { originalName?: string; buffer: Buffer }, index: number) => {
+      const column = index % columns;
+      if (column === 0 && yPos + rowHeight > pageHeight - marginBottom) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
+
+      const xPos = marginLeft + column * (imageWidth + gap);
+      try {
+        doc.image(image.buffer, xPos, yPos, {
+          fit: [imageWidth, imageHeight],
+          align: 'center',
+          valign: 'center',
+        });
+        doc
+          .fontSize(7)
+          .font('Helvetica')
+          .fillColor('#555555')
+          .text(image.originalName || `Image ${index + 1}`, xPos, yPos + imageHeight + 4, {
+            width: imageWidth,
+            align: 'center',
+            ellipsis: true,
+          });
+      } catch {
+        doc
+          .fontSize(8)
+          .font('Helvetica')
+          .fillColor('#777777')
+          .text('Image unavailable', xPos, yPos + 60, {
+            width: imageWidth,
+            align: 'center',
+          });
+      }
+
+      if (column === columns - 1 || index === images.length - 1) {
+        yPos += rowHeight;
+      }
     });
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename="repair.pdf"');
+    doc.y = yPos;
+  }
 
-    doc.pipe(res);
+  private pageBottom(doc: PDFDocument): number {
+    return doc.page.height - doc.page.margins.bottom;
+  }
 
-    // Draw the document
-    this.drawHeader(doc, data);
-    this.drawSummarySection(doc, data);
-    this.drawDeviceSection(doc, data);
-    this.drawDefectivePartsSection(doc, data);
-    //this.drawReceivedPartsSection(doc, data);
-    this.drawStatusHistorySection(doc, data);
-
-    // Add new page for notes
-    doc.addPage();
-    this.drawNotesSection(doc, data);
-    this.drawProductSummarySection(doc, data);
-    this.drawTermsAndConditions(doc);
-
-    doc.end();
-  }*/
+  private ensureSpace(doc: PDFDocument, requiredHeight: number): void {
+    if (doc.y + requiredHeight > this.pageBottom(doc)) {
+      doc.addPage();
+    }
+  }
 
   /**
    * Draw the header with logo and company info
@@ -134,61 +186,36 @@ export class RepairPdfService {
     const marginLeft = doc.page.margins.left;
     const marginRight = doc.page.margins.right;
     const contentWidth = pageWidth - marginLeft - marginRight;
+    const black = '#221F1F';
+    const yellow = '#FFFF00';
 
-
-
-    // Try to render the logo/image (jpg/png) from resolved upload paths
-    const logoPath = resolveUpload(['sopdf.jpg', 'sopdf.png', 'logo.png', 'logo.jpg']);
-    if (logoPath) {
-      try {
-        doc.image(logoPath, 40, 40, { width: 100 });
-      } catch (e) {
-        // fallback to placeholder box below
-      }
-    } else {
-      // Yellow logo box (approximation - you would use an actual image)
-      /*doc
-        .rect(marginLeft, 50, 100, 100)
-        .fillAndStroke('#FFED00', '#FFED00');
-
-      // If no image, print MPC text inside the box
-      doc
-        .fillColor('#000000')
-        .fontSize(28)
-        .font('Helvetica-Bold')
-        .text('MPC', marginLeft + 20, 80, { width: 70, align: 'center' });*/
+    if (!this.drawInvoiceHeaderImage(doc, pageWidth)) {
+      doc.rect(0, 38, pageWidth, 103).fill(yellow);
+      this.drawInvoiceLogo(doc, 56, 68);
     }
 
+    const centerLines = [
+      'Miami Photography Center. LLC',
+      '3911 SW 27th St, West Park, 33023, FL',
+      'service@miamiphotographycenter.com',
+      '+1 (786) 763-2091',
+      'www.miamiphotographycenter.com',
+    ];
 
-    // Company name and address (right side)
-    doc
-      .fillColor('#000000')
-      .fontSize(16)
-      .font('Helvetica-Bold')
-      .text('Miami Photography Center', marginLeft + 140, 50, {
-        width: contentWidth - 140,
-        align: 'right',
-      });
-
-    doc
-      .fontSize(9)
-      .font('Helvetica')
-      .text(
-        '3911 SW 27 St, West Park, FL 33023, USA',
-        marginLeft + 140,
-        70,
-        { width: contentWidth - 140, align: 'right' },
-      );
-
-    /*doc.text('America', marginLeft + 140, 82, {
-      width: contentWidth - 140,
-      align: 'right',
-    });*/
+    doc.fillColor(black).font('Helvetica-Bold').fontSize(10.5);
+    let headerTextY = 72;
+    centerLines.forEach((line, index) => {
+      doc
+        .font('Helvetica-Bold')
+        .text(line, 330, headerTextY, { width: 220, align: 'right' });
+      headerTextY += index === centerLines.length - 1 ? 17 : 13;
+    });
 
     // DATE and REPAIR ID section
     doc
       .fontSize(10)
       .font('Helvetica-Bold')
+      .fillColor('#000000')
       .text('DATE:', marginLeft, 180);
 
     doc
@@ -199,7 +226,7 @@ export class RepairPdfService {
     doc
       .fontSize(10)
       .font('Helvetica-Bold')
-      .text('REPAIR ID', marginLeft + 150, 180);
+      .text('SERVICE ORDER', marginLeft + 150, 180);
 
     doc
       .fontSize(10)
@@ -223,6 +250,50 @@ export class RepairPdfService {
       .moveTo(marginLeft, 225)
       .lineTo(pageWidth - marginRight, 225)
       .stroke();
+
+    doc.y = 225;
+  }
+
+  private drawInvoiceHeaderImage(doc: PDFDocument, pageWidth: number): boolean {
+    const header = this.invoiceAssetPathAny(['invoice-header.png', 'invoice-header.jpg', 'invoice-header.jpeg']);
+    if (!header) return false;
+    doc.image(header, 0, 38, { width: pageWidth });
+    return true;
+  }
+
+  private drawInvoiceLogo(doc: PDFDocument, x: number, y: number): void {
+    const logoText = this.invoiceAssetPathAny(['invoice-logo-text-trimmed.png', 'invoice-logo-text.png']);
+    if (logoText) {
+      doc.image(logoText, x, y - 31, { width: 233 });
+      return;
+    }
+
+    const fallbackLogo = resolveUpload(['sopdf.jpg', 'sopdf.png', 'logo.png', 'logo.jpg']);
+    if (fallbackLogo) {
+      doc.image(fallbackLogo, x, y - 20, { width: 120 });
+      return;
+    }
+
+    //doc.font('Helvetica-Bold').fontSize(30).fillColor('#000000').text('miami', x, y);
+    //doc.font('Helvetica-Bold').fontSize(21).text('Photography', x, y + 38);
+    //doc.font('Helvetica-Oblique').fontSize(20).text('center', x, y + 62);
+  }
+
+  private invoiceAssetPath(file: string): string | null {
+    const candidates = [
+      join(__dirname, '..', 'invoices', 'assets', file),
+      join(__dirname, '..', '..', 'invoices', 'assets', file),
+      join(process.cwd(), 'src', 'invoices', 'assets', file),
+    ];
+    return candidates.find((candidate) => existsSync(candidate)) || null;
+  }
+
+  private invoiceAssetPathAny(files: string[]): string | null {
+    for (const file of files) {
+      const found = this.invoiceAssetPath(file);
+      if (found) return found;
+    }
+    return null;
   }
 
   /**
@@ -234,6 +305,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
+    this.ensureSpace(doc, 88);
     let yPos = doc.y + 25;
 
     // SUMMARY title
@@ -247,8 +319,8 @@ export class RepairPdfService {
 
     // Table header
     const tableTop = yPos;
-    const colWidths = [contentWidth * 0.25, contentWidth * 0.25, contentWidth * 0.25, contentWidth * 0.25];
-    const headers = ['EMPLOYEE', ' ', 'CUSTOMER', 'STATUS'];
+    const colWidths = [contentWidth * 0.34, contentWidth * 0.36, contentWidth * 0.30];
+    const headers = ['EMPLOYEE', 'CUSTOMER', 'STATUS'];
 
     // Header background
     doc
@@ -273,7 +345,7 @@ export class RepairPdfService {
     yPos = tableTop + 25;
 
     // Table row data
-    const rowData = [data.createdBy, ' ', data.customerName, data.lastrepairStatus?.status || ''];
+    const rowData = [data.createdBy || '---', data.customerName || '---', data.lastrepairStatus?.status || '---'];
 
     // Row background
     //doc
@@ -301,6 +373,8 @@ export class RepairPdfService {
       }*/
       xPos += colWidths[i];
     });
+
+    doc.y = yPos + 25;
   }
 
   /**
@@ -312,6 +386,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
+    this.ensureSpace(doc, 80);
     let yPos = doc.y + 25;
 
     // Table header
@@ -348,7 +423,7 @@ export class RepairPdfService {
     yPos = tableTop + 25;
 
     // Row data
-    const rowHeight = 95;
+    const rowHeight = 42;
     //doc
     // .rect(marginLeft, yPos, contentWidth, rowHeight);
     //.stroke();
@@ -378,7 +453,7 @@ export class RepairPdfService {
       });
 
     // Vertical line
-    xPos += colWidths[1];
+    xPos += colWidths[2];
 
     // Defective part
     doc
@@ -405,7 +480,7 @@ export class RepairPdfService {
       });
 
     // Vertical line
-    xPos += colWidths[2];
+    xPos += colWidths[3];
     /*doc
       .moveTo(xPos, tableTop)
       .lineTo(xPos, yPos + rowHeight)
@@ -418,6 +493,8 @@ export class RepairPdfService {
       .text(`$ ${data.price}`, xPos + 5, yPos + 8, {
         width: colWidths[4] - 10,
       });
+
+    doc.y = yPos + rowHeight;
   }
 
   /**
@@ -426,6 +503,7 @@ export class RepairPdfService {
   private drawDefectivePartsSection(doc: PDFDocument, data: any): void {
     const marginLeft = doc.page.margins.left;
 
+    this.ensureSpace(doc, 72);
     let yPos = doc.y + 30;
 
     // Section title
@@ -441,44 +519,11 @@ export class RepairPdfService {
       .fontSize(9)
       .font('Helvetica')
       .fillColor('#000000')
-      .text(data.defectivePart, marginLeft + 5, yPos);
+      .text(data.defectivePart || '---', marginLeft + 5, yPos, {
+        width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 10,
+      });
 
-    // Defective parts (with X)
-    /*data.defectiveParts.forEach((part) => {
-      doc
-        .fontSize(11)
-        .font('Helvetica')
-        .fillColor('#000000')
-        .text(part.name, marginLeft + 20, yPos);
-
-      // Red X symbol
-      doc
-        .fillColor('#CC0000')
-        .fontSize(14)
-        .font('Helvetica-Bold')
-        .text('✗', marginLeft + 70, yPos - 2);
-
-      yPos += 5;
-    });
-
-    // Working parts (with checkmark)
-    yPos = 495;
-    data.workingParts.forEach((part) => {
-      doc
-        .fontSize(11)
-        .font('Helvetica')
-        .fillColor('#000000')
-        .text(part.name, marginLeft + 300, yPos);
-
-      // Green checkmark
-      doc
-        .fillColor('#00AA00')
-        .fontSize(14)
-        .font('Helvetica-Bold')
-        .text('✓', marginLeft + 330, yPos - 2);
-
-      yPos += 5;
-    });*/
+    doc.y = doc.y + 10;
   }
 
   /**
@@ -495,6 +540,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
+    this.ensureSpace(doc, 75);
     let yPos = doc.y + 25;
 
     // Section title
@@ -535,6 +581,11 @@ export class RepairPdfService {
 
     // Table content
     data.receivedParts.forEach((part: any) => {
+      if (yPos + 24 > this.pageBottom(doc)) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
+
       doc
         .fontSize(9)
         .font('Helvetica')
@@ -543,7 +594,7 @@ export class RepairPdfService {
           width: colWidths[0] - 10,
           align: 'left',
         })
-        .text(part.observations || '---', marginLeft + colWidths[0] + 5, yPos + 8, {
+        .text(part.observations || '', marginLeft + colWidths[0] + 5, yPos + 8, {
           width: colWidths[1] - 10,
           align: 'left',
         });
@@ -551,7 +602,7 @@ export class RepairPdfService {
       yPos += 20;
     });
 
-    //doc.moveDown();
+    doc.y = yPos;
   }
 
   /**
@@ -559,12 +610,13 @@ export class RepairPdfService {
    */
   private drawStatusHistorySection(doc: PDFDocument, data: any): void {
 
-    if (data.repairStatus.length > 0) {
+    if (data.repairStatus.length > 1) {
       const marginLeft = doc.page.margins.left;
       const marginRight = doc.page.margins.right;
       const pageWidth = doc.page.width;
       const contentWidth = pageWidth - marginLeft - marginRight;
 
+      this.ensureSpace(doc, 75);
       let yPos = doc.y + 25;
 
       // Section title
@@ -605,6 +657,11 @@ export class RepairPdfService {
 
       // Status history rows
       data.repairStatus.forEach((status, index) => {
+        if (yPos + 24 > this.pageBottom(doc)) {
+          doc.addPage();
+          yPos = doc.page.margins.top;
+        }
+
         /*doc
           .rect(marginLeft, yPos, contentWidth, 25)
           .stroke();*/
@@ -638,6 +695,8 @@ export class RepairPdfService {
 
         yPos += 20;
       });
+
+      doc.y = yPos;
     }
   }
 
@@ -654,6 +713,7 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
+    this.ensureSpace(doc, 75);
     let yPos = doc.y + 25;
 
     // Section title
@@ -694,6 +754,11 @@ export class RepairPdfService {
 
     // Table content
     data.diagnostics.forEach((diagnostic: any) => {
+      if (yPos + 28 > this.pageBottom(doc)) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
+
       doc
         .fontSize(9)
         .font('Helvetica')
@@ -710,7 +775,7 @@ export class RepairPdfService {
       yPos += 20;
     });
 
-    //doc.moveDown();
+    doc.y = yPos;
   }
 
   /**
@@ -722,6 +787,12 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
+    const notes = [
+      { type: 'Reception', note: data.noteReception || '---' },
+      { type: 'Estimated', note: data.estimated || '---' },
+    ];
+
+    this.ensureSpace(doc, 90);
     let yPos = doc.y + 30;
 
     // Section title
@@ -736,12 +807,10 @@ export class RepairPdfService {
     // Table header
     const tableTop = yPos;
     const colWidths = [
-      contentWidth * 0.15,
-      contentWidth * 0.15,
-      contentWidth * 0.70,
+      contentWidth * 0.22,
+      contentWidth * 0.78,
     ];
     const headers = ['NOTE', 'DESCRIPTION'];
-    const notes = [{ type: 'Reception', note: data.noteReception }, { type: 'Estimated', note: data.estimated }];
 
     // Header background
     doc
@@ -767,8 +836,12 @@ export class RepairPdfService {
 
     // Notes rows
     notes.forEach((note) => {
-      const noteHeight = this.calculateTextHeight(doc, note.note, colWidths[2] - 10, 9);
+      const noteHeight = this.calculateTextHeight(doc, note.note, colWidths[1] - 10, 9);
       const rowHeight = Math.max(20, noteHeight + 16);
+      if (yPos + rowHeight > this.pageBottom(doc)) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
 
       /*doc
         .rect(marginLeft, yPos, contentWidth, rowHeight)
@@ -786,7 +859,7 @@ export class RepairPdfService {
         });
 
       // Vertical line
-      xPos += colWidths[1];
+      xPos += colWidths[0];
       /*
       doc
         .moveTo(xPos, yPos)
@@ -798,27 +871,14 @@ export class RepairPdfService {
         .fontSize(9)
         .font('Helvetica')
         .text(note.note, xPos + 5, yPos + 8, {
-          width: colWidths[2] - 10,
+          width: colWidths[1] - 10,
         });
 
-      // Vertical line
-      //xPos += colWidths[1];
-      /*
-      doc
-        .moveTo(xPos, yPos)
-        .lineTo(xPos, yPos + rowHeight)
-        .stroke();*/
-
-      // Note
-      /* doc
-         .fontSize(9)
-         .font('Helvetica')
-         .text(note.note, xPos + 5, yPos + 8, {
-           width: colWidths[2] - 10,
-         });*/
-
+      
       yPos += rowHeight;
     });
+
+    doc.y = yPos;
   }
 
   /**
@@ -829,6 +889,8 @@ export class RepairPdfService {
     const marginRight = doc.page.margins.right;
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
+
+    this.ensureProductSummaryFits(doc, data);
 
     let yPos = doc.y + 25;
 
@@ -934,70 +996,33 @@ export class RepairPdfService {
 
     yPos += 25;
 
-    // Product rows
-    /*
-    data.products.forEach((product) => {
-      doc
-        .rect(marginLeft, yPos, contentWidth, 25)
-        .stroke();
+    yPos += 16;
 
-      xPos = marginLeft;
+    doc
+      .fontSize(9)
+      .font('Helvetica-Oblique')
+      .fillColor('#333333')
+      .text('The price includes parts and labor.', marginLeft + 5, yPos, {
+        width: contentWidth - 10,
+        align: 'left',
+      });
 
-      // Item
-      doc
-        .fillColor('#000000')
-        .fontSize(9)
-        .font('Helvetica')
-        .text(product.item, xPos + 5, yPos + 8, {
-          width: colWidths[0] - 10,
-        });
+    yPos += 24;
 
-      // Vertical line
-      xPos += colWidths[0];
-      doc
-        .moveTo(xPos, yPos)
-        .lineTo(xPos, yPos + 25)
-        .stroke();
-
-      // Qty
+    const warrantyLabel = this.productSummaryWarrantyLabel(data);
+    if (warrantyLabel) {
       doc
         .fontSize(9)
-        .text(product.qty.toString(), xPos + 5, yPos + 8, {
-          width: colWidths[1] - 10,
+        .font('Helvetica-Bold')
+        .fillColor('#333333')
+        .text(warrantyLabel, marginLeft + 5, yPos, {
+          width: contentWidth - 10,
+          align: 'left',
         });
+      yPos += 18;
+    }
 
-      // Vertical line
-      xPos += colWidths[1];
-      doc
-        .moveTo(xPos, yPos)
-        .lineTo(xPos, yPos + 25)
-        .stroke();
-
-      // Price
-      doc
-        .fontSize(9)
-        .text(`$${product.price}`, xPos + 5, yPos + 8, {
-          width: colWidths[2] - 10,
-        });
-
-      // Vertical line
-      xPos += colWidths[2];
-      doc
-        .moveTo(xPos, yPos)
-        .lineTo(xPos, yPos + 25)
-        .stroke();
-
-      // Total
-      doc
-        .fontSize(9)
-        .text(`$${product.total}`, xPos + 5, yPos + 8, {
-          width: colWidths[3] - 10,
-        });
-
-      yPos += 25;
-    });*/
-
-    yPos += 30;
+    yPos += 8;
 
     // Summary totals
     const summaryXPos = marginLeft + contentWidth * 0.60;
@@ -1029,12 +1054,14 @@ export class RepairPdfService {
     });
     yPos += rowSpacing;
 
+    if (data.discount && data.discount > 0) {
     // Línea
     doc.strokeColor(lineColor).lineWidth(0.5)
       .moveTo(summaryXPos, yPos).lineTo(summaryXPos + summaryWidth, yPos).stroke();
     yPos += 8;
 
     // DISCOUNT (en rojo)
+    
     doc.fontSize(12).fillColor('#CC0000')
       .text('Discount', summaryXPos, yPos, { width: summaryWidth * 0.6 });
     doc.fillColor('#CC0000')
@@ -1042,6 +1069,7 @@ export class RepairPdfService {
         width: summaryWidth * 0.4, align: 'right',
       });
     yPos += rowSpacing;
+    }
 
     // Línea más gruesa antes del total
     doc.strokeColor('#666666').lineWidth(1.5)
@@ -1054,39 +1082,84 @@ export class RepairPdfService {
     doc.text(`$ ${data.total}`, summaryXPos + summaryWidth * 0.6, yPos, {
       width: summaryWidth * 0.4, align: 'right',
     });
+    yPos += rowSpacing;
 
-    /*doc
-      .fontSize(12)
-      .font('Helvetica')
-      .text('SubTotal', summaryXPos, yPos, { width: summaryWidth * 0.6 });
-    doc.text(`$ ${data.price}`, summaryXPos + summaryWidth * 0.6, yPos, {
-      width: summaryWidth * 0.4,
-      align: 'right',
-    });
+    const advancePayment = Number(data.advancePayment || 0);
+    if (advancePayment > 0) {
+      const total = Number(data.total || 0);
+      const pending = Math.max(total - advancePayment, 0);
 
-    yPos += 25;
-    doc.text('Tax 7%', summaryXPos, yPos, { width: summaryWidth * 0.6 });
-    doc.text(`$ ${data.tax}`, summaryXPos + summaryWidth * 0.6, yPos, {
-      width: summaryWidth * 0.4,
-      align: 'right',
-    });
+      doc.strokeColor(lineColor).lineWidth(0.5)
+        .moveTo(summaryXPos, yPos)
+        .lineTo(summaryXPos + summaryWidth, yPos)
+        .stroke();
+      yPos += 8;
 
-    yPos += 25;
-    doc.text('Discount', summaryXPos, yPos, { width: summaryWidth * 0.6 });
-    doc.text(`-$ ${data.discount}`, summaryXPos + summaryWidth * 0.6, yPos, {
-      width: summaryWidth * 0.4,
-      align: 'right',
-    });
+      doc.fontSize(12).font('Helvetica').fillColor('#333333')
+        .text('Advance Payment', summaryXPos, yPos, { width: summaryWidth * 0.6 });
+      doc.text(`$ ${advancePayment.toFixed(2)}`, summaryXPos + summaryWidth * 0.6, yPos, {
+        width: summaryWidth * 0.4, align: 'right',
+      });
+      yPos += rowSpacing;
 
-    yPos += 25;
-    doc
-      .fontSize(12)
-      .font('Helvetica-Bold')
-      .text('Total', summaryXPos, yPos, { width: summaryWidth * 0.6 });
-    doc.text(`$ ${data.total}`, summaryXPos + summaryWidth * 0.6, yPos, {
-      width: summaryWidth * 0.4,
-      align: 'right',
-    });*/
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000')
+        .text('Pending', summaryXPos, yPos, { width: summaryWidth * 0.6 });
+      doc.text(`$ ${pending.toFixed(2)}`, summaryXPos + summaryWidth * 0.6, yPos, {
+        width: summaryWidth * 0.4, align: 'right',
+      });
+      yPos += rowSpacing;
+    }
+
+    doc.y = yPos;
+  }
+
+  private ensureProductSummaryFits(doc: PDFDocument, data: any): void {
+    const bottomLimit = doc.page.height - doc.page.margins.bottom;
+    const availableHeight = bottomLimit - doc.y;
+    const requiredHeight = this.productSummaryEstimatedHeight(data);
+
+    if (availableHeight < requiredHeight) {
+      doc.addPage();
+    }
+  }
+
+  private productSummaryEstimatedHeight(data: any): number {
+    const rowSpacing = 18;
+    let height = 25; // Space before title.
+    height += 30; // Title to table header.
+    height += 25; // Table header.
+    height += 25; // Product row.
+    height += 42; // Price note and space before totals.
+    if (Number(data.warrantyDuration || 0) > 0) {
+      height += 18; // Warranty line.
+    }
+    height += rowSpacing; // Subtotal.
+    height += 8; // Divider.
+    height += rowSpacing; // Tax.
+
+    if (Number(data.discount || 0) > 0) {
+      height += 8; // Divider.
+      height += rowSpacing; // Discount.
+    }
+
+    height += 12; // Total divider.
+    height += rowSpacing; // Total.
+
+    if (Number(data.advancePayment || 0) > 0) {
+      height += 8; // Divider.
+      height += rowSpacing; // Advance payment.
+      height += rowSpacing; // Pending.
+    }
+
+    return height + 12;
+  }
+
+  private productSummaryWarrantyLabel(data: any): string {
+    const duration = Number(data.warrantyDuration || 0);
+    if (duration <= 0) return '';
+
+    const unit = String(data.warrantyDurationUnit || 'months').trim();
+    return `Warranty: ${duration} ${unit}`;
   }
 
 
@@ -1100,57 +1173,75 @@ export class RepairPdfService {
     const pageWidth = doc.page.width;
     const contentWidth = pageWidth - marginLeft - marginRight;
 
+    this.ensureSpace(doc, 110);
     let yPos = doc.y + 25;
 
     // Section title
     doc
-      .fontSize(12)
+      .fontSize(14)
       .font('Helvetica-Bold')
       .fillColor('#000000')
-      .text('Terms & conditions', marginLeft, yPos);
+      .text('TERMS & CONDITIONS', marginLeft, yPos);
 
-    yPos += 20;
+    yPos += 24;
 
-    // Terms text
-    const termsText = 'Miami Photography Center Last updated: August 2025 Repairs (in workshop) Scope of Service' +
-      'Technical repair and maintenance of photographic cameras, lenses, flashes, and accessories at our' +
-      'specialized workshop. Estimates and Diagnosis - Free estimates conducted in our workshop. - If final' +
-      'cost exceeds the estimate by more than 20%, prior approval will be requested. - Diagnosis does not' +
-      'include data or photo recovery. Repair Warranty - Repairs include a limited 6-month warranty. -' +
-      'Excludes damage caused by drops, liquids, sand, or third-party tampering. Liability - We are not' +
-      'responsible for lost files. - Clients must back up data before delivering equipment. Equipment Pickup -' +
-      'Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or' +
-      'discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics' +
-      'performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:' +
-      '$45, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not' +
-      'guaranteed on-site. Warranty and Liability - Same 6-month warranty as workshop repairs. - Immediate' +
-      'on-site resolution not guaranteed if parts are needed. Logistics - Client must provide proper access to' +
-      'the service area. - Rescheduling allowed with at least 24-hour notice.';
+    const sections = [
+      {
+        title: 'Repairs in workshop',
+        items: [
+          'Technical repair and maintenance of photographic cameras, lenses, flashes, and accessories at our specialized workshop.',
+          'Free estimates are conducted in our workshop. If the final cost exceeds the estimate by more than 20%, prior approval will be requested.',
+          'Diagnosis does not include data or photo recovery.',
+          'Repairs include a limited warranty. Damage caused by drops, liquids, sand, or third-party tampering is excluded.',
+          'Clients must back up files before delivering equipment. Miami Photography Center is not responsible for lost files.',
+          'Equipment must be picked up within 30 days of notification. After 90 days, it may be sold or discarded to recover costs.',
+        ],
+      },
+      {
+        title: 'On-site services',
+        items: [
+          'Sensor cleaning, maintenance, and diagnostics may be performed at the client location via mobile unit.',
+          'On-site diagnosis is $75 and deductible if repair is approved. Travel fee applies based on location.',
+          'Full disassembly and immediate resolution are not guaranteed on-site if parts are needed.',
+          'Client must provide proper access to the service area. Rescheduling is allowed with at least 24-hour notice.',
+        ],
+      },
+    ];
 
-    doc
-      .fontSize(7)
-      .font('Helvetica')
-      .text(termsText, marginLeft, yPos, {
-        width: contentWidth,
-        align: 'justify',
+    sections.forEach((section) => {
+      if (yPos + 36 > this.pageBottom(doc)) {
+        doc.addPage();
+        yPos = doc.page.margins.top;
+      }
+
+      doc
+        .fontSize(9)
+        .font('Helvetica-Bold')
+        .fillColor('#000000')
+        .text(section.title, marginLeft, yPos, { width: contentWidth });
+      yPos += 14;
+
+      section.items.forEach((item) => {
+        doc.font('Helvetica').fontSize(8).fillColor('#000000');
+        const textHeight = doc.heightOfString(item, { width: contentWidth - 18, lineGap: 1 });
+        if (yPos + textHeight + 4 > this.pageBottom(doc)) {
+          doc.addPage();
+          yPos = doc.page.margins.top;
+        }
+
+        doc.text('-', marginLeft + 3, yPos, { width: 10 });
+        doc.text(item, marginLeft + 18, yPos, {
+          width: contentWidth - 18,
+          align: 'left',
+          lineGap: 1,
+        });
+        yPos += textHeight + 4;
       });
 
+      yPos += 6;
+    });
 
-
-    // Signature line
-    /*yPos += 200;
-    doc
-      .strokeColor('#000000')
-      .lineWidth(1)
-      .moveTo(marginLeft, yPos)
-      .lineTo(marginLeft + 200, yPos)
-      .stroke();
-
-    doc
-      .fontSize(8)
-      .font('Helvetica')
-      .text('Authorized Signature', marginLeft, yPos + 5);
-      */
+    doc.y = yPos;
   }
 
   /**

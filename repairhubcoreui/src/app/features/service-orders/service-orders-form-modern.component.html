@@ -167,11 +167,11 @@
                       }
                     </select>
                     <button class="btn btn-outline-secondary" type="button" (click)="openCustomerSearch()"
-                      [disabled]="isOrderFinalized() || isFormReadOnly()">
+                      [disabled]="isOrderLockedForEditing() || isFormReadOnly()">
                       <i class="bi bi-search"></i>
                     </button>
                     <button class="btn btn-outline-primary" type="button" (click)="openCustomerForm()"
-                      [disabled]="isOrderFinalized() || isFormReadOnly()">
+                      [disabled]="isOrderLockedForEditing() || isFormReadOnly()">
                       <i class="bi bi-person-plus"></i>
                     </button>
                   </div>
@@ -192,7 +192,7 @@
                       }
                     </select>
                     <button class="btn btn-outline-secondary" type="button" (click)="openAddDevice()"
-                      [disabled]="isOrderFinalized() || isFormReadOnly()">+</button>
+                      [disabled]="isOrderLockedForEditing() || isFormReadOnly()">+</button>
                   </div>
                   @if (isFieldInvalid('deviceId')) {
                   <span class="error-message">{{ getFieldError('deviceId') }}</span>
@@ -211,7 +211,7 @@
                       }
                     </select>
                     <button class="btn btn-outline-secondary" type="button" (click)="openAddDeviceBrand()"
-                      [disabled]="isOrderFinalized() || isFormReadOnly()">+</button>
+                      [disabled]="isOrderLockedForEditing() || isFormReadOnly()">+</button>
                   </div>
                   @if (isFieldInvalid('deviceBrandId')) {
                   <span class="error-message">{{ getFieldError('deviceBrandId') }}</span>
@@ -254,6 +254,12 @@
                   }
                 </div>
                 }
+
+                <div class="col-md-6">
+                  <label for="createdAt" class="form-label">Created Date</label>
+                  <input id="createdAt" type="datetime-local" class="form-control"
+                    formControlName="createdAt" autocomplete="off" />
+                </div>
               </div>
             </div>
 
@@ -265,8 +271,30 @@
                 <!-- Model -->
                 <div class="col-md-6 col-xl-4">
                   <label for="model" class="form-label">Model *</label>
-                  <input type="text" id="model" autocomplete="off" class="form-control"
-                    [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model" />
+                  <div class="position-relative">
+                    <input type="text" id="model" autocomplete="off" class="form-control"
+                      [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model"
+                      autocapitalize="characters"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      [attr.aria-expanded]="showModelSuggestions()"
+                      aria-controls="model-suggestions"
+                      (focus)="openModelSuggestions()"
+                      (input)="uppercaseControlValue('model', $event); openModelSuggestions()"
+                      (blur)="closeModelSuggestions()" />
+                    @if (showModelSuggestions()) {
+                    <div id="model-suggestions" class="list-group position-absolute top-100 start-0 end-0 z-3 shadow mt-1"
+                      role="listbox" style="max-height: 240px; overflow-y: auto;">
+                      @for (model of modelSuggestions(); track model) {
+                      <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                        role="option" (mousedown)="selectModelSuggestion(model); $event.preventDefault()">
+                        <i class="bi bi-stars text-primary" aria-hidden="true"></i>
+                        <span>{{ model }}</span>
+                      </button>
+                      }
+                    </div>
+                    }
+                  </div>
                   @if (isFieldInvalid('model')) {
                   <span class="error-message">{{ getFieldError('model') }}</span>
                   }
@@ -276,28 +304,31 @@
                 <div class="col-md-6 col-xl-4">
                   <label for="serial" class="form-label">Serial</label>
                   <input type="text" id="serial" autocomplete="off" class="form-control" formControlName="serial"
-                    placeholder="Serial number" />
+                    placeholder="Serial number" (input)="uppercaseControlValue('serial', $event)" />
                 </div>
 
                 <!-- Defective Part -->
                 <div class="col-12">
                   <label for="defectivePart" class="form-label">Defective Part</label>
                   <input type="text" id="defectivePart" autocomplete="off" class="form-control"
-                    formControlName="defectivePart" placeholder="Describe the defective part" />
+                    formControlName="defectivePart" placeholder="Describe the defective part"
+                    (input)="uppercaseControlValue('defectivePart', $event)" />
                 </div>
 
                 <!-- Reception Note -->
                 <div class="col-12">
                   <label for="noteReception" class="form-label">Reception Notes</label>
                   <textarea id="noteReception" autocomplete="off" class="form-control" formControlName="noteReception"
-                    placeholder="Additional notes..." rows="3"></textarea>
+                    placeholder="Additional notes..." rows="3"
+                    (input)="uppercaseControlValue('noteReception', $event)"></textarea>
                 </div>
 
                 <!-- Estimated -->
                 <div class="col-12" *ngIf="!isExpertNonCenterAdmin()">
                   <label for="estimated" class="form-label">Estimated</label>
                   <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
-                    placeholder="Estimated repair..." rows="3"></textarea>
+                    placeholder="Estimated repair..." rows="3"
+                    (input)="uppercaseControlValue('estimated', $event)"></textarea>
                 </div>
 
                 @if (!isExpertNonCenterAdmin()) {
@@ -357,17 +388,48 @@
                   *ngIf="canUseCameraCapture"
                   class="btn btn-sm btn-outline-primary"
                   type="button"
-                  [disabled]="totalImageCount >= maxImages || isOrderFinalized() || isFormReadOnly()"
+                  [disabled]="totalImageCount >= maxImages || isOrderLockedForEditing() || isFormReadOnly()"
                   (click)="editCameraInput.click()">
                   <i class="bi bi-camera"></i> Take photo
                 </button>
                 <button
                   class="btn btn-sm btn-outline-secondary"
                   type="button"
-                  [disabled]="totalImageCount >= maxImages || isOrderFinalized() || isFormReadOnly()"
+                  [disabled]="totalImageCount >= maxImages || isOrderLockedForEditing() || isFormReadOnly()"
                   (click)="editImageInput.click()">
                   <i class="bi bi-folder2-open"></i> Add from files
                 </button>
+              </div>
+
+              <div class="border rounded p-3 mb-3 bg-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                  <span class="fw-semibold">Customer Signature</span>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" type="button"
+                      [disabled]="isSignatureCaptureDisabled()"
+                      (click)="clearSignature(editSignatureCanvas)">
+                      Clear
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" type="button"
+                      [disabled]="isSignatureCaptureDisabled()"
+                      (click)="saveSignature(editSignatureCanvas)">
+                      Save Signature
+                    </button>
+                  </div>
+                </div>
+                <canvas
+                  #editSignatureCanvas
+                  class="w-100 border rounded bg-white"
+                  width="720"
+                  height="220"
+                  style="height: 180px; touch-action: none;"
+                  aria-label="Customer signature pad"
+                  (pointerdown)="startSignature($event, editSignatureCanvas)"
+                  (pointermove)="drawSignature($event, editSignatureCanvas)"
+                  (pointerup)="endSignature($event, editSignatureCanvas)"
+                  (pointerleave)="endSignature($event, editSignatureCanvas)"
+                  (pointercancel)="endSignature($event, editSignatureCanvas)">
+                </canvas>
               </div>
 
               @if (activeExistingImages.length || selectedImagePreviews.length) {
@@ -391,7 +453,7 @@
                       class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 py-0 px-1"
                       type="button"
                       title="Remove image"
-                      [disabled]="isOrderFinalized() || isFormReadOnly()"
+                      [disabled]="isOrderLockedForEditing() || isFormReadOnly()"
                       (click)="markExistingImageForDeletion(image)">
                       <i class="bi bi-x"></i>
                     </button>
@@ -400,6 +462,9 @@
                     }
                     @if (image.status === 'failed') {
                     <span class="badge bg-danger position-absolute bottom-0 start-0 m-1">Failed</span>
+                    }
+                    @if (image.kind === 'signature') {
+                    <span class="badge bg-primary position-absolute top-0 start-0 m-1">Signature</span>
                     }
                   </div>
                 </div>
@@ -427,7 +492,9 @@
                       (click)="removeSelectedImage(i)">
                       <i class="bi bi-x"></i>
                     </button>
-                    <span class="badge bg-info text-dark position-absolute bottom-0 start-0 m-1">New</span>
+                    <span class="badge bg-info text-dark position-absolute bottom-0 start-0 m-1">
+                      {{ selectedImageFiles[i]?.name?.startsWith('customer-signature') ? 'Signature' : 'New' }}
+                    </span>
                   </div>
                 </div>
                 }
@@ -492,7 +559,7 @@
                       }
                     </select>
                     <button class="btn btn-outline-secondary" type="button" (click)="openAddPaymentType()"
-                      [disabled]="isOrderFinalized() || isFormReadOnly()">+</button>
+                      [disabled]="isOrderLockedForEditing() || isFormReadOnly()">+</button>
                   </div>
                   @if (isFieldInvalid('paymentTypeId')) {
                   <span class="error-message">{{ getFieldError('paymentTypeId') }}</span>
@@ -626,7 +693,7 @@
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Notes</span>
-                <button *ngIf="!isOrderFinalized() && (!isFormReadOnly() || isExpertNonCenterAdmin())"
+                <button *ngIf="!isOrderLockedForEditing() && (!isFormReadOnly() || isExpertNonCenterAdmin())"
                   class="btn btn-sm btn-outline-primary" type="button" (click)="openAddNote()">+</button>
               </div>
               <div class="card-body p-0">
@@ -636,7 +703,7 @@
                     <div>{{ n.note }}</div>
                     <div class="btn-group btn-group-sm">
                       <div>{{ n.createdAt | date:'dd/MM/yyyy' }}</div>
-                      <!--button *ngIf="!isOrderFinalized() && (!isFormReadOnly() || isExpertNonCenterAdmin())" class="btn btn-link" type="button"
+                      <!--button *ngIf="!isOrderLockedForEditing() && (!isFormReadOnly() || isExpertNonCenterAdmin())" class="btn btn-link" type="button"
                         (click)="openEditNote(n)">Edit</button>
                       <button class="btn btn-link text-danger" type="button" (click)="deleteNote(n.id)" [disabled]="isFormReadOnly() && !isExpertNonCenterAdmin()">Delete</button>
                     -->
@@ -654,7 +721,7 @@
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Diagnostics</span>
-                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                <button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
                   type="button" (click)="openAddDiagnostic()">+</button>
               </div>
               <div class="card-body p-0">
@@ -663,11 +730,11 @@
                   <li class="list-group-item d-flex justify-content-between align-items-start">
                     <div>{{ d.diagnostic }}</div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail" class="btn btn-link"
+                      <button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly() && !d.sendEmail" class="btn btn-link"
                         type="button" (click)="openEditDiagnostic(d)" aria-label="Edit diagnostic">
                         <i class="bi bi-pencil" aria-hidden="true"></i>
                       </button>
-                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly() && !d.sendEmail"
+                      <button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly() && !d.sendEmail"
                         class="btn btn-link text-danger" type="button" (click)="deleteDiagnostic(d.id)"
                         [disabled]="isFormReadOnly()" aria-label="Delete diagnostic">
                         <i class="bi bi-trash" aria-hidden="true"></i>
@@ -691,7 +758,7 @@
             <div class="card mb-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Status</span>
-                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                <button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
                   type="button" (click)="openAddStatus()">+</button>
               </div>
               <div class="card-body p-0">
@@ -701,7 +768,7 @@
                     <div>{{ s.status }}</div>
                     <div class="btn-group btn-group-sm">
                       <div>{{ s.createdAt | date:'dd/MM/yyyy' }}</div>
-                      <!--button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-link" type="button"
+                      <!--button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly()" class="btn btn-link" type="button"
                         (click)="openEditStatus(s)">Edit</button>
                       <button class="btn btn-link text-danger" type="button"
                         (click)="deleteStatus(s.id)" [disabled]="isFormReadOnly()">Delete</button-->
@@ -718,7 +785,7 @@
             <div class="card">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Items</span>
-                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                <button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
                   type="button" (click)="openAddItem()">+</button>
               </div>
               <div class="card-body p-0">
@@ -730,10 +797,10 @@
                       <small class="text-muted">Qty: {{ i.quantity }} — Price: {{ i.price }}</small>
                     </div>
                     <div class="btn-group btn-group-sm">
-                      <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-link" type="button"
+                      <button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly()" class="btn btn-link" type="button"
                         (click)="openEditItem(i)">Edit</button>
                       <button class="btn btn-link text-danger" type="button" (click)="deleteItem(i.id)"
-                        [disabled]="isFormReadOnly()">Delete</button>
+                        [disabled]="isOrderLockedForEditing() || isFormReadOnly()">Delete</button>
                     </div>
                   </li>
                   }
@@ -748,7 +815,7 @@
             <div class="card mt-3">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Received Parts</span>
-                <button *ngIf="!isOrderFinalized() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
+                <button *ngIf="!isOrderLockedForEditing() && !isFormReadOnly()" class="btn btn-sm btn-outline-primary"
                   type="button" (click)="openReceivedPartModal()">+</button>
               </div>
               <div class="card-body">
@@ -969,7 +1036,8 @@
             <div class="col-12">
               <label for="noteReception" class="form-label">Reception Notes</label>
               <textarea id="noteReception" autocomplete="off" class="form-control" formControlName="noteReception"
-                placeholder="Additional notes..." rows="4" autocapitalize="sentences"></textarea>
+                placeholder="Additional notes..." rows="4" autocapitalize="characters"
+                (input)="uppercaseControlValue('noteReception', $event)"></textarea>
             </div>
           </div>
         </div>
@@ -985,8 +1053,30 @@
             <!-- Model -->
             <div class="col-md-6 col-xl-4">
               <label for="model" class="form-label">Model *</label>
-              <input type="text" id="model" autocomplete="off" class="form-control"
-                [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model" autocapitalize="characters" />
+              <div class="position-relative">
+                <input type="text" id="model" autocomplete="off" class="form-control"
+                  [class.is-invalid]="isFieldInvalid('model')" formControlName="model" placeholder="Device model"
+                  autocapitalize="characters"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  [attr.aria-expanded]="showModelSuggestions()"
+                  aria-controls="model-suggestions"
+                  (focus)="openModelSuggestions()"
+                  (input)="uppercaseControlValue('model', $event); openModelSuggestions()"
+                  (blur)="closeModelSuggestions()" />
+                @if (showModelSuggestions()) {
+                <div id="model-suggestions" class="list-group position-absolute top-100 start-0 end-0 z-3 shadow mt-1"
+                  role="listbox" style="max-height: 240px; overflow-y: auto;">
+                  @for (model of modelSuggestions(); track model) {
+                  <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                    role="option" (mousedown)="selectModelSuggestion(model); $event.preventDefault()">
+                    <i class="bi bi-stars text-primary" aria-hidden="true"></i>
+                    <span>{{ model }}</span>
+                  </button>
+                  }
+                </div>
+                }
+              </div>
               @if (isFieldInvalid('model')) {
               <span class="error-message">{{ getFieldError('model') }}</span>
               }
@@ -996,7 +1086,8 @@
             <div class="col-md-6 col-xl-4">
               <label for="serial" class="form-label">Serial</label>
               <input type="text" id="serial" autocomplete="off" class="form-control" formControlName="serial"
-                placeholder="Serial number" autocapitalize="characters" />
+                placeholder="Serial number" autocapitalize="characters"
+                (input)="uppercaseControlValue('serial', $event)" />
             </div>
 
             <!-- Assigned Tech -->
@@ -1035,14 +1126,16 @@
             <div class="col-12">
               <label for="defectivePart" class="form-label">Defective Part</label>
               <input type="text" id="defectivePart" autocomplete="off" class="form-control"
-                formControlName="defectivePart" placeholder="Describe the defective part" autocapitalize="sentences" />
+                formControlName="defectivePart" placeholder="Describe the defective part" autocapitalize="characters"
+                (input)="uppercaseControlValue('defectivePart', $event)" />
             </div>
 
             <!-- Estimated -->
             <div class="col-12">
               <label for="estimated" class="form-label">Estimated</label>
               <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
-                placeholder="Estimated repair..." rows="4" autocapitalize="sentences"></textarea>
+                placeholder="Estimated repair..." rows="4" autocapitalize="characters"
+                (input)="uppercaseControlValue('estimated', $event)"></textarea>
             </div>
 
             <div class="col-md-6 col-xl-4">
@@ -1100,6 +1193,37 @@
                     </button>
                   </div>
 
+                  <div class="border rounded p-3 mb-3 bg-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                      <span class="fw-semibold">Customer Signature</span>
+                      <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                          [disabled]="isSignatureCaptureDisabled()"
+                          (click)="clearSignature(signatureCanvas)">
+                          Clear
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" type="button"
+                          [disabled]="isSignatureCaptureDisabled()"
+                          (click)="saveSignature(signatureCanvas)">
+                          Save Signature
+                        </button>
+                      </div>
+                    </div>
+                    <canvas
+                      #signatureCanvas
+                      class="w-100 border rounded bg-white"
+                      width="720"
+                      height="220"
+                      style="height: 180px; touch-action: none;"
+                      aria-label="Customer signature pad"
+                      (pointerdown)="startSignature($event, signatureCanvas)"
+                      (pointermove)="drawSignature($event, signatureCanvas)"
+                      (pointerup)="endSignature($event, signatureCanvas)"
+                      (pointerleave)="endSignature($event, signatureCanvas)"
+                      (pointercancel)="endSignature($event, signatureCanvas)">
+                    </canvas>
+                  </div>
+
                   @if (selectedImagePreviews.length) {
                   <div class="row g-2">
                     @for (preview of selectedImagePreviews; track preview; let i = $index) {
@@ -1124,7 +1248,9 @@
                           (click)="removeSelectedImage(i)">
                           <i class="bi bi-x"></i>
                         </button>
-                        <span class="badge bg-info text-dark position-absolute bottom-0 start-0 m-1">New</span>
+                        <span class="badge bg-info text-dark position-absolute bottom-0 start-0 m-1">
+                          {{ selectedImageFiles[i]?.name?.startsWith('customer-signature') ? 'Signature' : 'New' }}
+                        </span>
                       </div>
                     </div>
                     }
@@ -1300,7 +1426,7 @@
         <!-- Submit button -->
         @if (!showSteps() || currentStep() === steps.length - 1) {
         <button type="submit" class="btn btn-success" *ngIf="!isExpertNonCenterAdmin()"
-          [disabled]="isSaving() || isOrderFinalized() || isFormReadOnly()">
+          [disabled]="isSaving() || isOrderLockedForEditing() || isFormReadOnly()">
           @if (isSaving()) {
           <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Saving...
           } @else {
@@ -1427,11 +1553,13 @@
         <div class="modal-body">
           <div class="mb-2">
             <label class="form-label">Accessory</label>
-            <input class="form-control" [(ngModel)]="editingReceivedPart!.accessory" autocapitalize="words" />
+            <input class="form-control" [(ngModel)]="editingReceivedPart!.accessory" autocapitalize="characters"
+              (input)="uppercaseReceivedPartField('accessory', $event)" />
           </div>
           <div class="mb-2">
             <label class="form-label">Observations</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="editingReceivedPart!.observations" autocapitalize="words"></textarea>
+            <textarea class="form-control" rows="3" [(ngModel)]="editingReceivedPart!.observations"
+              autocapitalize="characters" (input)="uppercaseReceivedPartField('observations', $event)"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -1465,7 +1593,8 @@
               rows="4"
               [(ngModel)]="warrantyDecisionReasonDraft"
               [ngModelOptions]="{ standalone: true }"
-              autocapitalize="sentences">
+              autocapitalize="characters"
+              (input)="uppercaseWarrantyReason($event)">
             </textarea>
           </div>
         </div>

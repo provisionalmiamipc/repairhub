@@ -14,7 +14,8 @@ import { ReceivedPart } from '../../shared/models/ReceivedPart';
     <form [formGroup]="form" (ngSubmit)="submit()">
       <div class="mb-2">
         <label>Accessory</label>
-        <input class="form-control" formControlName="accessory" />
+        <input class="form-control" formControlName="accessory" autocapitalize="characters"
+          (input)="uppercaseControlValue('accessory', $event)" />
       </div>
       <div class="mb-2">
         <label>Service Order Id</label>
@@ -30,7 +31,8 @@ import { ReceivedPart } from '../../shared/models/ReceivedPart';
       </div>
       <div class="mb-2">
         <label>Observations</label>
-        <textarea class="form-control" formControlName="observations"></textarea>
+        <textarea class="form-control" formControlName="observations" autocapitalize="characters"
+          (input)="uppercaseControlValue('observations', $event)"></textarea>
       </div>
 
       <div class="d-flex gap-2">
@@ -61,6 +63,22 @@ export class ReceivedPartsFormComponent implements OnInit {
   ngOnInit(): void {
     if (this.model) {
       this.form.patchValue(this.model as any);
+    }
+  }
+
+  uppercaseControlValue(controlName: 'accessory' | 'observations', event: Event): void {
+    const field = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+    const control = this.form.get(controlName);
+    if (!field || !control) return;
+
+    const selectionStart = field.selectionStart;
+    const selectionEnd = field.selectionEnd;
+    const upperValue = field.value.toLocaleUpperCase();
+    field.value = upperValue;
+    control.setValue(upperValue);
+
+    if (selectionStart !== null && selectionEnd !== null) {
+      field.setSelectionRange(selectionStart, selectionEnd);
     }
   }
 

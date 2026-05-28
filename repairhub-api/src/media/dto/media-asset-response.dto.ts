@@ -4,6 +4,7 @@ export interface MediaAssetResponseDto {
   id: number;
   ownerType: string;
   ownerId: number;
+  kind: string;
   status: MediaAssetStatus;
   originalName: string;
   mimeType?: string;

@@ -104,6 +104,10 @@ export class CreateServiceOrderDto {
 	createdById: number;
 
 	@IsOptional()
+	@IsString()
+	createdAt?: string;
+
+	@IsOptional()
 	@IsArray()
 	@ValidateNested({ each: true })
 	@Type(() => CreateReceivedPartNestedDto)

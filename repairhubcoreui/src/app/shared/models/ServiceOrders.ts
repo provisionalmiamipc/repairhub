@@ -25,6 +25,7 @@ export interface ServiceOrderImage {
   id: number;
   ownerType: string;
   ownerId: number;
+  kind?: string;
   status: 'pending' | 'processing' | 'ready' | 'failed' | 'deleted';
   originalName: string;
   mimeType?: string;

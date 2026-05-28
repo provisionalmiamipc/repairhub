@@ -6,6 +6,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { ServiceOrders } from '../../shared/models/ServiceOrders';
 import { ServiceOrdersService } from '../../shared/services/service-orders.service';
 import { AuthService } from '../../shared/services/auth.service';
+import { ToastService } from '../../shared/services/toast.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
@@ -38,6 +39,7 @@ interface ListState {
 export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
   private serviceOrdersService = inject(ServiceOrdersService);
   public authService = inject(AuthService);
+  private toastService = inject(ToastService);
   private router = inject(Router);
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
@@ -225,6 +227,18 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
 
   goToDetail(order: ServiceOrders): void {
     this.router.navigate(['/service-orders', order.id]);
+  }
+
+  openPdf(order: ServiceOrders): void {
+    if (!order?.id) return;
+    this.serviceOrdersService.downloadPdf(order.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      },
+      error: err => this.toastService.error(err?.error?.message || 'Error opening service order PDF'),
+    });
   }
 
   deleteServiceOrder(order: ServiceOrders): void {

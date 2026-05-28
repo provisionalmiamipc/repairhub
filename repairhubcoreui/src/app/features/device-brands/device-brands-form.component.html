@@ -84,7 +84,8 @@
 
     <div class="mb-3">
       <label class="form-label" for="name">Name *</label>
-      <input type="text" class="form-control" id="name" formControlName="name" placeholder="Brand name" autocomplete="off" />
+      <input type="text" class="form-control" id="name" formControlName="name" placeholder="Brand name"
+        autocomplete="off" autocapitalize="characters" (input)="uppercaseControlValue('name', $event)" />
       <div class="invalid-feedback d-block" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">Name is required</div>
     </div>
 
@@ -95,7 +96,8 @@
 
     <div class="mb-3">
       <label class="form-label" for="description">Description</label>
-      <textarea class="form-control" id="description" formControlName="description" placeholder="Brand description"></textarea>
+      <textarea class="form-control" id="description" formControlName="description" placeholder="Brand description"
+        autocapitalize="characters" (input)="uppercaseControlValue('description', $event)"></textarea>
     </div>
   </form>
 </ng-template>

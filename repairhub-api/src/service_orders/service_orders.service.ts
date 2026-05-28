@@ -172,6 +172,8 @@ formatDateToMMDDYYYY(date: Date): string {
         price: fullOrder.price || 0,
         repairCost: fullOrder.repairCost || 0,
         advancePayment: fullOrder.advancePayment || 0,
+        warrantyDuration: fullOrder.warrantyDuration || 0,
+        warrantyDurationUnit: fullOrder.warrantyDurationUnit || 'months',
         tax: fullOrder.price * fullOrder.tax / 100 || 0,
         discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
         total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
@@ -236,6 +238,7 @@ formatDateToMMDDYYYY(date: Date): string {
   async createWithImages(
     createDto: CreateServiceOrderDto,
     images: Express.Multer.File[] = [],
+    imageKinds: string[] = [],
   ) {
     if (this.mediaService) {
       await this.mediaService.validateImageChange({
@@ -251,6 +254,7 @@ formatDateToMMDDYYYY(date: Date): string {
         ownerType: this.mediaOwnerType,
         ownerId: order.id,
         files: images,
+        kinds: imageKinds,
       });
     }
 
@@ -408,6 +412,7 @@ formatDateToMMDDYYYY(date: Date): string {
     updateDto: UpdateServiceOrderDto,
     images: Express.Multer.File[] = [],
     deleteImageIds: number[] = [],
+    imageKinds: string[] = [],
   ) {
     if (this.mediaService) {
       await this.mediaService.validateImageChange({
@@ -432,6 +437,7 @@ formatDateToMMDDYYYY(date: Date): string {
           ownerType: this.mediaOwnerType,
           ownerId: id,
           files: images,
+          kinds: imageKinds,
         });
       }
     }
@@ -443,6 +449,101 @@ formatDateToMMDDYYYY(date: Date): string {
     const result = await this.serviceOrderRepository.delete(id);
     if (result.affected === 0) throw new NotFoundException(`ServiceOrder #${id} not found`);
     return { deleted: true };
+  }
+
+  async generatePdf(id: number): Promise<Buffer> {
+    const fullOrder = await this.serviceOrderRepository.findOne({
+      where: { id },
+      relations: [
+        'customer',
+        'device',
+        'deviceBrand',
+        'assignedTech',
+        'employee',
+        'paymentType',
+        'soitems',
+        'soitems.item',
+        'sonotes',
+        'sodiagnostic',
+        'repairStatus',
+        'receivedParts',
+      ],
+    });
+
+    if (!fullOrder) throw new NotFoundException(`ServiceOrder #${id} not found`);
+
+    const lastRepairStatus = (fullOrder.repairStatus && (Array.isArray(fullOrder.repairStatus)
+      ? fullOrder.repairStatus[fullOrder.repairStatus.length - 1]
+      : fullOrder.repairStatus)) || null;
+
+    const pdfData = {
+      orderCode: fullOrder.orderCode,
+      customerName: fullOrder.customer ? `${fullOrder.customer.firstName} ${fullOrder.customer.lastName}` : '',
+      customerEmail: fullOrder.customer?.email || '',
+      customerPhone: fullOrder.customer?.phone || fullOrder.customer?.phone || '',
+      customerAddress: fullOrder.customer ? `${fullOrder.customer.city || ''}` : '',
+      date: this.formatDateToMMDDYYYY(fullOrder.createdAt) || '',
+      device: fullOrder.device?.name || '-',
+      brand: fullOrder.deviceBrand?.name || '',
+      model: fullOrder.model || '-',
+      serial: fullOrder.serial || '',
+      defectivePart: fullOrder.defectivePart || '-',
+      price: fullOrder.price || 0,
+      repairCost: fullOrder.repairCost || 0,
+      advancePayment: fullOrder.advancePayment || 0,
+      warrantyDuration: fullOrder.warrantyDuration || 0,
+      warrantyDurationUnit: fullOrder.warrantyDurationUnit || 'months',
+      tax: fullOrder.price * fullOrder.tax / 100 || 0,
+      discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
+      total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
+      paymentType: fullOrder.paymentType?.type || '',
+      assignedTech: fullOrder.assignedTech ? `${fullOrder.assignedTech.firstName} ${fullOrder.assignedTech.lastName}` : '',
+      createdBy: fullOrder.employee ? `${fullOrder.employee.firstName} ${fullOrder.employee.lastName}` : '',
+      estimated: fullOrder.estimated || '',
+      noteReception: fullOrder.noteReception || '',
+      terms: '',
+      lastrepairStatus: lastRepairStatus ? ({
+        id: lastRepairStatus.id,
+        status: lastRepairStatus.status || '',
+        date: this.formatDateToMMDDYYYY(lastRepairStatus.createdAt) || '',
+      }) : null,
+      repairStatus: (fullOrder.repairStatus || []).map(rs => ({
+        id: rs.id,
+        status: rs.status || '',
+        date: this.formatDateToMMDDYYYY(rs.createdAt) || '',
+      })),
+      diagnostics: (fullOrder.sodiagnostic || [])
+        .filter(d => d.sendEmail === true)
+        .map(d => ({
+          id: d.id,
+          title: d.diagnostic || '',
+          sendEmail: d.sendEmail || '',
+          date: this.formatDateToMMDDYYYY(d.createdAt) || '',
+        })),
+      items: (fullOrder.soitems || []).map(it => ({
+        description: it.item?.product || it.note || '',
+        quantity: it.quantity || 1,
+        price: it.price || it.cost || 0,
+        discount: it.discount || 0,
+      })),
+      receivedParts: (fullOrder.receivedParts || []).map(rp => ({
+        accessory: rp.accessory || '',
+        observations: rp.observations || '',
+      })),
+      serviceOrderImages: this.mediaService
+        ? await this.mediaService.getPdfImageBuffers(this.mediaOwnerType, fullOrder.id)
+        : [],
+    };
+
+    if (this.pdfService && typeof (this.pdfService as any).generateRepairPdfBuffer === 'function') {
+      return (this.pdfService as any).generateRepairPdfBuffer(pdfData);
+    }
+
+    if (this.puppeteerPdfService) {
+      return this.puppeteerPdfService.generate(pdfData);
+    }
+
+    return this.pdfService.generate(pdfData) as unknown as Buffer;
   }
 
   async resendEmail(id: number) {
@@ -485,6 +586,8 @@ formatDateToMMDDYYYY(date: Date): string {
       price: fullOrder.price || 0,
       repairCost: fullOrder.repairCost || 0,
       advancePayment: fullOrder.advancePayment || 0,
+      warrantyDuration: fullOrder.warrantyDuration || 0,
+      warrantyDurationUnit: fullOrder.warrantyDurationUnit || 'months',
       tax: fullOrder.price * fullOrder.tax / 100 || 0,
       discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
       total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
@@ -523,6 +626,9 @@ formatDateToMMDDYYYY(date: Date): string {
           accessory: rp.accessory || '',
           observations: rp.observations || '',
         })),
+      serviceOrderImages: this.mediaService
+        ? await this.mediaService.getPdfImageBuffers(this.mediaOwnerType, fullOrder.id)
+        : [],
     };
 
     if (this.pdfJobService) {

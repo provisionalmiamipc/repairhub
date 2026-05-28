@@ -406,6 +406,25 @@ export class CustomersFormModernComponent implements OnInit {
     
   }
 
+  uppercaseControlValue(
+    controlName: 'firstName' | 'lastName' | 'phone' | 'city' | 'addressLine' | 'cityTemp' | 'state' | 'zipCode' | 'country' | 'extraInfo',
+    event: Event
+  ): void {
+    const field = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+    const control = this.customerForm.get(controlName);
+    if (!field || !control) return;
+
+    const selectionStart = field.selectionStart;
+    const selectionEnd = field.selectionEnd;
+    const upperValue = field.value.toLocaleUpperCase();
+    field.value = upperValue;
+    control.setValue(upperValue);
+
+    if (selectionStart !== null && selectionEnd !== null) {
+      field.setSelectionRange(selectionStart, selectionEnd);
+    }
+  }
+
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.keys(formGroup.controls).forEach(key => {
       formGroup.get(key)?.markAsTouched();

@@ -156,7 +156,8 @@
               placeholder="e.g., John"
               [class.is-invalid]="isFieldInvalid('firstName')"
               autocomplete="off"
-              autocapitalize="words"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('firstName', $event)"
             />
             @if (isFieldInvalid('firstName')) {
             <span class="error-text">{{ getFieldError('firstName') }}</span>
@@ -173,7 +174,8 @@
               placeholder="e.g., Doe"
               [class.is-invalid]="isFieldInvalid('lastName')"
               autocomplete="off"
-              autocapitalize="words"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('lastName', $event)"
             />
             @if (isFieldInvalid('lastName')) {
             <span class="error-text">{{ getFieldError('lastName') }}</span>
@@ -246,6 +248,7 @@
               placeholder="e.g., +1 234 567 8900"
               [class.is-invalid]="isFieldInvalid('phone')"
               autocomplete="off"
+              (input)="uppercaseControlValue('phone', $event)"
             />
             @if (isFieldInvalid('phone')) {
             <span class="error-text">{{ getFieldError('phone') }}</span>
@@ -263,7 +266,8 @@
               placeholder="e.g., 123 Main St, Miami, Florida, 33101, USA"
               [class.is-invalid]="isFieldInvalid('city')"
               autocomplete="off"
-              autocapitalize="words"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('city', $event)"
             />
             @if (isFieldInvalid('city')) {
             <span class="error-text">{{ getFieldError('city') }}</span>
@@ -279,7 +283,8 @@
               class="form-control"
               placeholder="e.g., 123 Main St"
               autocomplete="off"
-              autocapitalize="words"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('addressLine', $event)"
             />
           </div>
           }
@@ -296,7 +301,8 @@
               class="form-control"
               placeholder="e.g., Miami"
               autocomplete="off"
-              autocapitalize="words"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('cityTemp', $event)"
             />
           </div>
 
@@ -309,7 +315,8 @@
               class="form-control"
               placeholder="e.g., Florida"
               autocomplete="off"
-              autocapitalize="words"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('state', $event)"
             />
           </div>
         </div>
@@ -324,6 +331,8 @@
               class="form-control"
               placeholder="e.g., 33101"
               autocomplete="off"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('zipCode', $event)"
             />
           </div>
 
@@ -336,7 +345,8 @@
               class="form-control"
               placeholder="e.g., USA"
               autocomplete="off"
-              autocapitalize="words"
+              autocapitalize="characters"
+              (input)="uppercaseControlValue('country', $event)"
             />
           </div>
         </div>
@@ -374,7 +384,8 @@
             class="form-control form-textarea"
             placeholder="Additional customer information..."
             rows="3"
-            autocapitalize="sentences"
+            autocapitalize="characters"
+            (input)="uppercaseControlValue('extraInfo', $event)"
           ></textarea>
         </div>
       </div>

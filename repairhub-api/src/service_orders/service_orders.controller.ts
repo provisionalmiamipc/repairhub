@@ -31,9 +31,11 @@ export class ServiceOrdersController {
     @UploadedFiles() images: Express.Multer.File[] = [],
   ) {
     const createServiceOrderDto = this.parseBody<CreateServiceOrderDto>(body);
+    const imageKinds = this.parseImageKinds(body);
     return this.serviceOrdersService.createWithImages(
       createServiceOrderDto,
       images,
+      imageKinds,
     );
   }
 
@@ -45,6 +47,15 @@ export class ServiceOrdersController {
       user,
       Number.isFinite(parsedCustomerId) ? parsedCustomerId : undefined,
     );
+  }
+
+  @Get(':id/pdf')
+  async downloadPdf(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const order = await this.serviceOrdersService.findOne(id) as any;
+    const pdf = await this.serviceOrdersService.generatePdf(id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="service-order-${order.orderCode}.pdf"`);
+    return res.send(pdf);
   }
 
   @Get(':id')
@@ -61,11 +72,13 @@ export class ServiceOrdersController {
   ) {
     const updateServiceOrderDto = this.parseBody<UpdateServiceOrderDto>(body);
     const deleteImageIds = this.parseDeleteImageIds(body);
+    const imageKinds = this.parseImageKinds(body);
     return this.serviceOrdersService.updateWithImages(
       id,
       updateServiceOrderDto,
       images,
       deleteImageIds,
+      imageKinds,
     );
   }
 
@@ -85,7 +98,7 @@ export class ServiceOrdersController {
       return JSON.parse(body.data) as T;
     }
 
-    const { deleteImageIds, ...dto } = body ?? {};
+    const { deleteImageIds, imageKinds, ...dto } = body ?? {};
     return dto as T;
   }
 
@@ -108,6 +121,25 @@ export class ServiceOrdersController {
           .map(Number)
           .filter(Boolean);
       }
+    }
+
+    return [];
+  }
+
+  private parseImageKinds(body: any): string[] {
+    const raw = body?.imageKinds;
+    if (!raw) return [];
+
+    if (Array.isArray(raw)) return raw.map(String);
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed.map(String);
+      } catch {
+        return raw.split(',').map(kind => kind.trim()).filter(Boolean);
+      }
+
+      return [raw];
     }
 
     return [];

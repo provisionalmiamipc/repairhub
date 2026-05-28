@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { existsSync, readFileSync } from 'fs';
+import { basename, join } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmailService } from '../common/email/email.service';
@@ -207,19 +209,16 @@ export class InvoicesService {
 
     const pdfBuffer = await this.pdfService.generate(invoice);
     const customerName = invoice.billToName || `${invoice.customer?.firstName ?? ''} ${invoice.customer?.lastName ?? ''}`.trim();
-    const subject = dto.subject || `Invoice No. ${invoice.invoiceNumber}`;
-    const message = dto.message || 'Please find your invoice attached.';
+    const subject = dto.subject || `Invoice No. ${invoice.invoiceNumber} Available`;
+    const message = dto.message || 'Your invoice has been generated and is attached to this email for your review.';
+    const headerAttachment = this.invoiceEmailHeaderAttachment();
 
     await this.emailService.sendEmail({
       to,
       subject,
-      html: `
-        <p>Hello ${customerName || 'Customer'},</p>
-        <p>${message}</p>
-        <p><strong>Invoice No. ${invoice.invoiceNumber}</strong></p>
-        <p>Total: <strong>$${Number(invoice.total || 0).toFixed(2)}</strong></p>
-      `,
+      html: this.invoiceEmailHtml(customerName || 'Customer', message),
       attachments: [
+        ...(headerAttachment ? [headerAttachment] : []),
         {
           filename: `invoice-${invoice.invoiceNumber}.pdf`,
           content: pdfBuffer,
@@ -229,6 +228,67 @@ export class InvoicesService {
     });
 
     return { sent: true };
+  }
+
+  private invoiceEmailHtml(customerName: string, message: string): string {
+    return `
+      <!doctype html>
+      <html style="color-scheme: light only; supported-color-schemes: light;">
+        <head>
+          <meta name="color-scheme" content="light only" />
+          <meta name="supported-color-schemes" content="light" />
+        </head>
+        <body bgcolor="#f6f7f9" style="margin:0; padding:0; background:#f6f7f9; background-color:#f6f7f9; font-family:Arial, sans-serif; color:#222;">
+          <div style="max-width:640px; margin:0 auto; padding:28px 16px;">
+            <div style="background:#ffffff; border:1px solid #e7e7e7; border-radius:8px; overflow:hidden;">
+              <img src="cid:invoice-header@repairhub" alt="Miami Photography Center" style="display:block; width:100%; max-width:640px; height:auto; margin:0;" />
+              <div style="padding:30px;">
+                <h1 style="margin:0 0 18px 0; font-size:22px; line-height:1.3; color:#111111;">Invoice Notification</h1>
+                <p style="margin:0 0 14px 0; font-size:15px; line-height:1.6;">Dear <strong>${customerName}</strong>,</p>
+                <p style="margin:0 0 14px 0; font-size:15px; line-height:1.6;">${message}</p>
+                <p style="margin:0 0 22px 0; font-size:15px; line-height:1.6;">
+                  Please refer to the attached PDF document for the complete service and billing details related to your order.
+                </p>
+                <div style="border-top:1px solid #ececec; margin:24px 0;"></div>
+                <p style="margin:0 0 8px 0; font-size:14px; line-height:1.6; color:#666666;">
+                  If you have any questions regarding the invoice, payment process or service details, please contact us directly at:
+                </p>
+                <p style="margin:0 0 24px 0; font-size:14px; line-height:1.6;">
+                  <a href="mailto:service@miamiphotographycenter.com" style="color:#0056b3; text-decoration:none;">service@miamiphotographycenter.com</a>
+                </p>
+                <p style="margin:0 0 20px 0; font-size:15px; line-height:1.6;">Thank you for choosing Miami Photography Center.</p>
+                <p style="margin:0; font-size:15px; line-height:1.6;">
+                  Best regards,<br />
+                  <strong>Miami Photography Center</strong><br />
+                  <span style="color:#0056b3;">Billing &amp; Service Department</span>
+                </p>
+              </div>
+            </div>
+            <div style="padding:16px 8px 0 8px; font-size:12px; line-height:1.5; color:#999999; text-align:center;">
+              This is an automated notification message.
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  private invoiceEmailHeaderAttachment() {
+    const headerPath = [
+      join(__dirname, '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+    ].find(candidate => existsSync(candidate));
+
+    if (!headerPath) return null;
+
+    return {
+      filename: basename(headerPath),
+      content: readFileSync(headerPath),
+      contentType: 'image/png',
+      cid: 'invoice-header@repairhub',
+      contentDisposition: 'inline',
+    };
   }
 
   async recordPayment(id: number, dto: RecordPaymentDto) {

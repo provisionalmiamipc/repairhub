@@ -9,6 +9,7 @@ import { Warranty } from '../../shared/models/Warranty';
 import { WarrantiesService } from '../../shared/services/warranties.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { InvoicesService } from '../../shared/services/invoices.service';
+import { ServiceOrdersService } from '../../shared/services/service-orders.service';
 
 
 @Component({
@@ -30,6 +31,7 @@ export class ServiceOrdersDetailComponent implements OnChanges {
   private mediaService = inject(MediaService);
   private warrantiesService = inject(WarrantiesService);
   private invoicesService = inject(InvoicesService);
+  private serviceOrdersService = inject(ServiceOrdersService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   warranties: Warranty[] = [];
@@ -37,6 +39,7 @@ export class ServiceOrdersDetailComponent implements OnChanges {
   isWarrantySaving = false;
   isWarrantyOrderSaving = false;
   isInvoiceSaving = false;
+  isPdfSaving = false;
 
   // trackBy helper for ngFor
   trackById(index: number, item: any) {
@@ -150,6 +153,21 @@ export class ServiceOrdersDetailComponent implements OnChanges {
         this.router.navigate(['/invoices', invoice.id, 'edit']);
       },
       error: (err) => this.toastService.error(err?.error?.message || 'Error creating invoice'),
+    });
+  }
+
+  openPdf(): void {
+    if (!this.serviceOrder?.id) return;
+    this.isPdfSaving = true;
+    this.serviceOrdersService.downloadPdf(this.serviceOrder.id).pipe(
+      finalize(() => this.isPdfSaving = false)
+    ).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      },
+      error: err => this.toastService.error(err?.error?.message || 'Error opening service order PDF'),
     });
   }
 

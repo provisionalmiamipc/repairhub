@@ -3,6 +3,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { resolveUpload, resolveTemplate } from '../common/asset-utils';
 import * as path from 'path';
 import * as fs from 'fs';
+import { join } from 'path';
 
 
 @Injectable()
@@ -19,16 +20,17 @@ export class ServiceOrderMailService {
       let logoPath: string | null = null;
       let logoAttachment: any = null;
       try {
-        const p = resolveUpload(['sopdf.jpg']);
+        const p = this.resolveEmailLogoPath();
         if (p) {
           logoPath = p;
           const logo = fs.readFileSync(p);
+          const contentType = p.endsWith('.png') ? 'image/png' : 'image/jpeg';
           logoAttachment = {
             filename: path.basename(p),
               // include both content_type and cid so both Resend and SMTP handle inline
-              type: p.endsWith('.png') ? 'image/png' : 'image/jpg',
+              type: contentType,
               content: logo.toString('base64'),
-              content_type: p.endsWith('.png') ? 'image/png' : 'image/jpg',
+              content_type: contentType,
               cid: 'logo@repairhub',
               content_id: 'logo@repairhub',
               disposition: 'inline',
@@ -119,7 +121,7 @@ export class ServiceOrderMailService {
         const payload: any = {
           from: fromHeader,
           to: order.customerEmail,
-          subject: `Service Order #${order.orderCode} Created`,
+          subject: `Service Order No. ${order.orderCode} Confirmation`,
           html: htmlBody,
           // attachments: include PDF and optionally the logo as inline attachment
           attachments: [
@@ -160,7 +162,7 @@ export class ServiceOrderMailService {
       const info = await this.mailerService.sendMail({
         from: fromHeader,
         to: order.customerEmail,
-        subject: `Service Order #${order.orderCode} Created`,
+        subject: `Service Order #${order.orderCode} Confirmation`,
         template: 'service-order-created',
         context: {
           customerName: order.customerName,
@@ -185,5 +187,22 @@ export class ServiceOrderMailService {
       console.error('ServiceOrderMailService: failed to send order created mail', { to: order.customerEmail, orderCode: order.orderCode, err });
       throw err;
     }
+  }
+
+  private resolveEmailLogoPath(): string | null {
+    const invoiceLogoCandidates = [
+      join(__dirname, '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      join(__dirname, '..', 'invoices', 'assets', 'invoice-logo-text-trimmed.png'),
+      join(__dirname, '..', '..', 'invoices', 'assets', 'invoice-logo-text-trimmed.png'),
+      join(process.cwd(), 'src', 'invoices', 'assets', 'invoice-logo-text-trimmed.png'),
+      join(__dirname, '..', 'invoices', 'assets', 'invoice-logo-text.png'),
+      join(__dirname, '..', '..', 'invoices', 'assets', 'invoice-logo-text.png'),
+      join(process.cwd(), 'src', 'invoices', 'assets', 'invoice-logo-text.png'),
+    ];
+
+    return invoiceLogoCandidates.find(candidate => fs.existsSync(candidate))
+      || resolveUpload(['sopdf.jpg', 'logo.png', 'logo.jpg', 'sopdf1.jpg']);
   }
 }

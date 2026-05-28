@@ -10,6 +10,14 @@
           <div>
             <button
               type="button"
+              class="btn btn-sm btn-outline-danger me-2"
+              [disabled]="isPdfSaving"
+              (click)="openPdf()">
+              <span class="spinner-border spinner-border-sm me-1" *ngIf="isPdfSaving"></span>
+              <i class="bi bi-filetype-pdf me-1" *ngIf="!isPdfSaving"></i>PDF
+            </button>
+            <button
+              type="button"
               class="btn btn-sm btn-outline-primary me-2"
               *ngIf="!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)"
               [disabled]="isInvoiceSaving"
@@ -335,6 +343,12 @@
             <i class="bi bi-arrow-left"></i> Close
           </button>
           <div>            
+            <button type="button" class="btn btn-outline-danger me-2"
+                    [disabled]="isPdfSaving"
+                    (click)="openPdf()">
+              <span class="spinner-border spinner-border-sm me-1" *ngIf="isPdfSaving"></span>
+              <i class="bi bi-filetype-pdf" *ngIf="!isPdfSaving"></i> PDF
+            </button>
             <button type="button" class="btn btn-primary" 
                     (click)="edit.emit()" 
                     [disabled]="(serviceOrder.canceled || serviceOrder.cloused || serviceOrder.lock) && !(authService.getCurrentEmployee()?.isCenterAdmin || authService.getUserType() === 'user')">

@@ -66,7 +66,7 @@ export class ServiceOrderPdfService {
             'Equipment must be picked up within 30 days of notification. - After 90 days, it may be sold or' +
             'discarded to recover costs. On-site Services Scope of Service Sensor cleaning, maintenance, anddiagnostics' + 
             'performed at the client’s location via mobile unit. Diagnosis and Costs - On-site diagnosis:' +
-            '$45, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not' +
+            '$75, deductible if repair is approved. - Travel fee applies based on location. - Full disassembly not' +
             'guaranteed on-site. Warranty and Liability - Same 6-month warranty as workshop repairs. - Immediate' +
             'on-site resolution not guaranteed if parts are needed. Logistics - Client must provide proper access to' +
             'the service area. - Rescheduling allowed with at least 24-hour notice.';

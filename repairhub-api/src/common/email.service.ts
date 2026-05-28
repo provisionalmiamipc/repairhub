@@ -425,7 +425,7 @@ export class EmailService {
 
   private getLogoCidAttachments(): any[] {
     try {
-      const logoPath = resolveUpload(['sopdf.jpg', 'logo.png', 'logo.jpg', 'sopdf1.jpg']);
+      const logoPath = this.resolveStandardEmailHeader() || resolveUpload(['sopdf.jpg', 'logo.png', 'logo.jpg', 'sopdf1.jpg']);
       if (!logoPath || !fs.existsSync(logoPath)) return [];
       return [{
         filename: path.basename(logoPath),
@@ -438,6 +438,16 @@ export class EmailService {
     } catch (_e) {
       return [];
     }
+  }
+
+  private resolveStandardEmailHeader(): string | null {
+    const candidates = [
+      path.join(__dirname, 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      path.join(__dirname, '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      path.join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+    ];
+
+    return candidates.find(candidate => fs.existsSync(candidate)) || null;
   }
 
   private formatDateTimeLabel(date: string | Date, time?: string): string {

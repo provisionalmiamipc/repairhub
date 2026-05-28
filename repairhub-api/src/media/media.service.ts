@@ -64,6 +64,7 @@ export class MediaService implements OnModuleInit {
     ownerType: string;
     ownerId: number;
     files: Express.Multer.File[];
+    kinds?: string[];
   }) {
     const files = params.files ?? [];
     if (!files.length) return [];
@@ -87,7 +88,7 @@ export class MediaService implements OnModuleInit {
           ownerId: params.ownerId,
           bucket: this.storageService.getBucketName(),
           originalName: file.originalname,
-          kind: 'image',
+          kind: this.normalizeMediaKind(params.kinds?.[index]),
           status: 'pending',
           sortOrder: currentMaxSort + index + 1,
         }),
@@ -194,6 +195,34 @@ export class MediaService implements OnModuleInit {
     const key = variant === 'thumbnail' ? asset.thumbnailKey : asset.displayKey;
     const url = await this.storageService.getSignedReadUrl(key);
     return { url };
+  }
+
+  async getPdfImageBuffers(ownerType: string, ownerId: number) {
+    const assets = await this.safeFindAssetsByOwner(ownerType, ownerId);
+    const imageAssets = assets.filter(
+      (asset) =>
+        asset.status === 'ready' &&
+        asset.kind !== 'signature' &&
+        !!asset.displayKey,
+    );
+
+    const images: Array<{ originalName: string; buffer: Buffer }> = [];
+    for (const asset of imageAssets) {
+      try {
+        const sourceBuffer = await this.storageService.downloadBuffer(asset.displayKey);
+        if (!sourceBuffer) continue;
+
+        images.push({
+          originalName: asset.originalName,
+          buffer: await this.imageProcessor.toJpegBuffer(sourceBuffer),
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.warn(`No se pudo agregar media asset ${asset.id} al PDF: ${message}`);
+      }
+    }
+
+    return images;
   }
 
   async attachImages<T extends { id: number }>(
@@ -351,6 +380,7 @@ export class MediaService implements OnModuleInit {
         id: asset.id,
         ownerType: asset.ownerType,
         ownerId: asset.ownerId,
+        kind: asset.kind,
         status: asset.status,
         originalName: asset.originalName,
         mimeType: asset.mimeType,
@@ -365,6 +395,10 @@ export class MediaService implements OnModuleInit {
         error: asset.error,
       })),
     );
+  }
+
+  private normalizeMediaKind(kind?: string): string {
+    return kind === 'signature' ? 'signature' : 'image';
   }
 
   private async assertCanAccessAsset(asset: MediaAsset, user?: any) {

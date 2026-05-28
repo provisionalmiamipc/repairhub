@@ -172,7 +172,7 @@ export class EmailService {
 
       const attachments: any[] = [];
       try {
-        const logoPath = resolveUpload(['sopdf.jpg']);
+        const logoPath = this.resolveStandardEmailHeader() || resolveUpload(['sopdf.jpg']);
         if (logoPath) {
           const content = fs.readFileSync(logoPath);
           attachments.push({
@@ -239,7 +239,7 @@ export class EmailService {
 
       const attachments: any[] = [];
       try {
-        const logoPath = resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
+        const logoPath = this.resolveStandardEmailHeader() || resolveUpload(['sopdf.jpg', 'sopdf1.jpg', 'logo.png', 'logo.jpg']);
         if (logoPath) {
           const content = fs.readFileSync(logoPath);
           attachments.push({ filename: path.basename(logoPath), content, cid: 'logo@repairhub', content_id: 'logo@repairhub', contentType: logoPath.endsWith('.png') ? 'image/png' : 'image/jpeg', contentDisposition: 'inline', disposition: 'inline' });
@@ -253,6 +253,16 @@ export class EmailService {
       this.logger.error('EmailService.sendDiagnosticNotification failed', error && error.message ? error.message : error);
       throw error;
     }
+  }
+
+  private resolveStandardEmailHeader(): string | null {
+    const candidates = [
+      path.join(__dirname, '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      path.join(__dirname, '..', '..', '..', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+      path.join(process.cwd(), 'src', 'templates', 'emails', 'assets', 'service-order-email-header.png'),
+    ];
+
+    return candidates.find(candidate => fs.existsSync(candidate)) || null;
   }
 
   // Método específico para empleados

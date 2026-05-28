@@ -87,14 +87,16 @@
 
     <div class="mb-3">
       <label class="form-label" for="type">Type *</label>
-      <input id="type" class="form-control" type="text" formControlName="type" autocomplete="off" />
+      <input id="type" class="form-control" type="text" formControlName="type" autocomplete="off"
+        autocapitalize="characters" (input)="uppercaseControlValue('type', $event)" />
       <div class="invalid-feedback d-block" *ngIf="form.get('type')?.invalid && form.get('type')?.touched">Tipo
         requerido</div>
     </div>
 
     <div class="mb-3">
       <label class="form-label" for="description">Description</label>
-      <input id="description" class="form-control" type="text" formControlName="description" autocomplete="off" />
+      <input id="description" class="form-control" type="text" formControlName="description" autocomplete="off"
+        autocapitalize="characters" (input)="uppercaseControlValue('description', $event)" />
     </div>
 
   </form>
