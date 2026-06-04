@@ -169,8 +169,9 @@ export class LoginComponent implements OnInit {
   onPinCancel(): void {
     // Resetear estado y desloguear
     this.showPinModal = false;
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/login']);
+    });
   }
 
   /**

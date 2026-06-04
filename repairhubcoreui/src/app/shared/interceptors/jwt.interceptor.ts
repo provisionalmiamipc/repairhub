@@ -27,6 +27,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     '/auth/login',
     '/auth/register',
     '/auth/refresh',
+    '/auth/logout',
     '/health',
     '/api/public',
   ];

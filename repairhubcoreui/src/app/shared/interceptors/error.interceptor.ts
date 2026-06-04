@@ -27,6 +27,9 @@ import { AppStateService } from '../store/app-state.service';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const appState = inject(AppStateService);
+  const isAuthEndpoint = req.url.includes('/auth/login') ||
+    req.url.includes('/auth/logout') ||
+    req.url.includes('/auth/refresh');
   
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -41,6 +44,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
           
         case 401:
+          if (isAuthEndpoint) {
+            errorMessage = error.error?.message || error.message || 'Unauthorized';
+            break;
+          }
+
           // Unauthorized - Invalid or expired token
           errorMessage = 'Session expired. Please sign in again.';
           appState.addNotification('error', errorMessage, 3000);

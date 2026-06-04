@@ -39,7 +39,9 @@ export class VerifyPinComponent {
           this.attempts++;
           if (this.attempts >= this.maxAttempts) {
             this.errorMessage = 'Too many failed attempts. Please contact administrator.';
-            this.authService.logout();
+            this.authService.logout().subscribe(() => {
+              this.router.navigate(['/login']);
+            });
           } else {
             this.errorMessage = `Invalid PIN. ${this.maxAttempts - this.attempts} attempts remaining.`;
             this.pin = '';
@@ -66,7 +68,8 @@ export class VerifyPinComponent {
 
   onLogout(): void {
     // Desloguear y redirigir a login
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/login']);
+    });
   }
 }

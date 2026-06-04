@@ -185,10 +185,9 @@ export class DefaultHeaderComponent extends HeaderComponent {
     
     if (userType === 'user') {
       // Users don't use PIN - logout directly
-      this.#authService.logout();
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 100);
+      this.#authService.logout().subscribe(() => {
+        this.#router.navigate(['/login']);
+      });
     } else {
       // Employees use PIN system
       const currentUrl = this.#router.url;
@@ -203,12 +202,9 @@ export class DefaultHeaderComponent extends HeaderComponent {
    * Clears session and redirects to login
    */
   onLogout(): void {
-    this.#authService.logout();
-    // Usar window.location para forzar una recarga completa del app
-    // Esto asegura que todos los guards y estados se reevalúen
-    setTimeout(() => {
-      window.location.href = '/login';
-    }, 100);
+    this.#authService.logout().subscribe(() => {
+      this.#router.navigate(['/login']);
+    });
   }
 
 }

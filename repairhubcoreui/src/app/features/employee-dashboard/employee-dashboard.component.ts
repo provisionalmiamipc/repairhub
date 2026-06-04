@@ -1,7 +1,7 @@
 // components/employee-dashboard/employee-dashboard.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { AuthService } from '../../shared/services/auth.service';
@@ -66,7 +66,8 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
     private customersService: CustomersService,
     private employeesService: EmployeesService,
     private itemsService: ItemsService,
-    private permissionsService: PermissionsService
+    private permissionsService: PermissionsService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -569,6 +570,8 @@ export class EmployeeDashboardComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.authService.logout();
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/login']);
+    });
   }
 }

@@ -1,7 +1,7 @@
 // services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, timer } from 'rxjs';
+import { BehaviorSubject, Observable, of, timer } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 //import { Employees, Users, AuthResponse } from '../models';
 import { EmployeeRole, EmployeeType, RolePermissions } from '../models/constants/roles.constants';
@@ -10,7 +10,6 @@ import { AuthResponse } from '../models/auth-response.model';
 import { VerifyPinRequest, VerifyPinResponse } from '../models/pin-verification.model';
 import { Employees } from '../models/Employees';
 import { Users } from '../models/Users';
-import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -443,17 +442,13 @@ export class AuthService {
   }
 
   // Token Management
-  logout(): void {
-    // Call backend to revoke refresh token (cookie-based) and then clean client state
-    try {
-      this.http.post(`${this.API_URL}/logout`, {}, { withCredentials: true }).subscribe({
-        next: () => this.cleanupLocalSession(),
-        error: () => this.cleanupLocalSession(),
-      });
-    } catch (e) {
-      // ensure cleanup even if request fails synchronously
-      this.cleanupLocalSession();
-    }
+  logout(): Observable<void> {
+    // Call backend to revoke refresh token (cookie-based) before cleaning client state.
+    return this.http.post(`${this.API_URL}/logout`, {}, { withCredentials: true }).pipe(
+      catchError(() => of(null)),
+      tap(() => this.cleanupLocalSession()),
+      map(() => void 0)
+    );
   }
 
   private cleanupLocalSession(): void {

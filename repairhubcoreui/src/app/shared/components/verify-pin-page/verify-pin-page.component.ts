@@ -84,8 +84,9 @@ export class VerifyPinPageComponent implements OnInit {
 
   onCancel(): void {
     // Desloguear al usuario si cancela desde verify-pin
-    this.authService.logout();
-    this.router.navigate(['/login']);
+    this.authService.logout().subscribe(() => {
+      this.router.navigate(['/login']);
+    });
   }
 
   private handlePinError(message: string): void {
@@ -100,8 +101,9 @@ export class VerifyPinPageComponent implements OnInit {
     if (this.attemptCount >= this.maxAttempts) {
       // Logout después de max intentos
       setTimeout(() => {
-        this.authService.logout();
-        this.router.navigate(['/login']);
+        this.authService.logout().subscribe(() => {
+          this.router.navigate(['/login']);
+        });
       }, 2000);
     }
   }

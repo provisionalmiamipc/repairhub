@@ -28,6 +28,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
 function isAuthRequest(req: HttpRequest<unknown>): boolean {
   return req.url.includes('/auth/login') || 
          req.url.includes('/auth/refresh') ||
+         req.url.includes('/auth/logout') ||
          req.url.includes('/public/');
 }
 
@@ -77,7 +78,7 @@ function handle401Error(
       catchError((err) => {
         // propagate error to waiters and logout
         refreshSubject.next(null);
-        authService.logout();
+        authService.logout().subscribe();
         // If the user is currently on the activation page, avoid forcing a redirect
         // so they can complete account activation. Otherwise, force reload to /login.
         try {
