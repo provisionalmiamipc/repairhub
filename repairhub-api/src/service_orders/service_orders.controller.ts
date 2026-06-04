@@ -25,7 +25,7 @@ export class ServiceOrdersController {
   constructor(private readonly serviceOrdersService: ServiceOrdersService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('images', 6))
+  @UseInterceptors(FilesInterceptor('images', 12))
   create(
     @Body() body: any,
     @UploadedFiles() images: Express.Multer.File[] = [],
@@ -64,7 +64,7 @@ export class ServiceOrdersController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('images', 6))
+  @UseInterceptors(FilesInterceptor('images', 12))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: any,

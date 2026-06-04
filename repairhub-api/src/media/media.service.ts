@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
+import { extname } from 'path';
 import { MediaAsset } from './entities/media-asset.entity';
 import { ServiceOrder } from '../service_orders/entities/service_order.entity';
 import { ImageProcessorService } from './image-processor.service';
@@ -112,7 +113,7 @@ export class MediaService implements OnModuleInit {
     const deleteImageIds = new Set(
       (params.deleteImageIds ?? []).map(Number).filter(Boolean),
     );
-    const maxImages = Number(this.configService.get('IMAGE_MAX_COUNT') ?? 6);
+    const maxImages = Number(this.configService.get('IMAGE_MAX_COUNT') ?? 12);
 
     if (files.length || deleteImageIds.size) {
       this.storageService.assertConfigured();
@@ -261,15 +262,8 @@ export class MediaService implements OnModuleInit {
     const maxInputBytes = Number(
       this.configService.get('IMAGE_MAX_INPUT_BYTES') ?? 5 * 1024 * 1024,
     );
-    const allowedMimeTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/webp',
-      'image/heic',
-      'image/heif',
-    ];
 
-    if (!allowedMimeTypes.includes(file.mimetype)) {
+    if (!this.isAllowedImageFile(file)) {
       throw new BadRequestException(
         'Solo se permiten imagenes jpg, png, webp, heic o heif.',
       );
@@ -280,6 +274,29 @@ export class MediaService implements OnModuleInit {
         `Cada imagen debe pesar maximo ${Math.floor(maxInputBytes / 1024 / 1024)}MB.`,
       );
     }
+  }
+
+  private isAllowedImageFile(file: Express.Multer.File) {
+    const allowedMimeTypes = new Set([
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/heic',
+      'image/heif',
+    ]);
+    const allowedExtensions = new Set([
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.webp',
+      '.heic',
+      '.heif',
+    ]);
+    const mimetype = (file.mimetype ?? '').toLowerCase();
+    const extension = extname(file.originalname ?? '').toLowerCase();
+
+    return allowedMimeTypes.has(mimetype) || allowedExtensions.has(extension);
   }
 
   private enqueue(job: QueuedImageJob) {

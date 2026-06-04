@@ -229,7 +229,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     !this.isOrderLockedForEditing()
   );
   readonly imageFallbackUrl = 'assets/images/no-image-icon-23483.png';
-  readonly maxImages = 5;
+  readonly maxImages = 12;
+  readonly acceptedImageInputTypes =
+    'image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif';
   readonly canUseCameraCapture =
     typeof navigator !== 'undefined' &&
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -1259,8 +1261,13 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   private isAcceptedImage(file: File): boolean {
     const maxInputBytes = 5 * 1024 * 1024;
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
+    const fileType = (file.type ?? '').toLowerCase();
+    const fileName = (file.name ?? '').toLowerCase();
+    const hasAllowedType = allowedTypes.includes(fileType);
+    const hasAllowedExtension = allowedExtensions.some(extension => fileName.endsWith(extension));
 
-    if (!allowedTypes.includes(file.type)) {
+    if (!hasAllowedType && !hasAllowedExtension) {
       this.toastService.error(`${file.name} is not a supported image type`);
       return false;
     }

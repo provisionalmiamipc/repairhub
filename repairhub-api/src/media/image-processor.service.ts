@@ -26,30 +26,40 @@ export class ImageProcessorService implements OnModuleInit {
   }
 
   async process(file: Express.Multer.File): Promise<ProcessedImage> {
-    const metadata = await sharp(file.buffer).metadata();
+    let metadata: sharp.Metadata;
+    try {
+      metadata = await sharp(file.buffer).metadata();
+    } catch (error) {
+      throw new BadRequestException(this.getDecodeErrorMessage(file, error));
+    }
+
     if (!metadata.width || !metadata.height) {
       throw new BadRequestException('El archivo no es una imagen valida');
     }
 
-    const display = await this.toTargetWebp(file.buffer, {
-      maxWidth: Number(this.configService.get('IMAGE_DISPLAY_MAX_WIDTH') ?? 1280),
-      maxBytes: Number(this.configService.get('IMAGE_DISPLAY_MAX_BYTES') ?? 200 * 1024),
-      initialQuality: Number(this.configService.get('IMAGE_DISPLAY_QUALITY') ?? 75),
-      minQuality: Number(this.configService.get('IMAGE_DISPLAY_MIN_QUALITY') ?? 55),
-    });
+    try {
+      const display = await this.toTargetWebp(file.buffer, {
+        maxWidth: Number(this.configService.get('IMAGE_DISPLAY_MAX_WIDTH') ?? 1280),
+        maxBytes: Number(this.configService.get('IMAGE_DISPLAY_MAX_BYTES') ?? 200 * 1024),
+        initialQuality: Number(this.configService.get('IMAGE_DISPLAY_QUALITY') ?? 75),
+        minQuality: Number(this.configService.get('IMAGE_DISPLAY_MIN_QUALITY') ?? 55),
+      });
 
-    const thumbnail = await this.toTargetWebp(file.buffer, {
-      maxWidth: Number(this.configService.get('IMAGE_THUMBNAIL_MAX_WIDTH') ?? 320),
-      maxBytes: Number(this.configService.get('IMAGE_THUMBNAIL_MAX_BYTES') ?? 25 * 1024),
-      initialQuality: Number(this.configService.get('IMAGE_THUMBNAIL_QUALITY') ?? 60),
-      minQuality: Number(this.configService.get('IMAGE_THUMBNAIL_MIN_QUALITY') ?? 45),
-    });
+      const thumbnail = await this.toTargetWebp(file.buffer, {
+        maxWidth: Number(this.configService.get('IMAGE_THUMBNAIL_MAX_WIDTH') ?? 320),
+        maxBytes: Number(this.configService.get('IMAGE_THUMBNAIL_MAX_BYTES') ?? 25 * 1024),
+        initialQuality: Number(this.configService.get('IMAGE_THUMBNAIL_QUALITY') ?? 60),
+        minQuality: Number(this.configService.get('IMAGE_THUMBNAIL_MIN_QUALITY') ?? 45),
+      });
 
-    return {
-      mimeType: 'image/webp',
-      display,
-      thumbnail,
-    };
+      return {
+        mimeType: 'image/webp',
+        display,
+        thumbnail,
+      };
+    } catch (error) {
+      throw new BadRequestException(this.getDecodeErrorMessage(file, error));
+    }
   }
 
   async toJpegBuffer(input: Buffer): Promise<Buffer> {
@@ -106,5 +116,21 @@ export class ImageProcessorService implements OnModuleInit {
       width: info.width,
       height: info.height,
     };
+  }
+
+  private getDecodeErrorMessage(file: Express.Multer.File, error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const name = (file.originalname ?? '').toLowerCase();
+    const isAppleFormat =
+      file.mimetype === 'image/heic' ||
+      file.mimetype === 'image/heif' ||
+      name.endsWith('.heic') ||
+      name.endsWith('.heif');
+
+    if (isAppleFormat) {
+      return 'No se pudo procesar la imagen HEIC/HEIF. Intenta subirla como JPG o PNG.';
+    }
+
+    return message || 'No se pudo procesar la imagen';
   }
 }

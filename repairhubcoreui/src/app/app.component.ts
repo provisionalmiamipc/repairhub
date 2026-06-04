@@ -8,13 +8,14 @@ import { ColorModeService } from '@coreui/angular';
 import { IconSetService } from '@coreui/icons-angular';
 import { iconSubset } from './icons/icon-subset';
 import { ToastsComponent } from './shared/components/toasts/toasts.component';
+import { PwaInstallPromptComponent } from './shared/components/pwa-install-prompt/pwa-install-prompt.component';
 import { NavigationHistoryService } from './shared/services/navigation-history.service';
 
 @Component({
     selector: 'app-root',
   standalone: true,
-  template: '<app-toasts></app-toasts><router-outlet />',
-  imports: [RouterOutlet, ToastsComponent]
+  template: '<app-toasts></app-toasts><router-outlet /><app-pwa-install-prompt></app-pwa-install-prompt>',
+  imports: [RouterOutlet, ToastsComponent, PwaInstallPromptComponent]
 })
 export class AppComponent implements OnInit {
   title = 'OceanSPT';

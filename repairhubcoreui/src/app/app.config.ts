@@ -1,6 +1,7 @@
 import { ApplicationConfig, importProvidersFrom, ErrorHandler } from '@angular/core';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideServiceWorker } from '@angular/service-worker';
 import {
   provideRouter,
   withEnabledBlockingInitialNavigation,
@@ -43,6 +44,10 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(SidebarModule, DropdownModule),
     IconSetService,
     provideAnimationsAsync(),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: environment.production,
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
     provideHttpClient(
       // XSRF Protection: Angular inyectará automáticamente el token CSRF
       withXsrfConfiguration({

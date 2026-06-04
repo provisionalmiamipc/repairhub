@@ -37,6 +37,7 @@
                     id="username"
                     class="form-control"
                     [(ngModel)]="username"
+                    #usernameControl="ngModel"
                     name="username"
                     required
                     [disabled]="isLoading"
@@ -46,10 +47,10 @@
                     autocorrect="off"
                     spellcheck="false"
                     inputmode="email"
-                    [class.is-invalid]="loginAttempted && !loginForm.controls['username'].valid && !isLoading"
+                    [class.is-invalid]="loginAttempted && usernameControl.invalid && !isLoading"
                     aria-label="Username">
                 </div>
-                <div *ngIf="loginAttempted && !loginForm.controls['username'].valid && !isLoading" 
+                <div *ngIf="loginAttempted && usernameControl.invalid && !isLoading" 
                      class="invalid-feedback d-block">
                   <i class="bi bi-exclamation-circle-fill me-1"></i>
                   Username is required
@@ -71,15 +72,16 @@
                     id="password"
                     class="form-control"
                     [(ngModel)]="password"
+                    #passwordControl="ngModel"
                     name="password"
                     required
                     [disabled]="isLoading"
                     placeholder="Enter your password"
                     autocomplete="off"
-                    [class.is-invalid]="loginAttempted && !loginForm.controls['password'].valid && !isLoading"
+                    [class.is-invalid]="loginAttempted && passwordControl.invalid && !isLoading"
                     aria-label="Password">
                 </div>
-                <div *ngIf="loginAttempted && !loginForm.controls['password'].valid && !isLoading" 
+                <div *ngIf="loginAttempted && passwordControl.invalid && !isLoading" 
                      class="invalid-feedback d-block">
                   <i class="bi bi-exclamation-circle-fill me-1"></i>
                   Password is required

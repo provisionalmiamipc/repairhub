@@ -231,7 +231,7 @@
                       #imageInput
                       class="d-none"
                       type="file"
-                      accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                      [accept]="acceptedImageInputTypes"
                       multiple
                       (change)="onImagesSelected($event)"
                     />
