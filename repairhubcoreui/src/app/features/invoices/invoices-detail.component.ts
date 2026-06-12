@@ -3,9 +3,10 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import { Invoice, InvoiceItem, InvoiceStatus } from '../../shared/models/Invoice';
+import { Invoice, InvoiceItem, InvoicePaymentLink, InvoiceStatus } from '../../shared/models/Invoice';
 import { InvoicesService } from '../../shared/services/invoices.service';
 import { ToastService } from '../../shared/services/toast.service';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-invoices-detail',
@@ -165,6 +166,70 @@ import { ToastService } from '../../shared/services/toast.service';
             </div>
           </div>
 
+          <div class="card border-0 shadow-sm mb-3" *ngIf="canManagePaymentLinks() && (inv.status !== 'draft' || paymentLinks().length)">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                  <h2 class="h5 mb-1">Square Payment Link</h2>
+                  <div class="text-muted small">Optional online payment for the invoice total.</div>
+                </div>
+                <button
+                  class="btn btn-link text-decoration-none p-0"
+                  type="button"
+                  *ngIf="canCreatePaymentLink(inv)"
+                  [disabled]="isSaving()"
+                  (click)="openPaymentLinkModal(inv)">
+                  <i class="bi bi-link-45deg me-1"></i>Generate payment link
+                </button>
+              </div>
+
+              <div class="text-muted small" *ngIf="!paymentLinks().length">
+                No payment link created.
+              </div>
+
+              <div class="list-group list-group-flush" *ngIf="paymentLinks().length">
+                <div class="list-group-item px-0" *ngFor="let link of paymentLinks()">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <div class="fw-semibold">Invoice total</div>
+                      <div class="fs-5 fw-bold text-primary">{{ paymentLinkAmount(link) | currency:'USD':'symbol':'1.2-2' }}</div>
+                      <div class="small text-danger mt-1" *ngIf="link.status === 'failed' && link.lastError">
+                        {{ link.lastError }}
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge"
+                        [class.bg-warning]="link.status === 'pending'"
+                        [class.text-dark]="link.status === 'pending'"
+                        [class.bg-success]="link.status === 'paid'"
+                        [class.bg-danger]="link.status === 'failed'">
+                        {{ link.status | titlecase }}
+                      </span>
+                      <a *ngIf="link.url" class="btn btn-sm btn-outline-primary" [href]="link.url" target="_blank" rel="noopener">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                      </a>
+                      <button *ngIf="link.url" class="btn btn-sm btn-outline-secondary" type="button" (click)="copyPaymentLink(link.url)">
+                        <i class="bi bi-copy"></i>
+                      </button>
+                      <button *ngIf="link.status === 'failed'" class="btn btn-sm btn-outline-primary" type="button"
+                        [disabled]="isSaving()" (click)="retryPaymentLink(inv, link)">
+                        Retry
+                      </button>
+                      <button *ngIf="link.status === 'pending'" class="btn btn-sm btn-outline-primary" type="button"
+                        [disabled]="isSaving()" (click)="checkPaymentLink(inv, link)">
+                        <i class="bi bi-arrow-repeat me-1"></i>Check payment status
+                      </button>
+                      <button *ngIf="link.status !== 'paid'" class="btn btn-sm btn-outline-danger" type="button"
+                        [disabled]="isSaving()" (click)="deletePaymentLink(inv, link)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="card border-0 shadow-sm">
             <div class="card-body">
               <h2 class="h5 mb-3">Actions</h2>
@@ -218,6 +283,13 @@ import { ToastService } from '../../shared/services/toast.service';
               <label class="form-label">Void reason</label>
               <textarea class="form-control" rows="3" [(ngModel)]="modalReason" placeholder="Reason required"></textarea>
             </div>
+
+            <div *ngIf="modal.type === 'payment-link'" class="rounded border p-3">
+              <div class="d-flex justify-content-between">
+                <span>Invoice total</span>
+                <strong>{{ selectedInvoice?.total | currency:'USD':'symbol':'1.2-2' }}</strong>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary" [disabled]="isSaving()" (click)="closeActionModal()">Cancel</button>
@@ -256,11 +328,13 @@ export class InvoicesDetailComponent implements OnInit {
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private auth = inject(AuthService);
 
   readonly invoice = signal<Invoice | null>(null);
   readonly isSaving = signal(false);
+  readonly paymentLinks = signal<InvoicePaymentLink[]>([]);
   readonly actionModal = signal<{
-    type: 'issue' | 'payment' | 'email' | 'void';
+    type: 'issue' | 'payment' | 'email' | 'void' | 'payment-link';
     title: string;
     message: string;
     confirmLabel: string;
@@ -283,7 +357,10 @@ export class InvoicesDetailComponent implements OnInit {
 
   loadInvoice(id: number): void {
     this.service.getById(id).subscribe({
-      next: invoice => this.invoice.set(invoice),
+      next: invoice => {
+        this.invoice.set(invoice);
+        this.paymentLinks.set(invoice.paymentLinks || []);
+      },
       error: () => this.toast.error('Error loading invoice'),
     });
   }
@@ -348,6 +425,17 @@ export class InvoicesDetailComponent implements OnInit {
     });
   }
 
+  openPaymentLinkModal(invoice: Invoice): void {
+    this.selectedInvoice = invoice;
+    this.actionModal.set({
+      type: 'payment-link',
+      title: 'Generate payment link',
+      message: 'Square will create an optional payment link for the exact invoice total.',
+      confirmLabel: 'Generate Link',
+      confirmClass: 'btn-primary',
+    });
+  }
+
   closeActionModal(): void {
     if (this.isSaving()) return;
     this.actionModal.set(null);
@@ -393,7 +481,101 @@ export class InvoicesDetailComponent implements OnInit {
         return;
       }
       this.runAction(() => this.service.voidInvoice(invoice.id, reason), 'Invoice voided', true, 'void');
+      return;
     }
+
+    if (modal.type === 'payment-link') {
+      this.isSaving.set(true);
+      this.service.createPaymentLink(invoice.id)
+        .pipe(finalize(() => this.isSaving.set(false)))
+        .subscribe({
+          next: link => {
+            this.paymentLinks.set([link, ...this.paymentLinks()]);
+            this.actionModal.set(null);
+            this.selectedInvoice = null;
+            link.status === 'failed'
+              ? this.toast.error('Square could not create the link. You can retry it.')
+              : this.toast.success('Square payment link created');
+          },
+          error: err => this.toast.error(err?.error?.message || 'Unable to create payment link'),
+        });
+    }
+  }
+
+  canManagePaymentLinks(): boolean {
+    if (this.auth.getUserType() === 'user') return true;
+    const employee = this.auth.getCurrentEmployee();
+    return !!employee && (
+      employee.isCenterAdmin === true
+      || employee.employee_type === 'Accountant'
+      || employee.employee_type === 'AdminStore'
+    );
+  }
+
+  canCreatePaymentLink(invoice: Invoice): boolean {
+    const hasOpenLink = this.paymentLinks().some(link => link.status === 'pending' || link.status === 'failed');
+    return invoice.status === 'issued' && Number(invoice.total || 0) > 0 && !hasOpenLink;
+  }
+
+  paymentLinkAmount(link: InvoicePaymentLink): number {
+    return Number(link.amount || 0) / 100;
+  }
+
+  copyPaymentLink(url?: string | null): void {
+    if (!url) return;
+    navigator.clipboard.writeText(url)
+      .then(() => this.toast.success('Payment link copied'))
+      .catch(() => this.toast.error('Unable to copy payment link'));
+  }
+
+  retryPaymentLink(invoice: Invoice, link: InvoicePaymentLink): void {
+    this.isSaving.set(true);
+    this.service.retryPaymentLink(invoice.id, link.id)
+      .pipe(finalize(() => this.isSaving.set(false)))
+      .subscribe({
+        next: updated => {
+          this.paymentLinks.set(this.paymentLinks().map(item => item.id === updated.id ? updated : item));
+          updated.status === 'pending'
+            ? this.toast.success('Square payment link created')
+            : this.toast.error('Square still could not create the link');
+        },
+        error: err => this.toast.error(err?.error?.message || 'Unable to retry payment link'),
+      });
+  }
+
+  checkPaymentLink(invoice: Invoice, link: InvoicePaymentLink): void {
+    this.isSaving.set(true);
+    this.service.checkPaymentLink(invoice.id, link.id)
+      .pipe(finalize(() => this.isSaving.set(false)))
+      .subscribe({
+        next: updated => {
+          this.paymentLinks.set(this.paymentLinks().map(item => item.id === updated.id ? updated : item));
+          if (updated.status === 'paid') {
+            this.invoice.set({ ...invoice, status: 'paid', paymentLinks: this.paymentLinks() });
+            this.toast.success('Payment confirmed');
+          } else {
+            this.toast.info('Payment is still pending');
+          }
+        },
+        error: err => this.toast.error(err?.error?.message || 'Unable to check payment status'),
+      });
+  }
+
+  deletePaymentLink(invoice: Invoice, link: InvoicePaymentLink): void {
+    if (link.status === 'paid' || !window.confirm('Delete this payment link from Square?')) return;
+    this.isSaving.set(true);
+    this.service.deletePaymentLink(invoice.id, link.id)
+      .pipe(finalize(() => this.isSaving.set(false)))
+      .subscribe({
+        next: () => {
+          this.paymentLinks.set(this.paymentLinks().filter(item => item.id !== link.id));
+          this.toast.success('Payment link deleted');
+        },
+        error: err => {
+          this.loadInvoice(invoice.id);
+          this.toast.error(err?.error?.message || 'Unable to delete payment link');
+        },
+      });
   }
 
   customerName(invoice: Invoice): string {
@@ -454,7 +636,6 @@ export class InvoicesDetailComponent implements OnInit {
           this.selectedInvoice = null;
         }
         this.toast.success(successMessage);
-        this.router.navigate(['/invoices']);
       },
       error: (err: any) => this.toast.error(err?.error?.message || 'Invoice action failed'),
     });

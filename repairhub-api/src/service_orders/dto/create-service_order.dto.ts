@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import { CreateReceivedPartNestedDto } from './create-received-part-nested.dto';
 import type { WarrantyDurationUnit } from '../../warranties/entities/warranty.entity';
 import type { WarrantyDecision } from '../entities/service_order.entity';
+import { CreatePaymentLinkDto } from './create-payment-link.dto';
 
 export class CreateServiceOrderDto {
 	@IsInt()
@@ -112,4 +113,10 @@ export class CreateServiceOrderDto {
 	@ValidateNested({ each: true })
 	@Type(() => CreateReceivedPartNestedDto)
 	receivedParts?: CreateReceivedPartNestedDto[];
+
+	@IsOptional()
+	@IsArray()
+	@ValidateNested({ each: true })
+	@Type(() => CreatePaymentLinkDto)
+	paymentLinkRequests?: CreatePaymentLinkDto[];
 }

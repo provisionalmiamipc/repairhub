@@ -15,6 +15,7 @@ import { ServiceOrder } from '../../service_orders/entities/service_order.entity
 import { Employee } from '../../employees/entities/employee.entity';
 import { PaymentType } from '../../payment_type/entities/payment_type.entity';
 import { InvoiceItem } from './invoice-item.entity';
+import { InvoicePaymentLink } from './invoice-payment-link.entity';
 
 export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'void';
 
@@ -115,6 +116,9 @@ export class Invoice {
 
   @OneToMany(() => InvoiceItem, (item) => item.invoice)
   items: InvoiceItem[];
+
+  @OneToMany(() => InvoicePaymentLink, (paymentLink) => paymentLink.invoice)
+  paymentLinks: InvoicePaymentLink[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

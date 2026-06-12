@@ -12,9 +12,12 @@ import { ServiceOrderMailService } from './mail.service';
 import { ServiceOrderPdfJobService } from './pdf-job.service';
 import { MediaModule } from '../media/media.module';
 import { EmailModule } from '../common/email/email.module';
+import { ServiceOrderPaymentLink } from './entities/service-order-payment-link.entity';
+import { ServiceOrderPaymentLinksService } from './service-order-payment-links.service';
+import { SquarePaymentLinksService } from './square-payment-links.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus]), MediaModule, EmailModule],
+  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus, ServiceOrderPaymentLink]), MediaModule, EmailModule],
   controllers: [ServiceOrdersController],
   providers: [
     ServiceOrdersService,
@@ -26,7 +29,9 @@ import { EmailModule } from '../common/email/email.module';
     ServiceOrderPuppeteerPdfService,
     ServiceOrderMailService,
     ServiceOrderPdfJobService,
+    SquarePaymentLinksService,
+    ServiceOrderPaymentLinksService,
   ],
-  exports: [ServiceOrdersService],
+  exports: [ServiceOrdersService, ServiceOrderPaymentLinksService],
 })
 export class ServiceOrdersModule {}

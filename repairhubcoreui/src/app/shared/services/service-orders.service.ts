@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap, timeout } from 'rxjs/operators';
 import { BaseService } from './base.service';
-import { ServiceOrders } from '../models/ServiceOrders';
+import { PaymentLinkRequest, ServiceOrderPaymentLink, ServiceOrders } from '../models/ServiceOrders';
 import { environment } from '../../../environments/environment';
 import { CacheManagerService } from '../store/cache-manager.service';
 
@@ -24,6 +24,27 @@ export class ServiceOrdersService extends BaseService<ServiceOrders> {
 
   getByCustomer(customerId: number) {
     return this.http.get<ServiceOrders[]>(`${this.apiUrl}?customerId=${customerId}`).pipe(timeout(30000));
+  }
+
+  getPaymentLinks(id: number) {
+    return this.http.get<ServiceOrderPaymentLink[]>(`${this.apiUrl}/${id}/payment-links`).pipe(timeout(30000));
+  }
+
+  createPaymentLink(id: number, request: PaymentLinkRequest) {
+    return this.http.post<ServiceOrderPaymentLink>(`${this.apiUrl}/${id}/payment-links`, request).pipe(timeout(30000));
+  }
+
+  retryPaymentLink(serviceOrderId: number, linkId: number) {
+    return this.http.post<ServiceOrderPaymentLink>(
+      `${this.apiUrl}/${serviceOrderId}/payment-links/${linkId}/retry`,
+      {},
+    ).pipe(timeout(30000));
+  }
+
+  deletePaymentLink(serviceOrderId: number, linkId: number) {
+    return this.http.delete<ServiceOrderPaymentLink>(
+      `${this.apiUrl}/${serviceOrderId}/payment-links/${linkId}`,
+    ).pipe(timeout(30000));
   }
 
   createWithImages(data: Partial<ServiceOrders>, images: File[]) {

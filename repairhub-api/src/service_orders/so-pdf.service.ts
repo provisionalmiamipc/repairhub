@@ -38,6 +38,7 @@ export class RepairPdfService {
         this.drawDiagnosticsSection(doc, data);
         this.drawStatusHistorySection(doc, data);
         this.drawProductSummarySection(doc, data);
+        this.drawPaymentLinksSection(doc, data);
 
         //doc.addPage();
         this.drawTermsOrWarrantyPolicy(doc, data);
@@ -84,6 +85,7 @@ export class RepairPdfService {
         this.drawDiagnosticsSection(doc, data);
         this.drawStatusHistorySection(doc, data);
         this.drawProductSummarySection(doc, data);
+        this.drawPaymentLinksSection(doc, data);
 
         doc.addPage();
         this.drawTermsOrWarrantyPolicy(doc, data);
@@ -1047,9 +1049,9 @@ export class RepairPdfService {
       .stroke();
     yPos += 8;
 
-    // TAX 7%
+    // TAX
     doc.fontSize(12).fillColor('#333333')
-      .text('Tax 7%', summaryXPos, yPos, { width: summaryWidth * 0.6 });
+      .text(`Tax ${Number(data.taxPercent || 0)}%`, summaryXPos, yPos, { width: summaryWidth * 0.6 });
     doc.text(`$ ${data.tax}`, summaryXPos + summaryWidth * 0.6, yPos, {
       width: summaryWidth * 0.4, align: 'right',
     });
@@ -1111,6 +1113,41 @@ export class RepairPdfService {
       yPos += rowSpacing;
     }
 
+    doc.y = yPos;
+  }
+
+  private drawPaymentLinksSection(doc: PDFDocument, data: any): void {
+    const links = Array.isArray(data.paymentLinks) ? data.paymentLinks : [];
+    if (!links.length) return;
+
+    const marginLeft = doc.page.margins.left;
+    const contentWidth = doc.page.width - marginLeft - doc.page.margins.right;
+    const estimatedHeight = 48 + links.length * 52;
+    this.ensureSpace(doc, estimatedHeight);
+
+    let yPos = doc.y + 26;
+    doc.font('Helvetica-Bold').fontSize(16).fillColor('#000000')
+      .text('PAYMENT LINKS', marginLeft, yPos);
+    yPos += 28;
+
+    for (const link of links) {
+      const amount = Number(link.amount || 0).toFixed(2);
+      doc.roundedRect(marginLeft, yPos, contentWidth, 42, 4)
+        .fillAndStroke('#F7F9FC', '#D9E2F0');
+      doc.font('Helvetica-Bold').fontSize(10).fillColor('#222222')
+        .text(`${link.title} - $${amount}`, marginLeft + 10, yPos + 7, {
+          width: contentWidth - 20,
+          ellipsis: true,
+        });
+      doc.font('Helvetica').fontSize(9).fillColor('#0D6EFD')
+        .text(link.url, marginLeft + 10, yPos + 23, {
+          width: contentWidth - 20,
+          link: link.url,
+          underline: true,
+          ellipsis: true,
+        });
+      yPos += 50;
+    }
     doc.y = yPos;
   }
 

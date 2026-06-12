@@ -3,7 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { ServiceOrderImage, ServiceOrders } from '../../shared/models/ServiceOrders';
+import {
+  PaymentLinkConcept,
+  PaymentLinkRequest,
+  ServiceOrderImage,
+  ServiceOrderPaymentLink,
+  ServiceOrders,
+} from '../../shared/models/ServiceOrders';
 import { SONotes } from '../../shared/models/SONotes';
 import { SODiagnostic } from '../../shared/models/SODiagnostic';
 import { SOItems } from '../../shared/models/SOItems';
@@ -269,6 +275,16 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   showCustomerModal = false;
   showReceivedPartModal = false;
   showWarrantyDecisionModal = false;
+  showPaymentLinkModal = false;
+  isPaymentLinkSaving = false;
+  paymentLinks: ServiceOrderPaymentLink[] = [];
+  pendingPaymentLinkRequests: PaymentLinkRequest[] = [];
+  paymentLinkDraft: PaymentLinkRequest = {
+    concept: 'total',
+    title: '',
+    amount: 0,
+  };
+  paymentLinkAmountDollars = 0;
 
   // Editing models
   editingNote: Partial<SONotes> | null = null;
@@ -564,6 +580,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
           }
           this.loadRelatedCollections();
           this.loadWarranties();
+          this.loadPaymentLinks();
 
           // If editing and user is Expert non-center-admin, make form read-only
           const employee = this.authService.getCurrentEmployee();
@@ -917,6 +934,9 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     this.formState.update(s => ({ ...s, isSaving: true, error: null }));
 
     const orderData: any = this.serviceOrderForm.getRawValue();
+    if (!this.isEditMode() && this.pendingPaymentLinkRequests.length) {
+      orderData.paymentLinkRequests = this.pendingPaymentLinkRequests;
+    }
     if (this.isEditMode()) {
       const createdAt = this.toIsoDateValue(orderData.createdAt);
       if (createdAt) {
@@ -1868,12 +1888,207 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   }
 
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-CO', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(value || 0);
+  }
+
+  canManagePaymentLinks(): boolean {
+    if (this.userType() === 'user') return true;
+    const employee = this.authService.getCurrentEmployee();
+    return !!employee && (
+      employee.isCenterAdmin === true
+      || employee.employee_type === 'Accountant'
+      || employee.employee_type === 'AdminStore'
+    );
+  }
+
+  openPaymentLinkModal(): void {
+    this.paymentLinkDraft = { concept: 'total', title: '', amount: 0 };
+    this.paymentLinkAmountDollars = 0;
+    this.syncPaymentLinkDraft();
+    this.showPaymentLinkModal = true;
+  }
+
+  closePaymentLinkModal(): void {
+    this.showPaymentLinkModal = false;
+    this.isPaymentLinkSaving = false;
+  }
+
+  onPaymentLinkConceptChange(): void {
+    this.paymentLinkDraft.title = '';
+    if (this.isManualPaymentLinkAmount()) this.paymentLinkAmountDollars = 0;
+    this.syncPaymentLinkDraft();
+  }
+
+  savePaymentLink(): void {
+    this.syncPaymentLinkDraft();
+    if (this.isManualPaymentLinkAmount()) {
+      this.paymentLinkDraft.amount = this.toCents(this.paymentLinkAmountDollars);
+    }
+    if (!Number.isInteger(this.paymentLinkDraft.amount) || this.paymentLinkDraft.amount <= 0) {
+      this.toastService.error('Payment link amount must be greater than $0.00');
+      return;
+    }
+    if (this.paymentLinkDraft.concept === 'custom' && !this.paymentLinkDraft.title.trim()) {
+      this.toastService.error('Custom title is required');
+      return;
+    }
+
+    const serviceOrderId = this.currentServiceOrderId();
+    if (!serviceOrderId) {
+      const request = {
+        ...this.paymentLinkDraft,
+        title: this.paymentLinkDraft.concept === 'custom'
+          ? this.paymentLinkDraft.title.trim()
+          : this.paymentLinkConceptLabel(this.paymentLinkDraft.concept),
+      };
+      this.pendingPaymentLinkRequests = [...this.pendingPaymentLinkRequests, request];
+      this.closePaymentLinkModal();
+      this.toastService.success('Payment link will be created after the order is saved');
+      return;
+    }
+
+    const request = { ...this.paymentLinkDraft, title: this.paymentLinkTitle() };
+    this.isPaymentLinkSaving = true;
+    this.serviceOrdersService.createPaymentLink(serviceOrderId, request)
+      .pipe(finalize(() => this.isPaymentLinkSaving = false), takeUntil(this.destroy$))
+      .subscribe({
+        next: link => {
+          this.paymentLinks = [link, ...this.paymentLinks];
+          this.closePaymentLinkModal();
+          if (link.status === 'failed') {
+            this.toastService.error('Order saved, but Square could not create the payment link');
+          } else {
+            this.toastService.success('Square payment link created');
+          }
+        },
+        error: err => this.toastService.error(err?.error?.message || 'Unable to create payment link'),
+      });
+  }
+
+  removePendingPaymentLink(index: number): void {
+    this.pendingPaymentLinkRequests.splice(index, 1);
+    this.pendingPaymentLinkRequests = [...this.pendingPaymentLinkRequests];
+  }
+
+  deletePaymentLink(link: ServiceOrderPaymentLink): void {
+    const serviceOrderId = this.currentServiceOrderId();
+    if (!serviceOrderId || link.status === 'paid') return;
+    if (!window.confirm('Delete this payment link from Square?')) return;
+
+    this.serviceOrdersService.deletePaymentLink(serviceOrderId, link.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.paymentLinks = this.paymentLinks.filter(item => item.id !== link.id);
+          this.toastService.success('Payment link deleted');
+        },
+        error: err => {
+          this.loadPaymentLinks();
+          this.toastService.error(err?.error?.message || 'Unable to delete payment link');
+        },
+      });
+  }
+
+  retryPaymentLink(link: ServiceOrderPaymentLink): void {
+    const serviceOrderId = this.currentServiceOrderId();
+    if (!serviceOrderId || link.status !== 'failed') return;
+    this.serviceOrdersService.retryPaymentLink(serviceOrderId, link.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: updated => {
+          this.paymentLinks = this.paymentLinks.map(item => item.id === updated.id ? updated : item);
+          updated.status === 'pending'
+            ? this.toastService.success('Square payment link created')
+            : this.toastService.error('Square still could not create the payment link');
+        },
+        error: err => this.toastService.error(err?.error?.message || 'Unable to retry payment link'),
+      });
+  }
+
+  copyPaymentLink(url?: string | null): void {
+    if (!url) return;
+    navigator.clipboard.writeText(url)
+      .then(() => this.toastService.success('Payment link copied'))
+      .catch(() => this.toastService.error('Unable to copy payment link'));
+  }
+
+  paymentLinkAmount(link: ServiceOrderPaymentLink | PaymentLinkRequest): number {
+    return 'id' in link ? Number(link.amount || 0) / 100 : Number(link.amount || 0) / 100;
+  }
+
+  paymentLinkConceptLabel(concept: PaymentLinkConcept): string {
+    const labels: Record<PaymentLinkConcept, string> = {
+      total: 'Total',
+      advance_payment: 'Advance payment',
+      pending_payment: 'Pending payment',
+      pickup: 'Pick up',
+      delivery: 'Delivery',
+      custom: 'Custom',
+    };
+    return labels[concept];
+  }
+
+  isManualPaymentLinkAmount(): boolean {
+    return ['pickup', 'delivery', 'custom'].includes(this.paymentLinkDraft.concept);
+  }
+
+  paymentLinkTitle(): string {
+    return this.buildPaymentLinkTitle(
+      this.paymentLinkDraft.concept,
+      this.paymentLinkDraft.title,
+      this.serviceOrder()?.orderCode || 'New order',
+    );
+  }
+
+  queuedPaymentLinkTitle(request: PaymentLinkRequest): string {
+    return this.buildPaymentLinkTitle(request.concept, request.title, 'New order');
+  }
+
+  private buildPaymentLinkTitle(conceptType: PaymentLinkConcept, customTitle: string, orderCode: string): string {
+    const customerId = Number(this.serviceOrderForm.get('customerId')?.value);
+    const brandId = Number(this.serviceOrderForm.get('deviceBrandId')?.value);
+    const customer = this.customers().find(item => Number(item.id) === customerId);
+    const brand = this.deviceBrands().find(item => Number(item.id) === brandId);
+    const customerName = `${customer?.firstName || 'Customer'} ${customer?.lastName || ''}`.trim();
+    const deviceName = `${brand?.name || 'Device'} ${this.serviceOrderForm.get('model')?.value || ''}`.trim();
+    const concept = conceptType === 'custom'
+      ? customTitle.trim()
+      : this.paymentLinkConceptLabel(conceptType);
+    return `${customerName} - ${deviceName} - ${concept} - ${orderCode}`;
+  }
+
+  private syncPaymentLinkDraft(): void {
+    const concept = this.paymentLinkDraft.concept;
+    if (concept === 'total') {
+      this.paymentLinkDraft.amount = this.toCents(this.getCurrentTotal());
+    } else if (concept === 'advance_payment') {
+      this.paymentLinkDraft.amount = this.toCents(Number(this.serviceOrderForm.get('advancePayment')?.value) || 0);
+    } else if (concept === 'pending_payment') {
+      this.paymentLinkDraft.amount = this.toCents(Math.max(this.getPendingAmount(), 0));
+    }
+    if (!this.isManualPaymentLinkAmount()) {
+      this.paymentLinkAmountDollars = this.paymentLinkDraft.amount / 100;
+    }
+  }
+
+  private loadPaymentLinks(): void {
+    const serviceOrderId = this.currentServiceOrderId();
+    if (!serviceOrderId || !this.canManagePaymentLinks()) return;
+    this.serviceOrdersService.getPaymentLinks(serviceOrderId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: links => this.paymentLinks = links || [],
+        error: () => this.paymentLinks = [],
+      });
+  }
+
+  private toCents(value: number): number {
+    return Math.round((Number(value) || 0) * 100);
   }
 
   getFieldError(fieldName: string): string | null {

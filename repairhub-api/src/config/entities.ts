@@ -33,3 +33,5 @@ export * from '../received-parts/entities/received-part.entity';
 export * from '../warranties/entities/warranty.entity';
 export * from '../invoices/entities/invoice.entity';
 export * from '../invoices/entities/invoice-item.entity';
+export * from '../invoices/entities/invoice-payment-link.entity';
+export * from '../service_orders/entities/service-order-payment-link.entity';

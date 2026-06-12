@@ -38,6 +38,34 @@ export interface ServiceOrderImage {
   error?: string | null;
 }
 
+export type PaymentLinkConcept =
+  | 'total'
+  | 'advance_payment'
+  | 'pending_payment'
+  | 'pickup'
+  | 'delivery'
+  | 'custom';
+
+export interface ServiceOrderPaymentLink {
+  id: number;
+  serviceOrderId: number;
+  concept: PaymentLinkConcept;
+  title: string;
+  amount: string;
+  currency: 'USD';
+  status: 'pending' | 'paid' | 'failed' | 'deleted';
+  url?: string | null;
+  lastError?: string | null;
+  createdAt: Date;
+  paidAt?: Date | null;
+}
+
+export interface PaymentLinkRequest {
+  concept: PaymentLinkConcept;
+  title: string;
+  amount: number;
+}
+
 export interface ServiceOrders {
   id: number;
   orderCode: string;
@@ -92,4 +120,6 @@ export interface ServiceOrders {
   paymentType?: PaymentTypes;
   store?: Stores;
   images?: ServiceOrderImage[];
+  paymentLinks?: ServiceOrderPaymentLink[];
+  paymentLinkRequests?: PaymentLinkRequest[];
 }

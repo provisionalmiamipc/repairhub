@@ -342,3 +342,17 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# Square payment links
+
+Service order payment links use Square Quick Pay. Start with Sandbox credentials:
+
+```env
+SQUARE_ENVIRONMENT=sandbox
+SQUARE_ACCESS_TOKEN=
+SQUARE_LOCATION_ID=
+SQUARE_API_VERSION=2026-05-20
+SQUARE_TIMEOUT_MS=8000
+```
+
+For production, set `SQUARE_ENVIRONMENT=production` and replace the access token and
+location ID with the production values. No code changes are required.

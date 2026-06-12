@@ -214,17 +214,30 @@ export class InvoicePdfService {
   private drawPaymentDetails(doc: any, invoice: Invoice, x: number, y: number): number {
     const paymentMethod = invoice.paymentType?.type;
     const instructions = invoice.paymentInstructions?.trim();
-    if (!paymentMethod && !instructions) return y;
+    const paymentLink = invoice.paymentLinks?.find((link) => link.status === 'pending' && link.url);
+    if (!paymentMethod && !instructions && !paymentLink?.url) return y;
 
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#221F1F').text('Payment method:', x, y, { continued: true });
     doc.font('Helvetica').text(` ${paymentMethod || 'N/A'}`);
 
+    let nextY = y + 14;
     if (instructions) {
-      doc.font('Helvetica').fontSize(8.5).text(instructions, x, y + 14, { width: 360, lineGap: 1 });
-      return y + 14 + doc.heightOfString(instructions, { width: 360, lineGap: 1 });
+      doc.font('Helvetica').fontSize(8.5).fillColor('#221F1F').text(instructions, x, nextY, { width: 360, lineGap: 1 });
+      nextY += doc.heightOfString(instructions, { width: 360, lineGap: 1 }) + 5;
     }
 
-    return y + 14;
+    if (paymentLink?.url) {
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#221F1F').text('Online payment:', x, nextY, { continued: true });
+      doc.font('Helvetica').fillColor('#0056b3').text(` ${paymentLink.url}`, {
+        width: 360,
+        link: paymentLink.url,
+        underline: true,
+      });
+      nextY += doc.heightOfString(`Online payment: ${paymentLink.url}`, { width: 360, lineGap: 1 });
+    }
+
+    doc.fillColor('#221F1F');
+    return nextY;
   }
 
   private drawTerms(

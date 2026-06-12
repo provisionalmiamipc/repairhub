@@ -15,10 +15,11 @@ import { VoidInvoiceDto } from './dto/void-invoice.dto';
 import { InvoiceItem } from './entities/invoice-item.entity';
 import { Invoice } from './entities/invoice.entity';
 import { InvoicePdfService } from './invoice-pdf.service';
+import { InvoicePaymentLinksService } from './invoice-payment-links.service';
 
 @Injectable()
 export class InvoicesService {
-  private readonly relations = ['center', 'store', 'customer', 'serviceOrder', 'createdBy', 'paymentType', 'items', 'items.item', 'items.serviceOrder'];
+  private readonly relations = ['center', 'store', 'customer', 'serviceOrder', 'createdBy', 'paymentType', 'items', 'items.item', 'items.serviceOrder', 'paymentLinks'];
 
   constructor(
     @InjectRepository(Invoice)
@@ -31,6 +32,7 @@ export class InvoicesService {
     private readonly soItemRepo: Repository<SOItem>,
     private readonly pdfService: InvoicePdfService,
     private readonly emailService: EmailService,
+    private readonly paymentLinksService: InvoicePaymentLinksService,
   ) {}
 
   async create(dto: CreateInvoiceDto) {
@@ -98,6 +100,7 @@ export class InvoicesService {
   async findOne(id: number) {
     const invoice = await this.invoiceRepo.findOne({ where: { id }, relations: this.relations });
     if (!invoice) throw new NotFoundException('Invoice not found');
+    invoice.paymentLinks = (invoice.paymentLinks || []).filter((link) => link.status !== 'deleted');
     return invoice;
   }
 
@@ -300,6 +303,7 @@ export class InvoicesService {
       throw new BadRequestException('Only issued invoices can be marked as paid');
     }
 
+    await this.paymentLinksService.cancelOpenLinks(id);
     await this.invoiceRepo.update(id, {
       status: 'paid',
       notes: dto.notes ? `${invoice.notes ?? ''}\n${dto.notes}`.trim() : invoice.notes,
@@ -313,6 +317,7 @@ export class InvoicesService {
       throw new BadRequestException('Paid invoices cannot be voided directly');
     }
 
+    await this.paymentLinksService.cancelOpenLinks(id);
     await this.invoiceRepo.update(id, {
       status: 'void',
       notes: `${invoice.notes ?? ''}\nVoid reason: ${dto.reason}`.trim(),

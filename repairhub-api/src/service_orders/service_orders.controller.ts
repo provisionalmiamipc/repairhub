@@ -19,15 +19,21 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ServiceOrdersService } from './service_orders.service';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
+import { CreatePaymentLinkDto } from './dto/create-payment-link.dto';
+import { ServiceOrderPaymentLinksService } from './service-order-payment-links.service';
 
 @Controller('service-orders')
 export class ServiceOrdersController {
-  constructor(private readonly serviceOrdersService: ServiceOrdersService) {}
+  constructor(
+    private readonly serviceOrdersService: ServiceOrdersService,
+    private readonly paymentLinksService: ServiceOrderPaymentLinksService,
+  ) {}
 
   @Post()
   @UseInterceptors(FilesInterceptor('images', 12))
   create(
     @Body() body: any,
+    @Req() req: Request,
     @UploadedFiles() images: Express.Multer.File[] = [],
   ) {
     const createServiceOrderDto = this.parseBody<CreateServiceOrderDto>(body);
@@ -36,6 +42,7 @@ export class ServiceOrdersController {
       createServiceOrderDto,
       images,
       imageKinds,
+      (req as any).user,
     );
   }
 
@@ -56,6 +63,37 @@ export class ServiceOrdersController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="service-order-${order.orderCode}.pdf"`);
     return res.send(pdf);
+  }
+
+  @Get(':id/payment-links')
+  findPaymentLinks(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    this.paymentLinksService.assertCanManage((req as any).user);
+    return this.paymentLinksService.findByServiceOrder(id);
+  }
+
+  @Post(':id/payment-links')
+  createPaymentLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreatePaymentLinkDto,
+    @Req() req: Request,
+  ) {
+    return this.paymentLinksService.create(id, dto, (req as any).user);
+  }
+
+  @Post(':id/payment-links/:linkId/retry')
+  retryPaymentLink(
+    @Param('linkId', ParseIntPipe) linkId: number,
+    @Req() req: Request,
+  ) {
+    return this.paymentLinksService.retry(linkId, (req as any).user);
+  }
+
+  @Delete(':id/payment-links/:linkId')
+  deletePaymentLink(
+    @Param('linkId', ParseIntPipe) linkId: number,
+    @Req() req: Request,
+  ) {
+    return this.paymentLinksService.remove(linkId, (req as any).user);
   }
 
   @Get(':id')

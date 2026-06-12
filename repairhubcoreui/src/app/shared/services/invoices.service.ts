@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Invoice, InvoiceItem } from '../models/Invoice';
+import { Invoice, InvoiceItem, InvoicePaymentLink } from '../models/Invoice';
 
 @Injectable({ providedIn: 'root' })
 export class InvoicesService {
@@ -56,6 +56,34 @@ export class InvoicesService {
 
   downloadPdf(id: number) {
     return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' }).pipe(timeout(30000));
+  }
+
+  getPaymentLinks(id: number) {
+    return this.http.get<InvoicePaymentLink[]>(`${this.apiUrl}/${id}/payment-links`).pipe(timeout(30000));
+  }
+
+  createPaymentLink(id: number) {
+    return this.http.post<InvoicePaymentLink>(`${this.apiUrl}/${id}/payment-links`, {}).pipe(timeout(30000));
+  }
+
+  retryPaymentLink(invoiceId: number, linkId: number) {
+    return this.http.post<InvoicePaymentLink>(
+      `${this.apiUrl}/${invoiceId}/payment-links/${linkId}/retry`,
+      {},
+    ).pipe(timeout(30000));
+  }
+
+  checkPaymentLink(invoiceId: number, linkId: number) {
+    return this.http.post<InvoicePaymentLink>(
+      `${this.apiUrl}/${invoiceId}/payment-links/${linkId}/check`,
+      {},
+    ).pipe(timeout(30000));
+  }
+
+  deletePaymentLink(invoiceId: number, linkId: number) {
+    return this.http.delete<InvoicePaymentLink>(
+      `${this.apiUrl}/${invoiceId}/payment-links/${linkId}`,
+    ).pipe(timeout(30000));
   }
 
   pdfUrl(id: number) {

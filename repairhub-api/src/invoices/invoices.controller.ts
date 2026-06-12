@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req, Res } from '@nestjs/common';
 import type { Response } from 'express';
+import type { Request } from 'express';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CreateInvoiceItemDto } from './dto/create-invoice-item.dto';
 import { RecordPaymentDto } from './dto/record-payment.dto';
@@ -7,10 +8,14 @@ import { SendInvoiceEmailDto } from './dto/send-invoice-email.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { VoidInvoiceDto } from './dto/void-invoice.dto';
 import { InvoicesService } from './invoices.service';
+import { InvoicePaymentLinksService } from './invoice-payment-links.service';
 
 @Controller('invoices')
 export class InvoicesController {
-  constructor(private readonly service: InvoicesService) {}
+  constructor(
+    private readonly service: InvoicesService,
+    private readonly paymentLinksService: InvoicePaymentLinksService,
+  ) {}
 
   @Post()
   create(@Body() dto: CreateInvoiceDto) {
@@ -43,6 +48,44 @@ export class InvoicesController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="invoice-${invoice.invoiceNumber}.pdf"`);
     return res.send(pdf);
+  }
+
+  @Get(':id/payment-links')
+  findPaymentLinks(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    this.paymentLinksService.assertCanManage((req as any).user);
+    return this.paymentLinksService.findByInvoice(id);
+  }
+
+  @Post(':id/payment-links')
+  createPaymentLink(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    return this.paymentLinksService.create(id, (req as any).user);
+  }
+
+  @Post(':id/payment-links/:linkId/retry')
+  retryPaymentLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('linkId', ParseIntPipe) linkId: number,
+    @Req() req: Request,
+  ) {
+    return this.paymentLinksService.retry(id, linkId, (req as any).user);
+  }
+
+  @Post(':id/payment-links/:linkId/check')
+  checkPaymentLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('linkId', ParseIntPipe) linkId: number,
+    @Req() req: Request,
+  ) {
+    return this.paymentLinksService.checkStatus(id, linkId, (req as any).user);
+  }
+
+  @Delete(':id/payment-links/:linkId')
+  deletePaymentLink(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('linkId', ParseIntPipe) linkId: number,
+    @Req() req: Request,
+  ) {
+    return this.paymentLinksService.remove(id, linkId, (req as any).user);
   }
 
   @Patch(':id')

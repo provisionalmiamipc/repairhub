@@ -30,7 +30,9 @@
     "migration:revert:prod": "typeorm migration:revert -d dist/src/config/data-source.js",
     "migration:show": "typeorm migration:show -d dist/src/config/data-source.js",
     "migration:show:dev": "npm run typeorm -- migration:show -d src/config/data-source.ts",
-    "migration:show:prod": "typeorm migration:show -d dist/src/config/data-source.js"
+    "migration:show:prod": "typeorm migration:show -d dist/src/config/data-source.js",
+    "test:square-links": "jest --runInBand invoices/invoice-payment-links.service.spec.ts service_orders/square-payment-links.service.spec.ts service_orders/service-order-payment-links.service.spec.ts",
+    "verify:square-links": "ts-node scripts/verify-square-payment-links.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",

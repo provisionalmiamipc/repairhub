@@ -8,6 +8,25 @@ import { Stores } from './Stores';
 
 export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'void';
 export type InvoiceItemType = 'service' | 'part' | 'labor' | 'custom';
+export type InvoicePaymentLinkStatus = 'pending' | 'paid' | 'failed' | 'deleted';
+
+export interface InvoicePaymentLink {
+  id: number;
+  invoiceId: number;
+  title: string;
+  amount: string | number;
+  currency: string;
+  status: InvoicePaymentLinkStatus;
+  squarePaymentLinkId?: string | null;
+  squareOrderId?: string | null;
+  url?: string | null;
+  lastError?: string | null;
+  lastCheckedAt?: string | Date | null;
+  paidAt?: string | Date | null;
+  deletedAt?: string | Date | null;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+}
 
 export interface InvoiceItem {
   id?: number;
@@ -58,4 +77,5 @@ export interface Invoice {
   createdBy?: Employees;
   paymentType?: PaymentTypes | null;
   items?: InvoiceItem[];
+  paymentLinks?: InvoicePaymentLink[];
 }

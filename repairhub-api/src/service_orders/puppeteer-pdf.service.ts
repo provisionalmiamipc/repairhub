@@ -56,6 +56,18 @@ export class ServiceOrderPuppeteerPdfService implements OnModuleDestroy {
       }
     }
     itemsTable += '</tbody></table>';
+    const paymentLinkRows = (Array.isArray(order.paymentLinks) ? order.paymentLinks : [])
+      .map((link: any) => `
+        <div style="margin:8px 0;padding:10px;border:1px solid #d9e2f0;border-radius:5px">
+          <strong>${this.escapeHtml(link.title || 'Payment')}</strong>
+          <span style="float:right">$${Number(link.amount || 0).toFixed(2)}</span><br/>
+          <a href="${this.escapeHtml(link.url || '')}">${this.escapeHtml(link.url || '')}</a>
+        </div>
+      `)
+      .join('');
+    const paymentLinksHtml = paymentLinkRows
+      ? `<section class="summary"><h3 style="color:#0056b3;margin:0 0 8px 0">Payment Links</h3>${paymentLinkRows}</section>`
+      : '';
 
     const replacements: Record<string, string> = {
       '{{logoDataUri}}': logoDataUri,
@@ -73,6 +85,7 @@ export class ServiceOrderPuppeteerPdfService implements OnModuleDestroy {
       '{{repairCost}}': (Number(order.repairCost) || 0).toFixed(0),
       '{{advancePayment}}': (Number(order.advancePayment) || 0).toFixed(0),
       '{{tax}}': (Number(order.tax) || 0).toFixed(0),
+      '{{taxPercent}}': (Number(order.taxPercent) || 0).toFixed(2),
       '{{discount}}': (Number(order.discount) || 0).toFixed(0),
       '{{total}}': (Number(order.total) || (Number(order.price) - Number(order.discount) + (Number(order.price) * Number(order.tax) / 100)) || 0).toFixed(0),
       '{{paymentType}}': order.paymentType || '',
@@ -82,6 +95,7 @@ export class ServiceOrderPuppeteerPdfService implements OnModuleDestroy {
       '{{noteReception}}': order.noteReception || '',
       '{{terms}}': (order.terms || 'Terms and conditions...').replace(/\n/g, '<br/>'),
       '{{itemsTable}}': itemsTable,
+      '{{paymentLinksHtml}}': paymentLinksHtml,
     };
 
     for (const key in replacements) {
@@ -130,6 +144,16 @@ export class ServiceOrderPuppeteerPdfService implements OnModuleDestroy {
       // release page back to pool for reuse
       await this.releasePage(page);
     }
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, character => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    })[character] || character);
   }
 
   private async getBrowser() {

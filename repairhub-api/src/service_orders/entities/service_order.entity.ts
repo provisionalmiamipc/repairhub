@@ -18,6 +18,7 @@ import { ChatMessage } from '../../chat_messages/entities/chat_message.entity';
 import { DocumentEntity } from '../../documents/entities/document.entity';
 import { Warranty } from '../../warranties/entities/warranty.entity';
 import type { WarrantyDurationUnit } from '../../warranties/entities/warranty.entity';
+import { ServiceOrderPaymentLink } from './service-order-payment-link.entity';
 
 export type WarrantyDecision = 'pending' | 'approved' | 'rejected';
 
@@ -232,5 +233,8 @@ export class ServiceOrder {
 
     @OneToMany(() => Warranty, (warranty) => warranty.serviceOrder)
     warranties: Warranty[];
+
+    @OneToMany(() => ServiceOrderPaymentLink, (paymentLink) => paymentLink.serviceOrder)
+    paymentLinks: ServiceOrderPaymentLink[];
 
 }

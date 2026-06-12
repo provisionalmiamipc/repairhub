@@ -14,6 +14,7 @@ import { MediaService } from '../media/media.service';
 import { Warranty } from '../warranties/entities/warranty.entity';
 import type { WarrantyDurationUnit } from '../warranties/entities/warranty.entity';
 import { EmailService } from '../common/email/email.service';
+import { ServiceOrderPaymentLinksService } from './service-order-payment-links.service';
 
 
 @Injectable()
@@ -31,6 +32,7 @@ export class ServiceOrdersService {
     @Optional() private readonly puppeteerPdfService?: ServiceOrderPuppeteerPdfService,
     private readonly pdfJobService?: ServiceOrderPdfJobService,
     private readonly mediaService?: MediaService,
+    private readonly paymentLinksService?: ServiceOrderPaymentLinksService,
   ) {}
 
   formatDateToDDMMYYYY(date: Date): string {
@@ -100,6 +102,7 @@ formatDateToMMDDYYYY(date: Date): string {
   }
 
   async create(createDto: CreateServiceOrderDto) {
+    const { paymentLinkRequests = [], ...serviceOrderData } = createDto;
     // Obtener el último orderCode
     const lastOrder = await this.serviceOrderRepository.createQueryBuilder('so')
       .orderBy('so.orderCode', 'DESC')
@@ -117,7 +120,7 @@ formatDateToMMDDYYYY(date: Date): string {
 
     // Use a transaction to create service order, initial repair status and any received parts atomically
     const savedOrder = await this.serviceOrderRepository.manager.transaction(async (manager) => {
-      const entity = manager.create(ServiceOrder, { ...createDto, orderCode });
+      const entity = manager.create(ServiceOrder, { ...serviceOrderData, orderCode });
       const order = await manager.save(entity);
 
       // Create initial repair status for the new service order
@@ -135,14 +138,14 @@ formatDateToMMDDYYYY(date: Date): string {
       }
 
       // Create received parts if provided
-      if (createDto.receivedParts && Array.isArray(createDto.receivedParts) && createDto.receivedParts.length) {
+      if (serviceOrderData.receivedParts && Array.isArray(serviceOrderData.receivedParts) && serviceOrderData.receivedParts.length) {
         const partsRepo = manager.getRepository(ReceivedPart);
         const normalizeId = (v: any) => {
           if (v === undefined || v === null) return null;
           const n = Number(v);
           return Number.isFinite(n) && n > 0 ? n : null;
         };
-        const partsToSave = createDto.receivedParts.map(p => ({
+        const partsToSave = serviceOrderData.receivedParts.map(p => ({
           accessory: p.accessory,
           observations: p.observations ?? null,
           createdById: normalizeId(p.createdById) ?? normalizeId(order.createdById) ?? null,
@@ -174,7 +177,8 @@ formatDateToMMDDYYYY(date: Date): string {
         'receivedParts',
         'warranties',
         'warranty',
-        'originalServiceOrder'
+        'originalServiceOrder',
+        'paymentLinks'
       ],
     });
 
@@ -182,9 +186,24 @@ formatDateToMMDDYYYY(date: Date): string {
     if (!fullOrder) {
       throw new NotFoundException('Service order not found after saving.');
     }
+      if (this.paymentLinksService && paymentLinkRequests.length) {
+        await Promise.all(paymentLinkRequests.map(request =>
+          this.paymentLinksService!.create(
+            fullOrder.id,
+            {
+              ...request,
+              title: this.paymentLinkTitle(fullOrder, request.concept, request.title),
+            },
+            undefined,
+            fullOrder.createdById,
+          )
+        ));
+        fullOrder.paymentLinks = await this.paymentLinksService.findByServiceOrder(fullOrder.id);
+      }
      const lastRepairStatus = (fullOrder.repairStatus && (Array.isArray(fullOrder.repairStatus)
       ? fullOrder.repairStatus[fullOrder.repairStatus.length - 1]
       : fullOrder.repairStatus)) || null;
+      const financials = this.calculateFinancials(fullOrder);
       const pdfData = {
         orderCode: fullOrder.orderCode,
         customerName: fullOrder.customer ? `${fullOrder.customer.firstName} ${fullOrder.customer.lastName}` : '',
@@ -202,9 +221,10 @@ formatDateToMMDDYYYY(date: Date): string {
         advancePayment: fullOrder.advancePayment || 0,
         warrantyDuration: fullOrder.warrantyDuration || 0,
         warrantyDurationUnit: fullOrder.warrantyDurationUnit || 'months',
-        tax: fullOrder.price * fullOrder.tax / 100 || 0,
-        discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
-        total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
+        tax: financials.taxAmount,
+        taxPercent: financials.taxPercent,
+        discount: financials.discountAmount,
+        total: financials.total,
         paymentType: fullOrder.paymentType?.type || '',
         assignedTech: fullOrder.assignedTech ? `${fullOrder.assignedTech.firstName} ${fullOrder.assignedTech.lastName}` : '',
         createdBy: fullOrder.employee ? `${fullOrder.employee.firstName} ${fullOrder.employee.lastName}` : '',
@@ -240,6 +260,7 @@ formatDateToMMDDYYYY(date: Date): string {
           accessory: rp.accessory || '',
           observations: rp.observations || '',
         })),
+        paymentLinks: this.pendingPdfLinks(fullOrder.paymentLinks),
       };
       // Enqueue PDF generation + email send to background job for faster response
       if (this.pdfJobService) {
@@ -267,7 +288,11 @@ formatDateToMMDDYYYY(date: Date): string {
     createDto: CreateServiceOrderDto,
     images: Express.Multer.File[] = [],
     imageKinds: string[] = [],
+    actor?: any,
   ) {
+    if (createDto.paymentLinkRequests?.length) {
+      this.paymentLinksService?.assertCanManage(actor);
+    }
     if (this.mediaService) {
       await this.mediaService.validateImageChange({
         ownerType: this.mediaOwnerType,
@@ -307,7 +332,8 @@ formatDateToMMDDYYYY(date: Date): string {
       'receivedParts',
       'warranties',
       'warranty',
-      'originalServiceOrder'
+      'originalServiceOrder',
+      'paymentLinks'
     ];
     const customerWhere = customerId ? { customerId } : {};
 
@@ -365,7 +391,8 @@ formatDateToMMDDYYYY(date: Date): string {
         'receivedParts',
         'warranties',
         'warranty',
-        'originalServiceOrder'
+        'originalServiceOrder',
+        'paymentLinks'
       ],
     });
     if (!entity) throw new NotFoundException(`ServiceOrder #${id} not found`);
@@ -495,6 +522,7 @@ formatDateToMMDDYYYY(date: Date): string {
         'sodiagnostic',
         'repairStatus',
         'receivedParts',
+        'paymentLinks',
       ],
     });
 
@@ -508,6 +536,7 @@ formatDateToMMDDYYYY(date: Date): string {
       : [];
     const lastRepairStatus = repairStatuses.length ? repairStatuses[repairStatuses.length - 1] : null;
 
+    const financials = this.calculateFinancials(fullOrder);
     const pdfData = {
       orderCode: fullOrder.orderCode,
       customerName: fullOrder.customer ? `${fullOrder.customer.firstName} ${fullOrder.customer.lastName}` : '',
@@ -525,9 +554,10 @@ formatDateToMMDDYYYY(date: Date): string {
       advancePayment: fullOrder.advancePayment || 0,
       warrantyDuration: fullOrder.warrantyDuration || 0,
       warrantyDurationUnit: fullOrder.warrantyDurationUnit || 'months',
-      tax: fullOrder.price * fullOrder.tax / 100 || 0,
-      discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
-      total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
+      tax: financials.taxAmount,
+      taxPercent: financials.taxPercent,
+      discount: financials.discountAmount,
+      total: financials.total,
       paymentType: fullOrder.paymentType?.type || '',
       assignedTech: fullOrder.assignedTech ? `${fullOrder.assignedTech.firstName} ${fullOrder.assignedTech.lastName}` : '',
       createdBy: fullOrder.employee ? `${fullOrder.employee.firstName} ${fullOrder.employee.lastName}` : '',
@@ -566,6 +596,7 @@ formatDateToMMDDYYYY(date: Date): string {
       serviceOrderImages: this.mediaService
         ? await this.mediaService.getPdfImageBuffers(this.mediaOwnerType, fullOrder.id)
         : [],
+      paymentLinks: this.pendingPdfLinks(fullOrder.paymentLinks),
     };
 
     if (this.pdfService && typeof (this.pdfService as any).generateRepairPdfBuffer === 'function') {
@@ -594,7 +625,8 @@ formatDateToMMDDYYYY(date: Date): string {
         'sonotes',
         'sodiagnostic',
         'repairStatus',
-        'receivedParts'
+        'receivedParts',
+        'paymentLinks'
       ],
     });
 
@@ -609,6 +641,7 @@ formatDateToMMDDYYYY(date: Date): string {
     const lastRepairStatus = repairStatuses.length ? repairStatuses[repairStatuses.length - 1] : null;
     const shouldSendCompletionEmail = this.shouldShowWarrantyPolicy(repairStatuses);
 
+    const financials = this.calculateFinancials(fullOrder);
     const pdfData = {
       orderCode: fullOrder.orderCode,
       customerName: fullOrder.customer ? `${fullOrder.customer.firstName} ${fullOrder.customer.lastName}` : '',
@@ -626,9 +659,10 @@ formatDateToMMDDYYYY(date: Date): string {
       advancePayment: fullOrder.advancePayment || 0,
       warrantyDuration: fullOrder.warrantyDuration || 0,
       warrantyDurationUnit: fullOrder.warrantyDurationUnit || 'months',
-      tax: fullOrder.price * fullOrder.tax / 100 || 0,
-      discount: fullOrder.price * fullOrder.costdiscount / 100 || 0,
-      total: fullOrder.price - fullOrder.costdiscount + (fullOrder.price * fullOrder.tax / 100) || 0,
+      tax: financials.taxAmount,
+      taxPercent: financials.taxPercent,
+      discount: financials.discountAmount,
+      total: financials.total,
       paymentType: fullOrder.paymentType?.type || '',
       assignedTech: fullOrder.assignedTech ? `${fullOrder.assignedTech.firstName} ${fullOrder.assignedTech.lastName}` : '',
       createdBy: fullOrder.employee ? `${fullOrder.employee.firstName} ${fullOrder.employee.lastName}` : '',
@@ -668,6 +702,7 @@ formatDateToMMDDYYYY(date: Date): string {
       serviceOrderImages: this.mediaService
         ? await this.mediaService.getPdfImageBuffers(this.mediaOwnerType, fullOrder.id)
         : [],
+      paymentLinks: this.pendingPdfLinks(fullOrder.paymentLinks),
     };
 
     if (shouldSendCompletionEmail) {
@@ -708,5 +743,50 @@ formatDateToMMDDYYYY(date: Date): string {
     }
 
     return this.pdfService.generate(pdfData) as unknown as Buffer;
+  }
+
+  private calculateFinancials(order: ServiceOrder) {
+    const price = Number(order.price || 0);
+    const discountPercent = Number(order.costdiscount || 0);
+    const taxPercent = Number(order.tax || 0);
+    const discountAmount = this.money(price * discountPercent / 100);
+    const subtotal = this.money(price - discountAmount);
+    const taxAmount = this.money(subtotal * taxPercent / 100);
+    return {
+      discountAmount,
+      taxAmount,
+      taxPercent,
+      total: this.money(subtotal + taxAmount),
+    };
+  }
+
+  private pendingPdfLinks(links: any[] | undefined) {
+    return (links || [])
+      .filter(link => link.status === 'pending' && link.url)
+      .map(link => ({
+        title: link.title,
+        amount: Number(link.amount || 0) / 100,
+        url: link.url,
+      }));
+  }
+
+  private money(value: number): number {
+    return Number((Number.isFinite(value) ? value : 0).toFixed(2));
+  }
+
+  private paymentLinkTitle(order: ServiceOrder, concept: string, customTitle: string): string {
+    const labels: Record<string, string> = {
+      total: 'Total',
+      advance_payment: 'Advance payment',
+      pending_payment: 'Pending payment',
+      pickup: 'Pick up',
+      delivery: 'Delivery',
+      custom: customTitle?.trim() || 'Custom',
+    };
+    const customerName = order.customer
+      ? `${order.customer.firstName} ${order.customer.lastName}`.trim()
+      : 'Customer';
+    const deviceName = `${order.deviceBrand?.name || 'Device'} ${order.model || ''}`.trim();
+    return `${customerName} - ${deviceName} - ${labels[concept] || customTitle} - ${order.orderCode}`;
   }
 }
