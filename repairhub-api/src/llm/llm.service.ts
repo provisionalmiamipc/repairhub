@@ -533,7 +533,7 @@ export class GroqProvider implements LlmProvider {
 
   private normalizeServiceEstimate(value: unknown): string {
     const raw = Array.isArray(value)
-      ? value.map((item) => String(item ?? '').trim()).filter(Boolean).join('\n')
+      ? value.map((item) => this.stringifyEstimateLine(item)).filter(Boolean).join('\n')
       : String(value ?? '').trim();
 
     if (!raw) return '';
@@ -554,7 +554,28 @@ export class GroqProvider implements LlmProvider {
 
     if (!bulletLines.length) return '';
 
-    return ['Scope of Service', '', ...bulletLines.slice(0, 12)].join('\n');
+    return ['Scope of Service', '', ...bulletLines.slice(0, 12)].join('\n').toLocaleUpperCase();
+  }
+
+  private stringifyEstimateLine(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return String(value).trim();
+    }
+    if (typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      const candidate =
+        record.text ??
+        record.description ??
+        record.item ??
+        record.bullet ??
+        record.scope ??
+        record.service ??
+        record.task ??
+        record.value;
+      if (candidate !== undefined) return this.stringifyEstimateLine(candidate);
+    }
+    return '';
   }
 
   async *streamRepairPlan(
