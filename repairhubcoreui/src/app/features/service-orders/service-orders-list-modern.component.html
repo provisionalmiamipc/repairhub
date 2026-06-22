@@ -56,7 +56,7 @@
       <input
         type="text"
         class="search-input"
-        placeholder="Search by code, customer, device, brand, model, serial..."
+        placeholder="Search by code, customer, device, brand, model, serial, bin..."
         (keyup)="onSearchChange($any($event).target.value)"
       />
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -218,9 +218,17 @@
                   <div class="small text-muted">{{ order.serial || '-' }}</div>
                 </td>
                 <td>{{ order.deviceBrand?.name|| '-' }} <div class="small text-muted">{{ order.model || '' }}</div></td>
-                <td>{{ order.defectivePart || 'N/A' }}</td>                
+                <td>
+                  {{ order.defectivePart || 'N/A' }}
+                  @if (shouldShowBin(order)) {
+                  <div class="small text-muted">Bin: {{ order.bin }}</div>
+                  }
+                </td>                
                 <td><span class="badge" [ngClass]="[getStatusBadgeClass(order), getStatusClass(order)]">{{ getStatusBadge(order) }}</span>
-                  <div class="small text-muted">{{ getLatestRepairStatus(order) }}</div>
+                  <div class="small text-muted">
+                    <i [class]="getRepairStatusIcon(getLatestRepairStatus(order)) + ' me-1'"></i>
+                    {{ getLatestRepairStatus(order) }}
+                  </div>
                 </td>
                 
                 @if (!(authService.isExpert() && !authService.getCurrentEmployee()?.isCenterAdmin)) {
@@ -308,9 +316,18 @@
                 <span class="label">Defective Part</span>
                 <span class="value">{{ order.defectivePart || '-' }}</span>
               </div>
+              @if (shouldShowBin(order)) {
+              <div class="info-row">
+                <span class="label">Bin</span>
+                <span class="value">{{ order.bin }}</span>
+              </div>
+              }
               <div class="info-row">
                 <span class="label">Last Repair Status</span>
-                <span class="value">{{ getLatestRepairStatus(order) }}</span>
+                <span class="value">
+                  <i [class]="getRepairStatusIcon(getLatestRepairStatus(order)) + ' me-1'"></i>
+                  {{ getLatestRepairStatus(order) }}
+                </span>
               </div>
             </div>
 

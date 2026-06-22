@@ -79,11 +79,12 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
     const sortField = this.sortBy();
 
     let filtered = orders.filter(order => {
-      // Search: order code, customer, serial, device, brand, model and issue
+      // Search: order code, customer, serial, bin, device, brand, model and issue
       const matchesSearch = !query || 
         order.orderCode.toLowerCase().includes(query) ||
         `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.toLowerCase().includes(query) ||
         (order.serial || '').toLowerCase().includes(query) ||
+        (order.bin || '').toLowerCase().includes(query) ||
         (order.device?.name || '').toLowerCase().includes(query) ||
         (order.deviceBrand?.name || '').toLowerCase().includes(query) ||
         (order.model || '').toLowerCase().includes(query) ||
@@ -328,6 +329,60 @@ export class ServiceOrdersListModernComponent implements OnInit, OnDestroy {
 
   getLatestRepairStatus(order: ServiceOrders): string {
     return order.lastRepairStatus?.status || 'No status';
+  }
+
+  getRepairStatusIcon(status?: string): string {
+    switch (this.normalizeStatus(status)) {
+      case 'pending':
+        return 'bi bi-clock';
+      case 'repaired':
+        return 'bi bi-check2-circle';
+      case 'in progress':
+        return 'bi bi-hourglass-split';
+      case 'awaiting parts':
+        return 'bi bi-box-seam';
+      case 'part received':
+        return 'bi bi-box2-heart';
+      case 'waiting on customer':
+        return 'bi bi-person';
+      case 'shipped':
+        return 'bi bi-truck';
+      case 'delivered':
+        return 'bi bi-box-arrow-in-right';
+      case 'picked up':
+      case 'pickup':
+      case 'pick up':
+        return 'bi bi-bag-check';
+      case 'tech damage':
+        return 'bi bi-tools';
+      case 'paid':
+        return 'bi bi-currency-dollar';
+      case 'cancel repair':
+        return 'bi bi-x-circle';
+      case 'canceled by customer':
+        return 'bi bi-person-x';
+      case 'non repairable':
+        return 'bi bi-exclamation-triangle';
+      default:
+        return 'bi bi-info-circle';
+    }
+  }
+
+  private normalizeStatus(status?: string): string {
+    return String(status ?? '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[-_]+/g, ' ')
+      .replace(/\s+/g, ' ');
+  }
+
+  shouldShowBin(order: ServiceOrders): boolean {
+    if (!String(order.bin ?? '').trim() || order.cloused || order.canceled) return false;
+
+    const latestStatus = this.normalizeStatus(this.getLatestRepairStatus(order));
+    return !['pickup', 'pick up', 'picked up', 'recogida', 'recogido', 'delivered', 'entregada', 'entregado'].includes(latestStatus);
   }
 
   hasWarranty(order: ServiceOrders): boolean {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, Optional, ServiceUnavailableException } from '@nestjs/common';
 import { ServiceOrderPdfService } from './pdf.service';
 import { ServiceOrderPuppeteerPdfService } from './puppeteer-pdf.service';
 import { ServiceOrderMailService } from './mail.service';
@@ -15,6 +15,7 @@ import { Warranty } from '../warranties/entities/warranty.entity';
 import type { WarrantyDurationUnit } from '../warranties/entities/warranty.entity';
 import { EmailService } from '../common/email/email.service';
 import { ServiceOrderPaymentLinksService } from './service-order-payment-links.service';
+import { LlmService } from '../llm/llm.service';
 
 
 @Injectable()
@@ -33,6 +34,7 @@ export class ServiceOrdersService {
     private readonly pdfJobService?: ServiceOrderPdfJobService,
     private readonly mediaService?: MediaService,
     private readonly paymentLinksService?: ServiceOrderPaymentLinksService,
+    @Optional() private readonly llmService?: LlmService,
   ) {}
 
   formatDateToDDMMYYYY(date: Date): string {
@@ -50,6 +52,23 @@ formatDateToMMDDYYYY(date: Date): string {
   
   return `${month}/${day}/${year}`;
 }
+
+  async generateEstimate(defectivePart: string) {
+    const cleanDefect = String(defectivePart ?? '').trim();
+    if (!cleanDefect) {
+      throw new BadRequestException('Defective part is required to generate an estimate.');
+    }
+    if (!this.llmService) {
+      throw new ServiceUnavailableException('AI estimate generation is not available.');
+    }
+
+    try {
+      return await this.llmService.generateServiceEstimateScope(cleanDefect);
+    } catch (error) {
+      console.error('ServiceOrdersService: failed to generate AI estimate', error);
+      throw new ServiceUnavailableException('Unable to generate estimate at this time. Please try again.');
+    }
+  }
 
   private pickLastRepairStatus(order: ServiceOrder): { id: number; status: string; date: Date } | null {
     const statuses = Array.isArray((order as any).repairStatus) ? (order as any).repairStatus : [];

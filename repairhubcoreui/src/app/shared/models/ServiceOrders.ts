@@ -77,6 +77,7 @@ export interface ServiceOrders {
   model: string;
   defectivePart: string;
   serial: string;
+  bin?: string | null;
   lock: boolean;
   price: number;
   repairCost: number;

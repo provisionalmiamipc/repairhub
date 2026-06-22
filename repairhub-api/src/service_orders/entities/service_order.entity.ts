@@ -84,6 +84,11 @@ export class ServiceOrder {
     @IsOptional()
     serial: string;
 
+    @Column({ type: 'varchar', nullable: true, default: null })
+    @IsString()
+    @IsOptional()
+    bin?: string | null;
+
     @Column({ default: false })
 	@IsBoolean()
 	lock: boolean;

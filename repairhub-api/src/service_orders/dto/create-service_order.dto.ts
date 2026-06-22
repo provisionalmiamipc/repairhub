@@ -33,6 +33,10 @@ export class CreateServiceOrderDto {
 	@IsString()
 	serial?: string;
 
+	@IsOptional()
+	@IsString()
+	bin?: string | null;
+
 	@IsBoolean()
 	lock: boolean;
 

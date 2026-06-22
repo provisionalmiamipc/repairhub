@@ -4,6 +4,7 @@ import { In, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { DeviceBrand } from '../device_brands/entities/device_brand.entity';
 import { RepairStatus } from '../repair_status/entities/repair_status.entity';
 import { ServiceOrder } from '../service_orders/entities/service_order.entity';
+import { ServiceOrdersService } from '../service_orders/service_orders.service';
 import { CreateWarrantyOrderDto } from './dto/create-warranty-order.dto';
 import { CreateWarrantyDto } from './dto/create-warranty.dto';
 import { UpdateWarrantyDto } from './dto/update-warranty.dto';
@@ -22,6 +23,7 @@ export class WarrantiesService {
     private readonly serviceOrdersRepo: Repository<ServiceOrder>,
     @InjectRepository(RepairStatus)
     private readonly repairStatusRepo: Repository<RepairStatus>,
+    private readonly serviceOrdersService: ServiceOrdersService,
   ) {}
 
   async create(dto: CreateWarrantyDto) {
@@ -215,6 +217,10 @@ export class WarrantiesService {
       await manager.save(initialStatus);
 
       return newOrder;
+    });
+
+    void this.serviceOrdersService.resendEmail(savedOrder.id).catch((err) => {
+      console.error('WarrantiesService: failed to send warranty order created email', err);
     });
 
     return this.serviceOrdersRepo.findOne({

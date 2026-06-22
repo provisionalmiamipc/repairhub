@@ -51,6 +51,11 @@ export type LlmChatInput = {
   lowText?: boolean;
 };
 
+export type ServiceEstimateOutput = {
+  defectivePart: string;
+  estimated: string;
+};
+
 export type LlmStreamEvent =
   | { type: 'text_delta'; text: string }
   | { type: 'final_json'; json: RepairPlanOutput }
@@ -135,6 +140,7 @@ const repairPlanJsonSchema = {
 export interface LlmProvider {
   generateRepairPlan(input: LlmInput, externalSignal?: AbortSignal): Promise<RepairPlanOutput>;
   generateChatAnswer(input: LlmChatInput, externalSignal?: AbortSignal): Promise<string>;
+  generateServiceEstimateScope(defectivePart: string, externalSignal?: AbortSignal): Promise<ServiceEstimateOutput>;
   streamRepairPlan(input: LlmInput, externalSignal?: AbortSignal): AsyncIterable<LlmStreamEvent>;
 }
 
@@ -190,6 +196,10 @@ export class GroqProvider implements LlmProvider {
   }
 
   private mapError(error: any): LlmProviderError {
+    if (error instanceof LlmProviderError) {
+      return error;
+    }
+
     if (error?.name === 'AbortError') {
       return new LlmProviderError('TIMEOUT', 'Timeout while calling Groq');
     }
@@ -435,6 +445,118 @@ export class GroqProvider implements LlmProvider {
     }
   }
 
+  async generateServiceEstimateScope(
+    defectivePart: string,
+    externalSignal?: AbortSignal,
+  ): Promise<ServiceEstimateOutput> {
+    const rawDefect = String(defectivePart ?? '').trim();
+    if (!rawDefect) {
+      throw new LlmProviderError('INVALID_RESPONSE', 'Defective part is required');
+    }
+
+    const client = this.getClient();
+    const { controller, timeout } = this.withAbortTimeout(externalSignal);
+    const systemPrompt = [
+      'Act as a Miami Photography Center Service Writer.',
+      'Return only valid JSON. No extra text.',
+      'Generate a professional, short, technical Scope of Service for photo/cinema equipment repairs.',
+      'Do not include company, address, hours, brand, model, serial, price, warranty, or turnaround time.',
+    ].join('\n');
+    const userPrompt = [
+      `Issue: ${rawDefect}`,
+      '',
+      'Return JSON with exactly:',
+      'defectivePart: return the original issue unchanged.',
+      'estimated: only "Scope of Service" plus 8-12 short • bullets.',
+      '',
+      'Scope rules:',
+      'Each bullet must be brief, technical, non-repetitive, and adapted to the issue.',
+      'Include component repair/replacement, inspection, adjustment/alignment/calibration when relevant.',
+      'Always include internal cleaning, external cleaning, preventive maintenance, functional testing, quality control when applicable.',
+      'No paragraphs, explanations, pricing, warranty, turnaround, brand, model, or serial.',
+      '',
+      'Style examples:',
+      '• Replace shutter assembly',
+      '• Verify shutter timing and operation',
+      '• Inspect drive mechanism',
+      '• Replace mode dial assembly',
+      '• Inspect top control system',
+      '• Replace lens assembly',
+      '• Adjust lens mechanism',
+      '• Calibrate autofocus and zoom',
+      '• Professional sensor cleaning',
+      '• System calibration and adjustment',
+    ].join('\n');
+
+    try {
+      const response = await client.chat.completions.create(
+        {
+          model: this.llmConfig.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.2,
+          max_tokens: 650,
+          response_format: { type: 'json_object' },
+        },
+        { signal: controller.signal } as any,
+      );
+
+      const outputText = String((response as any)?.choices?.[0]?.message?.content ?? '');
+      if (!outputText) {
+        throw new LlmProviderError('INVALID_RESPONSE', 'Groq did not return message content');
+      }
+
+      const parsed = JSON.parse(this.extractJsonCandidate(outputText)) as Partial<ServiceEstimateOutput> & {
+        scope?: unknown;
+        bullets?: unknown;
+      };
+      const normalized = {
+        defectivePart: String(parsed.defectivePart ?? '').trim().toUpperCase(),
+        estimated: this.normalizeServiceEstimate(parsed.estimated ?? parsed.scope ?? parsed.bullets),
+      };
+
+      if (!normalized.defectivePart || !normalized.estimated) {
+        throw new LlmProviderError('INVALID_RESPONSE', 'Invalid estimate response');
+      }
+
+      return normalized;
+    } catch (error) {
+      const mapped = this.mapError(error);
+      this.logger.warn(`Groq estimate error [${mapped.code}]: ${mapped.message}`);
+      throw mapped;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  private normalizeServiceEstimate(value: unknown): string {
+    const raw = Array.isArray(value)
+      ? value.map((item) => String(item ?? '').trim()).filter(Boolean).join('\n')
+      : String(value ?? '').trim();
+
+    if (!raw) return '';
+
+    const lines = raw
+      .replace(/^```[\w-]*\s*/i, '')
+      .replace(/```$/i, '')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .filter((line) => !/^["'{\]}]+$/.test(line));
+
+    const bodyLines = lines.filter((line) => !/^scope\s+of\s+service:?$/i.test(line));
+    const bulletLines = bodyLines
+      .map((line) => line.replace(/^[-*]\s+/, '• ').replace(/^•\s*/, '• '))
+      .filter((line) => line.startsWith('•') || line.length > 0)
+      .map((line) => line.startsWith('•') ? line : `• ${line}`);
+
+    if (!bulletLines.length) return '';
+
+    return ['Scope of Service', '', ...bulletLines.slice(0, 12)].join('\n');
+  }
+
   async *streamRepairPlan(
     input: LlmInput,
     externalSignal?: AbortSignal,
@@ -514,6 +636,22 @@ export class LlmService {
     }
 
     return this.provider.generateChatAnswer(input, externalSignal);
+  }
+
+  async generateServiceEstimateScope(
+    defectivePart: string,
+    externalSignal?: AbortSignal,
+  ): Promise<ServiceEstimateOutput> {
+    const rawDefect = String(defectivePart ?? '').trim();
+    if (!rawDefect) {
+      throw new Error('Defective part is required');
+    }
+
+    if (!this.llmConfig.enabled || !this.llmConfig.groqApiKey) {
+      throw new Error('AI estimate generation is not configured.');
+    }
+
+    return this.provider.generateServiceEstimateScope(rawDefect, externalSignal);
   }
 
   async streamRepairPlanOrNull(

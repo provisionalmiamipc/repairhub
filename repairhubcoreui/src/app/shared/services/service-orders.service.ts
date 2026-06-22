@@ -18,6 +18,13 @@ export class ServiceOrdersService extends BaseService<ServiceOrders> {
     return this.http.post<any>(`${this.apiUrl}/${id}/resend-email`, {}).pipe(timeout(30000));
   }
 
+  generateEstimate(defectivePart: string) {
+    return this.http.post<{ defectivePart: string; estimated: string }>(
+      `${this.apiUrl}/generate-estimate`,
+      { defectivePart },
+    ).pipe(timeout(30000));
+  }
+
   downloadPdf(id: number) {
     return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' }).pipe(timeout(30000));
   }

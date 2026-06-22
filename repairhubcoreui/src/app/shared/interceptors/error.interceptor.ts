@@ -107,7 +107,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         case 503:
         case 504:
           // Server error
-          errorMessage = 'Server error. Please try again later.';
+          errorMessage = error.error?.message || 'Server error. Please try again later.';
           appState.addNotification('error', errorMessage, 5000);
           break;
           

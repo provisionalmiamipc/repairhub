@@ -307,6 +307,13 @@
                     placeholder="Serial number" (input)="uppercaseControlValue('serial', $event)" />
                 </div>
 
+                <!-- Bin -->
+                <div class="col-md-6 col-xl-4">
+                  <label for="bin" class="form-label">Bin</label>
+                  <input type="text" id="bin" autocomplete="off" class="form-control" formControlName="bin"
+                    placeholder="Bin location" (input)="uppercaseControlValue('bin', $event)" />
+                </div>
+
                 <!-- Defective Part -->
                 <div class="col-12">
                   <label for="defectivePart" class="form-label">Defective Part</label>
@@ -325,7 +332,15 @@
 
                 <!-- Estimated -->
                 <div class="col-12" *ngIf="!isExpertNonCenterAdmin()">
-                  <label for="estimated" class="form-label">Estimated</label>
+                  <div class="d-flex align-items-center justify-content-between gap-2">
+                    <label for="estimated" class="form-label">Estimated</label>
+                    <button type="button" class="btn btn-link btn-sm p-0 mb-2"
+                      [disabled]="isGeneratingEstimate || isOrderLockedForEditing() || isFormReadOnly()"
+                      (click)="generateEstimate()">
+                      <span *ngIf="isGeneratingEstimate" class="spinner-border spinner-border-sm me-1"></span>
+                      Generate estimate
+                    </button>
+                  </div>
                   <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
                     placeholder="Estimated repair..." rows="3"
                     (input)="uppercaseControlValue('estimated', $event)"></textarea>
@@ -1148,6 +1163,14 @@
                 (input)="uppercaseControlValue('serial', $event)" />
             </div>
 
+            <!-- Bin -->
+            <div class="col-md-6 col-xl-4">
+              <label for="bin" class="form-label">Bin</label>
+              <input type="text" id="bin" autocomplete="off" class="form-control" formControlName="bin"
+                placeholder="Bin location" autocapitalize="characters"
+                (input)="uppercaseControlValue('bin', $event)" />
+            </div>
+
             <!-- Assigned Tech -->
             <div class="col-md-6 col-xl-4">
               <label for="assignedTechId" class="form-label">Assigned Technician *</label>
@@ -1190,7 +1213,15 @@
 
             <!-- Estimated -->
             <div class="col-12">
-              <label for="estimated" class="form-label">Estimated</label>
+              <div class="d-flex align-items-center justify-content-between gap-2">
+                <label for="estimated" class="form-label">Estimated</label>
+                <button type="button" class="btn btn-link btn-sm p-0 mb-2"
+                  [disabled]="isGeneratingEstimate || isOrderLockedForEditing() || isFormReadOnly()"
+                  (click)="generateEstimate()">
+                  <span *ngIf="isGeneratingEstimate" class="spinner-border spinner-border-sm me-1"></span>
+                  Generate estimate
+                </button>
+              </div>
               <textarea id="estimated" autocomplete="off" class="form-control" formControlName="estimated"
                 placeholder="Estimated repair..." rows="4" autocapitalize="characters"
                 (input)="uppercaseControlValue('estimated', $event)"></textarea>

@@ -41,6 +41,7 @@ export class RepairStatusFormComponent {
     { label: 'Repaired', icon: 'bi bi-check2-circle' },
     { label: 'In Progress', icon: 'bi bi-hourglass-split' },
     { label: 'Awaiting Parts', icon: 'bi bi-box-seam' },
+    { label: 'Part received', icon: 'bi bi-box2-heart' },
     { label: 'Waiting on customer', icon: 'bi bi-person' },
     { label: 'Shipped', icon: 'bi bi-truck' },
     { label: 'Delivered', icon: 'bi bi-box-arrow-in-right' },

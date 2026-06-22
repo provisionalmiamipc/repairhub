@@ -20,6 +20,7 @@ import { ServiceOrdersService } from './service_orders.service';
 import { CreateServiceOrderDto } from './dto/create-service_order.dto';
 import { UpdateServiceOrderDto } from './dto/update-service_order.dto';
 import { CreatePaymentLinkDto } from './dto/create-payment-link.dto';
+import { GenerateEstimateDto } from './dto/generate-estimate.dto';
 import { ServiceOrderPaymentLinksService } from './service-order-payment-links.service';
 
 @Controller('service-orders')
@@ -54,6 +55,11 @@ export class ServiceOrdersController {
       user,
       Number.isFinite(parsedCustomerId) ? parsedCustomerId : undefined,
     );
+  }
+
+  @Post('generate-estimate')
+  generateEstimate(@Body() dto: GenerateEstimateDto) {
+    return this.serviceOrdersService.generateEstimate(dto.defectivePart);
   }
 
   @Get(':id/pdf')

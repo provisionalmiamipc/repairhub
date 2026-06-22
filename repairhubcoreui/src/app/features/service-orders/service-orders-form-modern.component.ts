@@ -259,6 +259,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
   isWarrantyLoading = false;
   isWarrantySaving = false;
   isWarrantyOrderSaving = false;
+  isGeneratingEstimate = false;
   isWarrantyDecisionSaving = false;
 
   // Modals
@@ -383,6 +384,7 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
       deviceBrandId: [null, Validators.required],
       model: ['', Validators.required],
       serial: [''],
+      bin: [null],
       defectivePart: [''],
       paymentTypeId: [null, Validators.required],
       assignedTechId: [null, Validators.required],
@@ -488,6 +490,36 @@ export class ServiceOrdersFormModernComponent implements OnInit, OnDestroy {
     control?.markAsDirty();
     control?.markAsTouched();
     this.isModelSuggestionsOpen.set(false);
+  }
+
+  generateEstimate(): void {
+    const defectivePart = String(this.serviceOrderForm.get('defectivePart')?.value || '').trim();
+    if (!defectivePart) {
+      this.toastService.error('Please enter the defective part before generating an estimate.');
+      return;
+    }
+    if (this.isOrderLockedForEditing() || this.isFormReadOnly()) return;
+
+    this.isGeneratingEstimate = true;
+    this.serviceOrderForm.patchValue({ estimated: '' });
+    this.serviceOrderForm.get('estimated')?.markAsDirty();
+    this.serviceOrdersService.generateEstimate(defectivePart)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isGeneratingEstimate = false)
+      )
+      .subscribe({
+        next: (result) => {
+          this.serviceOrderForm.patchValue({
+            estimated: result.estimated,
+          });
+          this.serviceOrderForm.get('estimated')?.markAsDirty();
+          this.toastService.success('Estimate generated');
+        },
+        error: (err) => {
+          this.toastService.error(err?.error?.message || 'Unable to generate estimate. Please try again.');
+        }
+      });
   }
 
   uppercaseControlValue(controlName: string, event: Event): void {

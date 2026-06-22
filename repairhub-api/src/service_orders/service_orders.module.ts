@@ -15,9 +15,10 @@ import { EmailModule } from '../common/email/email.module';
 import { ServiceOrderPaymentLink } from './entities/service-order-payment-link.entity';
 import { ServiceOrderPaymentLinksService } from './service-order-payment-links.service';
 import { SquarePaymentLinksService } from './square-payment-links.service';
+import { LlmModule } from '../llm/llm.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus, ServiceOrderPaymentLink]), MediaModule, EmailModule],
+  imports: [TypeOrmModule.forFeature([ServiceOrder, RepairStatus, ServiceOrderPaymentLink]), MediaModule, EmailModule, LlmModule],
   controllers: [ServiceOrdersController],
   providers: [
     ServiceOrdersService,
