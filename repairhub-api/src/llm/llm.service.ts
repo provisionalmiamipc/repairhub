@@ -512,12 +512,13 @@ export class GroqProvider implements LlmProvider {
         scope?: unknown;
         bullets?: unknown;
       };
+      const estimatedCandidate = parsed.estimated ?? parsed.scope ?? parsed.bullets ?? parsed;
       const normalized = {
-        defectivePart: String(parsed.defectivePart ?? '').trim().toUpperCase(),
-        estimated: this.normalizeServiceEstimate(parsed.estimated ?? parsed.scope ?? parsed.bullets),
+        defectivePart: String(parsed.defectivePart ?? rawDefect).trim().toUpperCase(),
+        estimated: this.normalizeServiceEstimate(estimatedCandidate) || this.buildFallbackServiceEstimate(rawDefect),
       };
 
-      if (!normalized.defectivePart || !normalized.estimated) {
+      if (!normalized.estimated) {
         throw new LlmProviderError('INVALID_RESPONSE', 'Invalid estimate response');
       }
 
@@ -532,9 +533,26 @@ export class GroqProvider implements LlmProvider {
   }
 
   private normalizeServiceEstimate(value: unknown): string {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      const record = value as Record<string, unknown>;
+      const nested =
+        record.estimated ??
+        record.scope ??
+        record.scopeOfService ??
+        record.scope_of_service ??
+        record.bullets ??
+        record.items ??
+        record.tasks ??
+        record.services ??
+        record.lines;
+      if (nested !== undefined) {
+        return this.normalizeServiceEstimate(nested);
+      }
+    }
+
     const raw = Array.isArray(value)
       ? value.map((item) => this.stringifyEstimateLine(item)).filter(Boolean).join('\n')
-      : String(value ?? '').trim();
+      : this.stringifyEstimateLine(value);
 
     if (!raw) return '';
 
@@ -544,6 +562,7 @@ export class GroqProvider implements LlmProvider {
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
+      .filter((line) => !/^\[object object\]$/i.test(line))
       .filter((line) => !/^["'{\]}]+$/.test(line));
 
     const bodyLines = lines.filter((line) => !/^scope\s+of\s+service:?$/i.test(line));
@@ -572,10 +591,63 @@ export class GroqProvider implements LlmProvider {
         record.scope ??
         record.service ??
         record.task ??
+        record.action ??
+        record.title ??
+        record.name ??
+        record.step ??
+        record.procedure ??
+        record.line ??
         record.value;
       if (candidate !== undefined) return this.stringifyEstimateLine(candidate);
+
+      const fallback = Object.values(record)
+        .flatMap((item) => this.collectEstimateLines(item))
+        .find((item) => item && !/^\[object object\]$/i.test(item));
+      if (fallback) return fallback;
     }
     return '';
+  }
+
+  private collectEstimateLines(value: unknown): string[] {
+    if (value === null || value === undefined) return [];
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      const line = String(value).trim();
+      return line && !/^\[object object\]$/i.test(line) ? [line] : [];
+    }
+    if (Array.isArray(value)) {
+      return value.flatMap((item) => this.collectEstimateLines(item));
+    }
+    if (typeof value === 'object') {
+      const direct = this.stringifyEstimateLine(value);
+      if (direct) return [direct];
+      return Object.values(value as Record<string, unknown>).flatMap((item) => this.collectEstimateLines(item));
+    }
+    return [];
+  }
+
+  private buildFallbackServiceEstimate(defectivePart: string): string {
+    const normalized = defectivePart.toLowerCase();
+    const primary = normalized.includes('lens')
+      ? '• REPAIR/REPLACE AFFECTED LENS COMPONENT'
+      : normalized.includes('shutter')
+        ? '• REPAIR/REPLACE AFFECTED SHUTTER COMPONENT'
+        : normalized.includes('dial')
+          ? '• REPAIR/REPLACE AFFECTED CONTROL COMPONENT'
+          : '• REPAIR/REPLACE AFFECTED COMPONENT';
+
+    return [
+      'SCOPE OF SERVICE',
+      '',
+      primary,
+      '• INSPECT RELATED SYSTEMS',
+      '• ADJUST AND ALIGN MECHANISM',
+      '• SYSTEM CALIBRATION AND ADJUSTMENT',
+      '• INTERNAL CLEANING',
+      '• EXTERNAL CLEANING',
+      '• PREVENTIVE MAINTENANCE',
+      '• FUNCTIONAL TESTING',
+      '• QUALITY CONTROL',
+    ].join('\n');
   }
 
   async *streamRepairPlan(
