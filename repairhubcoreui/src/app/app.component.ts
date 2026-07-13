@@ -45,7 +45,6 @@ export class AppComponent implements OnInit {
     try {
       const pathname = window.location.pathname || '';
       const hash = window.location.hash || '';
-      const hostname = window.location.hostname || '';
       if (pathname.startsWith('/activate') && !hash.startsWith('#/activate')) {
         const newUrl = `${window.location.origin}/#${pathname}${window.location.search}`;
         window.location.replace(newUrl);
@@ -59,14 +58,6 @@ export class AppComponent implements OnInit {
       if (pathname.startsWith('/service-status') && !hash.startsWith('#/service-status')) {
         const newUrl = `${window.location.origin}/#${pathname}${window.location.search}`;
         window.location.replace(newUrl);
-        return;
-      }
-      if (
-        pathname === '/' &&
-        !hash &&
-        (hostname.startsWith('status.') || hostname.startsWith('repair-status.') || hostname.startsWith('track.'))
-      ) {
-        window.location.replace(`${window.location.origin}/#/service-status`);
         return;
       }
     } catch (e) {}

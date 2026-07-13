@@ -35,7 +35,7 @@ export const routes: Routes = [
 
   {
     path: '',
-    redirectTo: 'login',
+    loadComponent: () => import('./public/service-status-root/service-status-root.component').then(m => m.ServiceStatusRootComponent),
     pathMatch: 'full'
   },
       { 
