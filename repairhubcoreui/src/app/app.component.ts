@@ -40,14 +40,33 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.#navigationHistoryService.startTracking();
 
-    // Si la app usa HashLocationStrategy y la URL llegó como '/activate?...',
+    // Si la app usa HashLocationStrategy y la URL llegó como una ruta pública sin hash,
     // redirigir al formato con hash para que Angular Router la reconozca:
     try {
       const pathname = window.location.pathname || '';
       const hash = window.location.hash || '';
+      const hostname = window.location.hostname || '';
       if (pathname.startsWith('/activate') && !hash.startsWith('#/activate')) {
         const newUrl = `${window.location.origin}/#${pathname}${window.location.search}`;
         window.location.replace(newUrl);
+        return;
+      }
+      if (pathname.startsWith('/track-order') && !hash.startsWith('#/track-order')) {
+        const newUrl = `${window.location.origin}/#/service-status${window.location.search}`;
+        window.location.replace(newUrl);
+        return;
+      }
+      if (pathname.startsWith('/service-status') && !hash.startsWith('#/service-status')) {
+        const newUrl = `${window.location.origin}/#${pathname}${window.location.search}`;
+        window.location.replace(newUrl);
+        return;
+      }
+      if (
+        pathname === '/' &&
+        !hash &&
+        (hostname.startsWith('status.') || hostname.startsWith('repair-status.') || hostname.startsWith('track.'))
+      ) {
+        window.location.replace(`${window.location.origin}/#/service-status`);
         return;
       }
     } catch (e) {}

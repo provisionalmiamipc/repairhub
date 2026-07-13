@@ -1,0 +1,163 @@
+<main class="track-page">
+  <section class="track-shell">
+    <header class="track-header" aria-label="Repair status">
+      <a class="brand" href="#/service-status" aria-label="Miami Photography Center service status">
+        <span class="brand-mark">MPC</span>
+        <span class="brand-copy">
+          <strong>Miami Photography Center</strong>
+          <small>Service Status</small>
+        </span>
+      </a>
+      <a class="support-link" href="mailto:service@miamiphotographycenter.com">
+        <i class="bi bi-envelope"></i>
+        <span>Support</span>
+      </a>
+    </header>
+
+    <div class="track-grid">
+      <section class="lookup-panel" [class.has-result]="order">
+        <div class="eyebrow">Repair tracking</div>
+        <h1>Service Status</h1>
+        <p class="intro">
+          Enter the email or phone number registered on the order and the service order number from your receipt or email.
+        </p>
+
+        <form class="lookup-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <label class="field">
+            <span>Email or phone</span>
+            <input
+              type="text"
+              formControlName="contact"
+              autocomplete="email"
+              placeholder="name@example.com"
+              [attr.aria-invalid]="fieldInvalid('contact')">
+            <small *ngIf="fieldInvalid('contact')">Enter the contact used on the service order.</small>
+          </label>
+
+          <label class="field">
+            <span>Order number</span>
+            <input
+              type="text"
+              formControlName="orderNumber"
+              autocomplete="off"
+              placeholder="# SO 00045"
+              [attr.aria-invalid]="fieldInvalid('orderNumber')">
+            <small *ngIf="fieldInvalid('orderNumber')">Enter a valid service order number.</small>
+          </label>
+
+          <button class="primary-action" type="submit" [disabled]="isLoading">
+            <span class="spinner-border spinner-border-sm" *ngIf="isLoading" aria-hidden="true"></span>
+            <i class="bi bi-search" *ngIf="!isLoading"></i>
+            <span>{{ isLoading ? 'Checking' : 'Check status' }}</span>
+          </button>
+        </form>
+
+        <div class="lookup-note">
+          <i class="bi bi-shield-check"></i>
+          <span>Your order is shown only when both details match our records.</span>
+        </div>
+
+        <div class="alert-message" *ngIf="errorMessage" role="alert">
+          <i class="bi bi-exclamation-circle"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
+      </section>
+
+      <section class="result-panel" *ngIf="order; else emptyState" aria-live="polite">
+        <div class="result-topline">
+          <div>
+            <span class="label">Order</span>
+            <h2>{{ order.orderCode }}</h2>
+          </div>
+          <span class="status-pill" [ngClass]="statusClass">{{ order.currentStatus }}</span>
+        </div>
+
+        <div class="info-grid">
+          <article class="info-card">
+            <i class="bi bi-camera"></i>
+            <span>Device</span>
+            <strong>{{ order.device.brand || 'Brand pending' }} {{ order.device.model || order.device.type }}</strong>
+            <small>{{ order.device.type }} · Serial {{ order.device.serialMasked }}</small>
+          </article>
+
+          <article class="info-card">
+            <i class="bi bi-calendar-check"></i>
+            <span>Received</span>
+            <strong>{{ formatDate(order.createdAt) }}</strong>
+            <small>Last update {{ formatDate(order.updatedAt) }}</small>
+          </article>
+
+          <article class="info-card">
+            <i class="bi bi-shield"></i>
+            <span>Warranty</span>
+            <strong>{{ order.warranty.available ? (order.warranty.duration || 'Available') : 'Not available' }}</strong>
+            <small *ngIf="order.warranty.endDate">Valid until {{ formatDate(order.warranty.endDate) }}</small>
+          </article>
+        </div>
+
+        <div class="result-scroll">
+          <section class="summary-section" *ngIf="order.reportedIssue">
+            <h3>Defective part</h3>
+            <p>{{ order.reportedIssue }}</p>
+          </section>
+
+          <section class="timeline-section" *ngIf="order.timeline.length">
+            <h3>Status timeline</h3>
+            <ol class="timeline">
+              <li *ngFor="let item of order.timeline; let last = last" [class.is-current]="last">
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>{{ item.status }}</strong>
+                  <small>{{ formatDate(item.date) }}</small>
+                </div>
+              </li>
+            </ol>
+          </section>
+
+          <section class="summary-section" *ngIf="order.diagnostics.length">
+            <h3>Diagnostics shared with you</h3>
+            <div class="stack-list">
+              <div class="stack-item" *ngFor="let diagnostic of order.diagnostics">
+                <strong>{{ diagnostic.title }}</strong>
+                <small>{{ formatDate(diagnostic.date) }}</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="summary-section" *ngIf="order.receivedParts.length">
+            <h3>Received accessories</h3>
+            <div class="stack-list">
+              <div class="stack-item" *ngFor="let part of order.receivedParts">
+                <strong>{{ part.accessory }}</strong>
+                <small>{{ part.observations || 'Recorded with your service order' }}</small>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="result-actions">
+          <button class="secondary-action" type="button" (click)="resetLookup()">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Check another order</span>
+          </button>
+        </div>
+      </section>
+
+      <ng-template #emptyState>
+        <aside class="empty-panel">
+          <div class="empty-visual">
+            <i class="bi bi-tools"></i>
+          </div>
+          <h2>Service updates</h2>
+          <p>
+            Use the order code exactly as it appears in your confirmation email, receipt, or service PDF. Formats like SO00045, #SO00045, or 45 are accepted.
+          </p>
+          <div class="trust-row">
+            <span><i class="bi bi-lock"></i> Private lookup</span>
+            <span><i class="bi bi-phone"></i> Mobile ready</span>
+          </div>
+        </aside>
+      </ng-template>
+    </div>
+  </section>
+</main>

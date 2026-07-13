@@ -45,6 +45,7 @@ import { JwtAnyGuard } from './auth/guards/jwt-any.guard';
 import { ReceivedPartsModule } from './received-parts/received-parts.module';
 import { WarrantiesModule } from './warranties/warranties.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { PublicOrderStatusModule } from './public-order-status/public-order-status.module';
 
 // Cargar DebugModule de forma condicional (evita errores si no se compila/instala)
 const DebugModuleOptional = (() => {
@@ -178,6 +179,7 @@ const DebugModuleOptional = (() => {
     ReceivedPartsModule,
     WarrantiesModule,
     InvoicesModule,
+    PublicOrderStatusModule,
 
   ],
   controllers: [AppController],

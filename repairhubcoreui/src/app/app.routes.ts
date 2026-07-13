@@ -22,6 +22,16 @@ export const routes: Routes = [
     loadComponent: () => import('./views/pages/activate/activate.component').then(m => m.ActivateComponent),
     data: { title: 'Activar cuenta' }
   },
+  {
+    path: 'service-status',
+    loadComponent: () => import('./public/track-order/track-order.component').then(m => m.TrackOrderComponent),
+    data: { title: 'Service Status' }
+  },
+  {
+    path: 'track-order',
+    redirectTo: 'service-status',
+    pathMatch: 'full'
+  },
 
   {
     path: '',

@@ -15,7 +15,7 @@ export const employeeInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>
 };
 
 function isAuthRequest(req: HttpRequest<unknown>): boolean {
-  return req.url.includes('/auth/');
+  return req.url.includes('/auth/') || req.url.includes('/api/public');
 }
 
 function addEmployeeHeaders(req: HttpRequest<unknown>, authService: AuthService): HttpRequest<unknown> {
