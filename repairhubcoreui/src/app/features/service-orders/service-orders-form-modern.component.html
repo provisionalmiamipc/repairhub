@@ -314,20 +314,20 @@
                     placeholder="Bin location" (input)="uppercaseControlValue('bin', $event)" />
                 </div>
 
-                <!-- Defective Part -->
-                <div class="col-12">
-                  <label for="defectivePart" class="form-label">Defective Part</label>
-                  <input type="text" id="defectivePart" autocomplete="off" class="form-control"
-                    formControlName="defectivePart" placeholder="Describe the defective part"
-                    (input)="uppercaseControlValue('defectivePart', $event)" />
-                </div>
-
                 <!-- Reception Note -->
                 <div class="col-12">
                   <label for="noteReception" class="form-label">Reception Notes</label>
                   <textarea id="noteReception" autocomplete="off" class="form-control" formControlName="noteReception"
                     placeholder="Additional notes..." rows="3"
                     (input)="uppercaseControlValue('noteReception', $event)"></textarea>
+                </div>
+
+                <!-- Defective Part -->
+                <div class="col-12">
+                  <label for="defectivePart" class="form-label">Defective Part</label>
+                  <input type="text" id="defectivePart" autocomplete="off" class="form-control"
+                    formControlName="defectivePart" placeholder="Describe the defective part"
+                    (input)="uppercaseControlValue('defectivePart', $event)" />
                 </div>
 
                 <!-- Estimated -->

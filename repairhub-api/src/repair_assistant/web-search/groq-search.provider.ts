@@ -15,13 +15,14 @@ export class GroqSearchProvider implements SearchProvider {
   constructor(@Inject(LLM_CONFIG) private readonly llmConfig: LlmConfig) {}
 
   private getClient() {
-    if (!this.llmConfig.groqApiKey) return null;
+    const apiKey = process.env.GROQ_API_KEY || this.llmConfig.apiKey;
+    if (!apiKey) return null;
     if (!this.client) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const OpenAI = require('openai').default ?? require('openai');
       this.client = new OpenAI({
-        apiKey: this.llmConfig.groqApiKey,
-        baseURL: 'https://api.groq.com/openai/v1',
+        apiKey,
+        baseURL: process.env.GROQ_BASE_URL || this.llmConfig.baseURL || 'https://api.groq.com/openai/v1',
       });
     }
     return this.client;
@@ -117,7 +118,11 @@ export class GroqSearchProvider implements SearchProvider {
     const client = this.getClient();
     if (!client) return [];
 
-    const model = process.env.GROQ_WEB_MODEL || 'groq/compound-mini';
+    const model = process.env.GROQ_WEB_MODEL || process.env.WEB_SEARCH_MODEL;
+    if (!model) {
+      this.logger.warn('Groq web search skipped: GROQ_WEB_MODEL or WEB_SEARCH_MODEL is not configured');
+      return [];
+    }
     const country = process.env.GROQ_WEB_COUNTRY || 'united states';
     const timeoutMsCandidate = Number(process.env.GROQ_WEB_TIMEOUT_MS ?? this.llmConfig.timeoutMs);
     const timeoutMs = Number.isFinite(timeoutMsCandidate) && timeoutMsCandidate > 0 ? timeoutMsCandidate : 12000;

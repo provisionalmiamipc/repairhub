@@ -156,18 +156,46 @@ Log de retrieval:
 - Tabla `retrieval_log`
 - Se guarda un registro por estrategia (`case|manual|web|llm|heuristic`) con `score` y `meta`.
 
-## Groq Integration (LLM + Fallback)
+## LLM Integration (Generic Provider + Fallback)
 
 Variables de entorno:
 - `LLM_ENABLED` (default: `true`)
-- `GROQ_API_KEY` (si falta, no se usa LLM)
-- `GROQ_MODEL` (default: `llama-3.1-8b-instant`)
+- `LLM_PROVIDER` (`openai`, `groq`, u otro proveedor compatible)
+- `LLM_API_KEY` (si falta, no se usa LLM)
+- `LLM_MODEL` (requerido; no hay modelo predeterminado)
+- `LLM_BASE_URL` (opcional; necesario para proveedores compatibles tipo Groq)
 - `LLM_TIMEOUT_MS` (default: `12000`)
 
 Comportamiento:
-- Si LLM esta habilitado y hay `GROQ_API_KEY`, se intenta usar Groq via API compatible OpenAI con JSON Schema estricto.
+- Si LLM esta habilitado y hay `LLM_API_KEY` + `LLM_MODEL`, se intenta usar el proveedor configurado via SDK compatible OpenAI con JSON Schema estricto.
 - Si ocurre error (`401`, `429`, `5xx`, timeout o red), se activa fallback heuristico automaticamente.
 - No se exponen claves al frontend.
+
+Ejemplo OpenAI:
+
+```env
+LLM_ENABLED=true
+LLM_PROVIDER=openai
+LLM_API_KEY=tu_openai_api_key
+LLM_MODEL=gpt-4.1-mini
+LLM_BASE_URL=
+LLM_TIMEOUT_MS=12000
+```
+
+Ejemplo Groq:
+
+```env
+LLM_ENABLED=true
+LLM_PROVIDER=groq
+LLM_API_KEY=tu_groq_api_key
+LLM_MODEL=llama-3.1-8b-instant
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_TIMEOUT_MS=12000
+```
+
+Web search:
+- `WEB_SEARCH_PROVIDER` usa `duckduckgo` por defecto.
+- Para usar Groq Compound search, configura `WEB_SEARCH_PROVIDER=groq` y `GROQ_WEB_MODEL`.
 
 Trazabilidad:
 - Cada recomendacion guarda en `chat_message.meta.engineUsed`: `llm` o `heuristic`.

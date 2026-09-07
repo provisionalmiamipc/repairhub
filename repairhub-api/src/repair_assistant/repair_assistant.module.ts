@@ -51,7 +51,7 @@ import { LlmModule } from '../llm/llm.module';
         duckDuckGoSearchProvider: DuckDuckGoSearchProvider,
         noopSearchProvider: NoopSearchProvider,
       ) => {
-        const provider = (process.env.WEB_SEARCH_PROVIDER ?? 'groq').toLowerCase();
+        const provider = (process.env.WEB_SEARCH_PROVIDER ?? 'duckduckgo').toLowerCase();
         if (provider === 'noop' || provider === 'none' || provider === 'disabled') {
           return noopSearchProvider;
         }
@@ -62,10 +62,6 @@ import { LlmModule } from '../llm/llm.module';
           return duckDuckGoSearchProvider;
         }
 
-        // default selection: Groq if API key exists, otherwise DuckDuckGo.
-        if (process.env.GROQ_API_KEY) {
-          return groqSearchProvider;
-        }
         return duckDuckGoSearchProvider;
       },
     },

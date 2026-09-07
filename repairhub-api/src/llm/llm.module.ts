@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LLM_CONFIG, readLlmConfigFromEnv } from './llm.config';
-import { GroqProvider, LLM_PROVIDER, LlmService } from './llm.service';
+import { LLM_PROVIDER, LlmService, OpenAiCompatibleProvider } from './llm.service';
 
 @Module({
   providers: [
@@ -8,10 +8,10 @@ import { GroqProvider, LLM_PROVIDER, LlmService } from './llm.service';
       provide: LLM_CONFIG,
       useFactory: () => readLlmConfigFromEnv(),
     },
-    GroqProvider,
+    OpenAiCompatibleProvider,
     {
       provide: LLM_PROVIDER,
-      useExisting: GroqProvider,
+      useExisting: OpenAiCompatibleProvider,
     },
     LlmService,
   ],

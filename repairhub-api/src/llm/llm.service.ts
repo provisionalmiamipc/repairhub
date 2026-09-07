@@ -164,23 +164,25 @@ class LlmProviderError extends Error {
 }
 
 @Injectable()
-export class GroqProvider implements LlmProvider {
-  private readonly logger = new Logger(GroqProvider.name);
+export class OpenAiCompatibleProvider implements LlmProvider {
+  private readonly logger = new Logger(OpenAiCompatibleProvider.name);
   private client: any | null = null;
 
   constructor(@Inject(LLM_CONFIG) private readonly llmConfig: LlmConfig) {}
 
   private getClient() {
-    if (!this.llmConfig.groqApiKey) {
-      throw new LlmProviderError('LLM_DISABLED', 'GROQ_API_KEY is not configured');
+    if (!this.llmConfig.apiKey) {
+      throw new LlmProviderError('LLM_DISABLED', 'LLM_API_KEY is not configured');
+    }
+    if (!this.llmConfig.model) {
+      throw new LlmProviderError('LLM_DISABLED', 'LLM_MODEL is not configured');
     }
     if (!this.client) {
-      // Reuse OpenAI-compatible SDK pointing to Groq API.
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const OpenAI = require('openai').default ?? require('openai');
       this.client = new OpenAI({
-        apiKey: this.llmConfig.groqApiKey,
-        baseURL: 'https://api.groq.com/openai/v1',
+        apiKey: this.llmConfig.apiKey,
+        baseURL: this.llmConfig.baseURL,
       });
     }
     return this.client;
@@ -201,18 +203,18 @@ export class GroqProvider implements LlmProvider {
     }
 
     if (error?.name === 'AbortError') {
-      return new LlmProviderError('TIMEOUT', 'Timeout while calling Groq');
+      return new LlmProviderError('TIMEOUT', `Timeout while calling ${this.llmConfig.provider}`);
     }
 
     const status = error?.status ?? error?.response?.status;
     if (status === 401 || status === 403) {
-      return new LlmProviderError('AUTH_ERROR', 'Groq authentication error');
+      return new LlmProviderError('AUTH_ERROR', `${this.llmConfig.provider} authentication error`);
     }
     if (status === 429) {
-      return new LlmProviderError('RATE_LIMIT', 'Rate limit Groq');
+      return new LlmProviderError('RATE_LIMIT', `Rate limit ${this.llmConfig.provider}`);
     }
     if (typeof status === 'number' && status >= 500) {
-      return new LlmProviderError('SERVER_ERROR', 'Groq server error');
+      return new LlmProviderError('SERVER_ERROR', `${this.llmConfig.provider} server error`);
     }
 
     const code = String(error?.code ?? '').toUpperCase();
@@ -224,7 +226,7 @@ export class GroqProvider implements LlmProvider {
       return new LlmProviderError('INVALID_RESPONSE', 'Invalid model response');
     }
 
-    return new LlmProviderError('UNKNOWN', error?.message ?? 'Unknown Groq error');
+    return new LlmProviderError('UNKNOWN', error?.message ?? `Unknown ${this.llmConfig.provider} error`);
   }
 
   private buildPrompts(input: LlmInput) {
@@ -347,7 +349,7 @@ export class GroqProvider implements LlmProvider {
       if (!unsupported) throw error;
 
       this.logger.warn(
-        'Groq model rejected json_schema response_format; retrying with json_object mode.',
+        `${this.llmConfig.provider} model rejected json_schema response_format; retrying with json_object mode.`,
       );
       return client.chat.completions.create(
         {
@@ -403,7 +405,7 @@ export class GroqProvider implements LlmProvider {
 
       const outputText = String((response as any)?.choices?.[0]?.message?.content ?? '');
       if (!outputText || typeof outputText !== 'string') {
-        throw new LlmProviderError('INVALID_RESPONSE', 'Groq did not return message content');
+        throw new LlmProviderError('INVALID_RESPONSE', `${this.llmConfig.provider} did not return message content`);
       }
 
       const jsonText = this.extractJsonCandidate(outputText);
@@ -412,7 +414,7 @@ export class GroqProvider implements LlmProvider {
       return repairPlanSchema.parse(normalized);
     } catch (error) {
       const mapped = this.mapError(error);
-      this.logger.warn(`Groq provider error [${mapped.code}]: ${mapped.message}`);
+      this.logger.warn(`LLM provider error [${mapped.code}]: ${mapped.message}`);
       throw mapped;
     } finally {
       clearTimeout(timeout);
@@ -433,12 +435,12 @@ export class GroqProvider implements LlmProvider {
 
       const outputText = String((response as any)?.choices?.[0]?.message?.content ?? '').trim();
       if (!outputText) {
-        throw new LlmProviderError('INVALID_RESPONSE', 'Groq did not return message content');
+        throw new LlmProviderError('INVALID_RESPONSE', `${this.llmConfig.provider} did not return message content`);
       }
       return outputText;
     } catch (error) {
       const mapped = this.mapError(error);
-      this.logger.warn(`Groq provider error [${mapped.code}]: ${mapped.message}`);
+      this.logger.warn(`LLM provider error [${mapped.code}]: ${mapped.message}`);
       throw mapped;
     } finally {
       clearTimeout(timeout);
@@ -467,7 +469,7 @@ export class GroqProvider implements LlmProvider {
       '',
       'Return JSON with exactly:',
       'defectivePart: return the original issue unchanged.',
-      'estimated: only "Scope of Service" plus 8-12 short • bullets.',
+      'estimated: only 8-12 short • bullets.',
       '',
       'Scope rules:',
       'Each bullet must be brief, technical, non-repetitive, and adapted to the issue.',
@@ -505,7 +507,7 @@ export class GroqProvider implements LlmProvider {
 
       const outputText = String((response as any)?.choices?.[0]?.message?.content ?? '');
       if (!outputText) {
-        throw new LlmProviderError('INVALID_RESPONSE', 'Groq did not return message content');
+        throw new LlmProviderError('INVALID_RESPONSE', `${this.llmConfig.provider} did not return message content`);
       }
 
       const parsed = JSON.parse(this.extractJsonCandidate(outputText)) as Partial<ServiceEstimateOutput> & {
@@ -525,7 +527,7 @@ export class GroqProvider implements LlmProvider {
       return normalized;
     } catch (error) {
       const mapped = this.mapError(error);
-      this.logger.warn(`Groq estimate error [${mapped.code}]: ${mapped.message}`);
+      this.logger.warn(`LLM estimate error [${mapped.code}]: ${mapped.message}`);
       throw mapped;
     } finally {
       clearTimeout(timeout);
@@ -573,7 +575,7 @@ export class GroqProvider implements LlmProvider {
 
     if (!bulletLines.length) return '';
 
-    return ['Scope of Service', '', ...bulletLines.slice(0, 12)].join('\n').toLocaleUpperCase();
+    return [...bulletLines.slice(0, 12)].join('\n').toLocaleUpperCase();
   }
 
   private stringifyEstimateLine(value: unknown): string {
@@ -636,8 +638,6 @@ export class GroqProvider implements LlmProvider {
           : '• REPAIR/REPLACE AFFECTED COMPONENT';
 
     return [
-      'SCOPE OF SERVICE',
-      '',
       primary,
       '• INSPECT RELATED SYSTEMS',
       '• ADJUST AND ALIGN MECHANISM',
@@ -686,7 +686,7 @@ export class GroqProvider implements LlmProvider {
       }
     } catch (error) {
       const mapped = this.mapError(error);
-      this.logger.warn(`Groq stream error [${mapped.code}]: ${mapped.message}`);
+      this.logger.warn(`LLM stream error [${mapped.code}]: ${mapped.message}`);
       throw mapped;
     } finally {
       clearTimeout(timeout);
@@ -707,8 +707,8 @@ export class LlmService {
     input: LlmInput,
     externalSignal?: AbortSignal,
   ): Promise<RepairPlanOutput | null> {
-    if (!this.llmConfig.enabled || !this.llmConfig.groqApiKey) {
-      this.logger.log('LLM disabled or GROQ_API_KEY missing. Using heuristic fallback.');
+    if (!this.isConfigured()) {
+      this.logger.log('LLM disabled, LLM_API_KEY missing, or LLM_MODEL missing. Using heuristic fallback.');
       return null;
     }
 
@@ -724,8 +724,8 @@ export class LlmService {
     input: LlmChatInput,
     externalSignal?: AbortSignal,
   ): Promise<string> {
-    if (!this.llmConfig.enabled || !this.llmConfig.groqApiKey) {
-      throw new Error('LLM is disabled or GROQ_API_KEY is missing');
+    if (!this.isConfigured()) {
+      throw new Error('LLM is disabled, LLM_API_KEY is missing, or LLM_MODEL is missing');
     }
 
     return this.provider.generateChatAnswer(input, externalSignal);
@@ -740,7 +740,7 @@ export class LlmService {
       throw new Error('Defective part is required');
     }
 
-    if (!this.llmConfig.enabled || !this.llmConfig.groqApiKey) {
+    if (!this.isConfigured()) {
       throw new Error('AI estimate generation is not configured.');
     }
 
@@ -751,7 +751,7 @@ export class LlmService {
     input: LlmInput,
     externalSignal?: AbortSignal,
   ): Promise<AsyncIterable<LlmStreamEvent> | null> {
-    if (!this.llmConfig.enabled || !this.llmConfig.groqApiKey) return null;
+    if (!this.isConfigured()) return null;
 
     try {
       return this.provider.streamRepairPlan(input, externalSignal);
@@ -761,5 +761,9 @@ export class LlmService {
       );
       return null;
     }
+  }
+
+  private isConfigured(): boolean {
+    return Boolean(this.llmConfig.enabled && this.llmConfig.apiKey && this.llmConfig.model);
   }
 }

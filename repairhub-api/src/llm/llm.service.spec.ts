@@ -30,13 +30,13 @@ describe('LlmService', () => {
     jest.clearAllMocks();
   });
 
-  it('returns null when GROQ_API_KEY is missing (heuristic fallback)', async () => {
+  it('returns null when LLM_API_KEY is missing (heuristic fallback)', async () => {
     const service = new LlmService(
       {
         enabled: true,
-        provider: 'groq',
-        groqApiKey: undefined,
-        model: 'llama-3.1-8b-instant',
+        provider: 'openai',
+        apiKey: undefined,
+        model: 'test-model',
         timeoutMs: 12000,
       } as any,
       provider as any,
@@ -48,14 +48,32 @@ describe('LlmService', () => {
     expect(provider.generateRepairPlan).not.toHaveBeenCalled();
   });
 
-  it('returns null when Groq provider fails (heuristic fallback)', async () => {
+  it('returns null when LLM_MODEL is missing (heuristic fallback)', async () => {
+    const service = new LlmService(
+      {
+        enabled: true,
+        provider: 'openai',
+        apiKey: 'key',
+        model: undefined,
+        timeoutMs: 12000,
+      } as any,
+      provider as any,
+    );
+
+    const result = await service.generateRepairPlan(input);
+
+    expect(result).toBeNull();
+    expect(provider.generateRepairPlan).not.toHaveBeenCalled();
+  });
+
+  it('returns null when provider fails (heuristic fallback)', async () => {
     provider.generateRepairPlan.mockRejectedValue(new Error('RATE_LIMIT'));
     const service = new LlmService(
       {
         enabled: true,
-        provider: 'groq',
-        groqApiKey: 'key',
-        model: 'llama-3.1-8b-instant',
+        provider: 'openai',
+        apiKey: 'key',
+        model: 'test-model',
         timeoutMs: 12000,
       } as any,
       provider as any,
@@ -83,9 +101,9 @@ describe('LlmService', () => {
     const service = new LlmService(
       {
         enabled: true,
-        provider: 'groq',
-        groqApiKey: 'key',
-        model: 'llama-3.1-8b-instant',
+        provider: 'openai',
+        apiKey: 'key',
+        model: 'test-model',
         timeoutMs: 12000,
       } as any,
       provider as any,
