@@ -1,6 +1,5 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AppStateService } from '../store/app-state.service';
 
@@ -25,11 +24,7 @@ import { AppStateService } from '../store/app-state.service';
  * ]
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const router = inject(Router);
   const appState = inject(AppStateService);
-  const isAuthEndpoint = req.url.includes('/auth/login') ||
-    req.url.includes('/auth/logout') ||
-    req.url.includes('/auth/refresh');
   
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -44,32 +39,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
           
         case 401:
-          if (isAuthEndpoint) {
-            errorMessage = error.error?.message || error.message || 'Unauthorized';
-            break;
-          }
-
-          // Unauthorized - Invalid or expired token
-          errorMessage = 'Session expired. Please sign in again.';
-          appState.addNotification('error', errorMessage, 3000);
-          
-          // Limpiar sesión del usuario
-          appState.clearUserSession();
-          
-          // Redirigir al login después de 500ms, salvo que estemos en la página de activación
-          try {
-            const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-            const onActivate = pathname.startsWith('/activate');
-            if (!onActivate) {
-              setTimeout(() => {
-                router.navigate(['/login']);
-              }, 500);
-            }
-          } catch (e) {
-            setTimeout(() => {
-              router.navigate(['/login']);
-            }, 500);
-          }
+          // authInterceptor owns token refresh and final session redirection.
+          // Handling 401 here would redirect before refresh can complete.
+          errorMessage = error.error?.message || error.message || 'Unauthorized';
           break;
           
         case 403:

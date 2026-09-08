@@ -39,7 +39,7 @@ describe('errorInterceptor', () => {
     expect(errorInterceptor).toBeTruthy();
   });
   
-  it('should handle 401 error (Unauthorized) - clear session and redirect to login', (done) => {
+  it('should pass 401 handling to the authentication interceptor', (done) => {
     const error = new HttpErrorResponse({
       status: 401,
       statusText: 'Unauthorized',
@@ -51,21 +51,11 @@ describe('errorInterceptor', () => {
     TestBed.runInInjectionContext(() => {
       errorInterceptor(mockRequest, mockNext).subscribe({
         error: (err) => {
-          // Verificar que se llamó clearUserSession
-          expect(appStateService.clearUserSession).toHaveBeenCalledTimes(1);
-          
-          // Verificar que se agregó notificación
-          expect(appStateService.addNotification).toHaveBeenCalledWith(
-            'error',
-            jasmine.stringContaining('Sesión expirada'),
-            3000
-          );
-          
-          // Verificar que se redirige al login (setTimeout, así que hay que esperar)
-          setTimeout(() => {
-            expect(router.navigate).toHaveBeenCalledWith(['/login']);
-            done();
-          }, 600);
+          expect(err).toBe(error);
+          expect(appStateService.clearUserSession).not.toHaveBeenCalled();
+          expect(appStateService.addNotification).not.toHaveBeenCalled();
+          expect(router.navigate).not.toHaveBeenCalled();
+          done();
         },
       });
     });
