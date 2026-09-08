@@ -576,8 +576,12 @@ export class EmployeesFormModernComponent implements OnInit {
         },
         error: (err) => {
           const status = err?.status;
+          const apiMessage = err?.error?.message;
+          const errorMessage = Array.isArray(apiMessage)
+            ? apiMessage.join(', ')
+            : apiMessage;
           if (status === 409) {
-            const msg = err?.error?.message || 'Conflict: phone/email already exists';
+            const msg = errorMessage || 'Conflict: phone/email already exists';
             this.state.update(s => ({ ...s, isSubmitting: false, submitError: msg }));
             return;
           }
@@ -585,7 +589,7 @@ export class EmployeesFormModernComponent implements OnInit {
           this.state.update(s => ({
             ...s,
             isSubmitting: false,
-            submitError: err?.message || 'Error saving employee'
+            submitError: errorMessage || err?.message || 'Error saving employee'
           }));
         }
       });
